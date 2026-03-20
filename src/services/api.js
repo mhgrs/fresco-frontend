@@ -1,0 +1,13 @@
+import axios from 'axios';
+
+// Instancia configurada para apuntar al backend de Django
+const api = axios.create({
+    baseURL: 'http://127.0.0.1:8000/api/',
+    timeout: 5000,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+});
+
+export default api;
