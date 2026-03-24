@@ -1,13 +1,12 @@
 import axios from 'axios';
 
-// Instancia configurada para apuntar al backend de Django
+// Vite usa import.meta.env para leer variables de entorno.
+// Si no existe (desarrollo local), usará el localhost por defecto.
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api/',
-    timeout: 5000,
-    headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    }
+  baseURL: baseURL,
 });
 
+// ... resto de tu código de interceptores (tokens, etc.)
 export default api;
