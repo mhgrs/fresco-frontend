@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
-export default function CatalogoProductos() {
+export default function CatalogoProductos({ usuario }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [cargando, setCargando] = useState(true);
-  
+
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState('TODOS');
 
@@ -44,6 +44,10 @@ export default function CatalogoProductos() {
   }, []);
 
   const alternarEstado = async (id, estadoActual) => {
+    if (!['ADMIN', 'SUPERVISOR'].includes(usuario?.rol)) {
+      mostrarNotificacion('No tienes los permisos', 'error');
+      return;
+    }
     try {
       await api.patch(`inventario/productos/${id}/`, { esta_activo: !estadoActual });
       mostrarNotificacion(`Producto ${estadoActual ? 'oculto' : 'visible'}`, 'success');
@@ -51,6 +55,14 @@ export default function CatalogoProductos() {
     } catch (error) {
       mostrarNotificacion('Error al actualizar el estado', 'error');
     }
+  };
+
+  const intentarEliminar = (prod) => {
+    if (!['ADMIN', 'SUPERVISOR'].includes(usuario?.rol)) {
+      mostrarNotificacion('No tienes los permisos', 'error');
+      return;
+    }
+    setConfirmarEliminar({ visible: true, id: prod.id, nombre: prod.nombre });
   };
 
   const ejecutarEliminacion = async () => {
@@ -66,6 +78,10 @@ export default function CatalogoProductos() {
   };
 
   const abrirModalAjuste = (producto) => {
+    if (!['ADMIN', 'SUPERVISOR', 'BODEGA'].includes(usuario?.rol)) {
+      mostrarNotificacion('No tienes los permisos', 'error');
+      return;
+    }
     setAjusteStock({ visible: true, producto, tipo: 'ingreso', cantidad: '' });
   };
 
@@ -90,6 +106,21 @@ export default function CatalogoProductos() {
       cargarDatos();
     } catch (error) {
       mostrarNotificacion('Error al actualizar el stock', 'error');
+    }
+  };
+
+  const intentarEditar = (id) => {
+    if (!['ADMIN', 'SUPERVISOR', 'BODEGA'].includes(usuario?.rol)) {
+      mostrarNotificacion('No tienes los permisos', 'error');
+      return;
+    }
+    navigate(`/inventario/editar/${id}`);
+  };
+
+  const intentarNuevo = (e) => {
+    if (!['ADMIN', 'SUPERVISOR'].includes(usuario?.rol)) {
+      e.preventDefault();
+      mostrarNotificacion('No tienes los permisos', 'error');
     }
   };
 
@@ -167,7 +198,7 @@ export default function CatalogoProductos() {
                       e.preventDefault();
                     }
                   }}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-lg" 
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b] text-lg" 
                   placeholder="0" 
                 />
                 <p className="text-xs text-gray-500 mt-2">Stock actual: {ajusteStock.producto.tipo_venta === 'UNIDAD' ? Math.round(ajusteStock.producto.stock) : parseFloat(ajusteStock.producto.stock)}</p>
@@ -184,10 +215,17 @@ export default function CatalogoProductos() {
 
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Catálogo de Productos</h1>
-        <Link to="/inventario/nuevo" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold shadow transition flex items-center">
-          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-          Nuevo Producto
-        </Link>
+        <div className="flex items-center space-x-2">
+          {['ADMIN', 'SUPERVISOR', 'BODEGA'].includes(usuario?.rol) && (
+            <Link to="/categorias" title="Administrar Categorías" className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded shadow-sm transition flex items-center justify-center">
+              <span className="text-lg">🏷️</span>
+            </Link>
+          )}
+          <Link to="/inventario/nuevo" onClick={intentarNuevo} className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-4 py-2 rounded font-bold shadow transition flex items-center">
+            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+            Nuevo Producto
+          </Link>
+        </div>
       </div>
 
       {/* Buscador */}
@@ -195,7 +233,7 @@ export default function CatalogoProductos() {
         <input
           type="text"
           placeholder="Buscar producto por nombre, SKU o código de barras..."
-          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-700"
+          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#91cf5b] focus:border-[#91cf5b] transition-colors text-gray-700"
           value={terminoBusqueda}
           onChange={(e) => setTerminoBusqueda(e.target.value)}
         />
@@ -205,7 +243,7 @@ export default function CatalogoProductos() {
       <div className="flex space-x-2 mb-4 overflow-x-auto pb-2 flex-none custom-scrollbar">
         <button
           onClick={() => setCategoriaActiva('TODOS')}
-          className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${categoriaActiva === 'TODOS' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}
+          className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${categoriaActiva === 'TODOS' ? 'bg-[#91cf5b] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}
         >
           Todos
         </button>
@@ -213,7 +251,7 @@ export default function CatalogoProductos() {
           <button
             key={cat.id}
             onClick={() => setCategoriaActiva(cat.id)}
-            className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${categoriaActiva === cat.id ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}
+            className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${categoriaActiva === cat.id ? 'bg-[#91cf5b] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}
           >
             {cat.nombre}
           </button>
@@ -255,7 +293,7 @@ export default function CatalogoProductos() {
                       </button>
 
                       {/* ICONO EDITAR */}
-                      <button onClick={() => navigate(`/inventario/editar/${prod.id}`)} title="Editar" className="text-blue-600 hover:text-blue-900 transition-transform hover:scale-110">
+                      <button onClick={() => intentarEditar(prod.id)} title="Editar" className="text-[#91cf5b] hover:text-[#7ab848] transition-transform hover:scale-110">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                       </button>
                       

@@ -6,6 +6,7 @@ export default function PuntoDeVenta() {
   const [carrito, setCarrito] = useState([]);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [resultadosBusqueda, setResultadosBusqueda] = useState([]);
+  const [ultimoAgregado, setUltimoAgregado] = useState(null);
   
   const [modalAbierto, setModalAbierto] = useState(false);
   const [metodoPago, setMetodoPago] = useState('EFECTIVO');
@@ -42,6 +43,11 @@ export default function PuntoDeVenta() {
   useEffect(() => {
     cargarProductos();
     inputBusquedaRef.current?.focus();
+
+    // Auto-recargar el catálogo sin intervención del usuario cuando el internet vuelve y finaliza la sincronización
+    const onSincronizacion = () => cargarProductos();
+    window.addEventListener('ventasSincronizadas', onSincronizacion);
+    return () => window.removeEventListener('ventasSincronizadas', onSincronizacion);
   }, []);
 
   // Capturar tipeo global para enfocar automáticamente el buscador
@@ -49,6 +55,15 @@ export default function PuntoDeVenta() {
     const manejarTipeoGlobal = (e) => {
       // Si el modal de cobro está abierto, no intervenimos
       if (modalAbierto) return;
+
+      // Atajo F2: Limpiar y enfocar buscador
+      if (e.key === 'F2') {
+        e.preventDefault();
+        setTerminoBusqueda('');
+        inputBusquedaRef.current?.focus();
+        return;
+      }
+
       // Si el usuario ya está escribiendo en otro input (ej. cantidad en carrito)
       if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
 
@@ -94,6 +109,8 @@ export default function PuntoDeVenta() {
       }
       return [...actual, { ...producto, cantidad: 1 }];
     });
+    // Se le agrega un timestamp para forzar que la animación se repita incluso si escaneas el mismo producto
+    setUltimoAgregado({ ...producto, timestamp: Date.now() });
     setTerminoBusqueda('');
     inputBusquedaRef.current?.focus();
   };
@@ -144,6 +161,7 @@ export default function PuntoDeVenta() {
 
   const vaciarCarrito = () => {
     setCarrito([]);
+    setUltimoAgregado(null);
     inputBusquedaRef.current?.focus();
   };
 
@@ -156,6 +174,8 @@ export default function PuntoDeVenta() {
     setProcesando(true);
 
     const payloadVenta = {
+      // ID único temporal por si la venta se queda en memoria
+      offline_id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
       total: totalRedondeado,
       metodo_pago: metodoPago,
       detalles: carrito.map(item => ({
@@ -167,9 +187,12 @@ export default function PuntoDeVenta() {
     };
 
     try {
-      await api.post('inventario/ventas/', payloadVenta);
+      const payloadAEnviar = { ...payloadVenta };
+      delete payloadAEnviar.offline_id; // Limpiamos para el backend
+      await api.post('inventario/ventas/', payloadAEnviar);
       mostrarNotificacion('Venta registrada exitosamente', 'success');
       setCarrito([]);
+      setUltimoAgregado(null);
       setModalAbierto(false);
       setEfectivoRecibido('');
       setMetodoPago('EFECTIVO');
@@ -180,8 +203,21 @@ export default function PuntoDeVenta() {
         const ventasOffline = JSON.parse(localStorage.getItem('ventas_offline')) || [];
         ventasOffline.push(payloadVenta);
         localStorage.setItem('ventas_offline', JSON.stringify(ventasOffline));
+        
+        // Descontar el stock de manera "optimista" del catálogo en memoria
+        const nuevoCatalogo = catalogo.map(prod => {
+          const itemVendido = carrito.find(c => c.id === prod.id);
+          if (itemVendido) {
+            return { ...prod, stock: prod.stock - itemVendido.cantidad };
+          }
+          return prod;
+        });
+        setCatalogo(nuevoCatalogo);
+        localStorage.setItem('catalogo_offline', JSON.stringify(nuevoCatalogo));
+
         mostrarNotificacion('Sin conexión: Venta guardada para sincronizar luego', 'warning');
         setCarrito([]);
+        setUltimoAgregado(null);
         setModalAbierto(false);
         setEfectivoRecibido('');
         setMetodoPago('EFECTIVO');
@@ -200,7 +236,7 @@ export default function PuntoDeVenta() {
       
       {/* Notificación Toast */}
       {notificacion.visible && (
-        <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded shadow-lg text-white font-bold transition-all ${notificacion.tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+        <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 z-50 px-5 py-2 text-[0.9rem] rounded shadow-lg font-bold transition-all ${notificacion.tipo === 'success' ? 'bg-green-600 text-white' : notificacion.tipo === 'warning' ? 'bg-yellow-500 text-gray-900' : 'bg-red-600 text-white'}`}>
           {notificacion.mensaje}
         </div>
       )}
@@ -211,7 +247,7 @@ export default function PuntoDeVenta() {
           <input
             ref={inputBusquedaRef}
             type="text"
-            className="w-full p-4 text-lg border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full p-4 text-lg border-2 border-gray-300 rounded-lg h-12 focus:outline-none"
             placeholder="Escanee código de barras o busque por nombre/SKU..."
             value={terminoBusqueda}
             onChange={(e) => setTerminoBusqueda(e.target.value)}
@@ -232,13 +268,31 @@ export default function PuntoDeVenta() {
                     <span className="font-semibold text-gray-800 line-clamp-2">{prod.nombre}</span>
                   </div>
                   <div className="flex justify-between items-end mt-2">
-                    <span className="text-blue-600 font-bold">${prod.precio}</span>
+                    <span className="text-[#91cf5b] font-bold">${prod.precio}</span>
                     <span className="text-xs bg-gray-100 px-2 py-1 rounded">
                       Stock: {prod.tipo_venta === 'UNIDAD' ? Math.round(prod.stock) : Number(prod.stock).toFixed(2)}
                     </span>
                   </div>
                 </button>
               ))}
+            </div>
+          ) : ultimoAgregado ? (
+            <div className="h-full flex items-center justify-center pb-[10%]">
+              <style>{`
+                @keyframes fadeInCard {
+                  from { opacity: 0; }
+                  to { opacity: 1; }
+                }
+              `}</style>
+              <div key={ultimoAgregado.timestamp} className="bg-white p-8 rounded-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 w-full max-w-md flex flex-col" style={{ animation: 'fadeInCard 0.4s ease-out forwards' }}>
+                <div className="text-left">
+                  <h3 className="text-2xl font-semibold text-gray-800 tracking-tight">{ultimoAgregado.nombre}</h3>
+                  <p className="text-xs text-gray-400 mt-1">{ultimoAgregado.sku}</p>
+                </div>
+                <div className="text-right mt-6">
+                  <span className="text-4xl font-light text-gray-900">${ultimoAgregado.precio}</span>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-gray-400">Esperando escaneo o búsqueda...</div>
@@ -277,7 +331,7 @@ export default function PuntoDeVenta() {
                   onBlur={() => validarCantidad(item.id, item.tipo_venta)}
                   step={item.tipo_venta === 'GRANEL' ? '0.001' : '1'}
                   min="0"
-                  className="w-16 text-center text-sm font-medium border rounded p-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-16 text-center text-sm font-medium border rounded p-1 focus:outline-none focus:ring-1 focus:ring-[#91cf5b]"
                 />
                 <button onClick={() => actualizarCantidadBotones(item.id, item.tipo_venta === 'GRANEL' ? 0.1 : 1, item.tipo_venta)} className="bg-gray-200 w-8 h-8 rounded text-gray-700 font-bold hover:bg-gray-300">+</button>
               </div>
@@ -299,7 +353,7 @@ export default function PuntoDeVenta() {
           <button 
             onClick={() => setModalAbierto(true)}
             disabled={carrito.length === 0}
-            className={`w-full py-4 rounded-xl text-white font-bold text-xl transition-all shadow-md ${carrito.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg active:scale-95'}`}
+            className={`w-full py-4 rounded-xl text-white font-bold text-xl transition-all shadow-md ${carrito.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#91cf5b] hover:bg-[#7ab848] hover:shadow-lg active:scale-95'}`}
           >
             COBRAR
           </button>
@@ -313,7 +367,10 @@ export default function PuntoDeVenta() {
             <h2 className="text-2xl font-bold mb-4 border-b pb-2">Procesar Pago</h2>
             <div className="text-center mb-6">
               <p className="text-gray-500 font-medium">Monto Total</p>
-              <p className="text-4xl font-black text-gray-800">${total}</p>
+              <p className="text-4xl font-black text-gray-800">${totalRedondeado}</p>
+              {metodoPago === 'EFECTIVO' && total !== totalRedondeado && (
+                <p className="text-sm text-gray-400 mt-1">Monto original: ${total}</p>
+              )}
             </div>
 
             {/* Ajuste de texto para evitar desbordamientos en TRANSFERENCIA */}
@@ -322,7 +379,7 @@ export default function PuntoDeVenta() {
                 <button
                   key={m}
                   onClick={() => setMetodoPago(m)}
-                  className={`p-2 text-xs lg:text-sm font-bold rounded-lg border-2 break-words flex items-center justify-center text-center transition-colors ${metodoPago === m ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                  className={`p-2 text-xs lg:text-sm font-bold rounded-lg border-2 break-words flex items-center justify-center text-center transition-colors ${metodoPago === m ? 'border-[#91cf5b] bg-[#f0f9e8] text-[#7ab848]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                 >
                   {m === 'TRANSFERENCIA' ? 'TRANSF.' : m}
                 </button>
@@ -335,7 +392,7 @@ export default function PuntoDeVenta() {
                 <input
                   type="number"
                   autoFocus
-                  className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-xl font-bold text-gray-800"
+                  className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#91cf5b] text-xl font-bold text-gray-800"
                   value={efectivoRecibido}
                   onChange={(e) => setEfectivoRecibido(e.target.value)}
                 />

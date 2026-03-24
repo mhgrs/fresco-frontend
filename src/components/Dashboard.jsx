@@ -25,11 +25,11 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-10 border-b border-gray-300 pb-4">
           <div>
             <h1 className="text-3xl font-black text-gray-800">Raíces de Numpay</h1>
-            <p className="text-gray-600 mt-1">Usuario activo: <span className="font-bold">{usuario.nombre}</span> ({usuario.rol})</p>
+            <p className="text-gray-600 text-xs mt-1">Usuario activo: <span className="font-bold">{usuario.nombre}</span> ({usuario.rol})</p>
           </div>
           <button onClick={cerrarSesion} title="Cerrar Sesión" className=" hover:bg-red-200 text-red-600 p-3 rounded-full transition flex items-center justify-center shadow-sm">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -38,46 +38,42 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Módulo accesible para todos */}
-          <Link to="/pos" className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition flex flex-col items-center text-center border-t-4 border-blue-500">
-            <span className="text-5xl mb-4">💰</span>
-            <h2 className="text-xl font-bold text-gray-800">Punto de Venta</h2>
-            <p className="text-gray-500 mt-2 text-sm">Abrir caja y procesar ventas</p>
-          </Link>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+          {['ADMIN', 'SUPERVISOR', 'CAJERO'].includes(usuario.rol) && (
+            <Link to="/pos" className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center border-t-4 border-blue-500 aspect-square">
+              <span className="text-4xl mb-2">💰</span>
+              <h2 className="text-base font-bold text-gray-800 leading-tight">Punto de Venta</h2>
+              <p className="text-gray-500 mt-1 text-xs">Abrir caja y procesar ventas</p>
+            </Link>
+          )}
 
-          {/* Módulos exclusivos de ADMIN */}
-          {usuario.rol === 'ADMIN' && (
-            <>
-              <Link to="/inventario" className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition flex flex-col items-center text-center border-t-4 border-green-500">
-                <span className="text-5xl mb-4">📦</span>
-                <h2 className="text-xl font-bold text-gray-800">Catálogo de Productos</h2>
-                <p className="text-gray-500 mt-2 text-sm">Gestionar inventario y precios</p>
-              </Link>
+          {['ADMIN', 'SUPERVISOR', 'CAJERO', 'BODEGA'].includes(usuario.rol) && (
+            <Link to="/inventario" className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center border-t-4 border-green-500 aspect-square">
+              <span className="text-4xl mb-2">📦</span>
+              <h2 className="text-base font-bold text-gray-800 leading-tight">Catálogo de Productos</h2>
+              <p className="text-gray-500 mt-1 text-xs">Gestionar inventario y precios</p>
+            </Link>
+          )}
 
-              <Link to="/categorias" className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition flex flex-col items-center text-center border-t-4 border-purple-500">
-                <span className="text-5xl mb-4">🏷️</span>
-                <h2 className="text-xl font-bold text-gray-800">Categorías</h2>
-                <p className="text-gray-500 mt-2 text-sm">Administrar rubros de productos</p>
-              </Link>
+          {['ADMIN', 'SUPERVISOR'].includes(usuario.rol) && (
+            <Link to="/reportes" className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center border-t-4 border-gray-800 aspect-square">
+              <span className="text-4xl mb-2">📊</span>
+              <h2 className="text-base font-bold text-gray-800 leading-tight">Reporte Z</h2>
+              <p className="text-gray-500 mt-1 text-xs">Cierre de caja y transacciones</p>
+            </Link>
+          )}
 
-              <Link to="/reportes" className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition flex flex-col items-center text-center border-t-4 border-gray-800">
-                <span className="text-5xl mb-4">📊</span>
-                <h2 className="text-xl font-bold text-gray-800">Reporte Z</h2>
-                <p className="text-gray-500 mt-2 text-sm">Cierre de caja y transacciones</p>
-              </Link>
-
-              <Link to="/alertas" className="relative bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition flex flex-col items-center text-center border-t-4 border-yellow-500">
-                {alertas.length > 0 && (
-                  <span className="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">
-                    {alertas.length}
-                  </span>
-                )}
-                <span className="text-5xl mb-4">⚠️</span>
-                <h2 className="text-xl font-bold text-gray-800">Alertas Stock</h2>
-                <p className="text-gray-500 mt-2 text-sm">Productos bajo umbral</p>
-              </Link>
-            </>
+          {['ADMIN', 'SUPERVISOR', 'CAJERO'].includes(usuario.rol) && (
+            <Link to="/alertas" className="relative bg-white p-4 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center border-t-4 border-yellow-500 aspect-square">
+              {alertas.length > 0 && (
+                <span className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md animate-pulse">
+                  {alertas.length}
+                </span>
+              )}
+              <span className="text-4xl mb-2">⚠️</span>
+              <h2 className="text-base font-bold text-gray-800 leading-tight">Alertas Stock</h2>
+              <p className="text-gray-500 mt-1 text-xs">Productos bajo umbral</p>
+            </Link>
           )}
         </div>
       </div>

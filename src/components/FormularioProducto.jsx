@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 
-export default function FormularioProducto() {
+export default function FormularioProducto({ usuario }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const esEdicion = Boolean(id);
+
+  const isBodega = usuario?.rol === 'BODEGA';
 
   const [categorias, setCategorias] = useState([]);
   const [cargando, setCargando] = useState(esEdicion);
@@ -152,11 +154,11 @@ export default function FormularioProducto() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Precio (CLP) *</label>
-              <input required type="number" min="0" name="precio" value={formulario.precio} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+              <input disabled={isBodega} required type="number" min="0" name="precio" value={formulario.precio} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Tipo Venta *</label>
-              <select name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500">
+              <select disabled={isBodega} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
                 <option value="UNIDAD">Unidad</option>
                 <option value="GRANEL">Granel</option>
               </select>
@@ -169,12 +171,13 @@ export default function FormularioProducto() {
                 Stock Actual {formulario.tipo_venta === 'UNIDAD' ? '' : '(Kilos, max 2 decimales)'}
               </label>
               <input 
+                disabled={isBodega}
                 type="number" 
                 step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} 
                 name="stock" 
                 value={formulario.stock} 
                 onChange={manejarCambio} 
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" 
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" 
               />
             </div>
             <div>
@@ -182,20 +185,21 @@ export default function FormularioProducto() {
                 Umbral Alerta Mínima
               </label>
               <input 
+                disabled={isBodega}
                 type="number" 
                 step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} 
                 min="0" 
                 name="umbral_stock" 
                 value={formulario.umbral_stock} 
                 onChange={manejarCambio} 
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" 
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" 
               />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Cód. Barras</label>
-            <input type="text" name="codigo_barras" value={formulario.codigo_barras} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" placeholder="Opcional" />
+            <input disabled={isBodega} type="text" name="codigo_barras" value={formulario.codigo_barras} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Opcional" />
           </div>
 
           <div className="flex justify-end space-x-4 pt-4 border-t mt-6">
