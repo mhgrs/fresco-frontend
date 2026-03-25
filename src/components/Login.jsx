@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
 
 export default function Login({ onLogin }) {
   const [credenciales, setCredenciales] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+
+  useEffect(() => {
+    document.title = "FrescoPOS";
+  }, []);
 
   const manejarCambio = (e) => {
     setCredenciales({ ...credenciales, [e.target.name]: e.target.value.trim() });

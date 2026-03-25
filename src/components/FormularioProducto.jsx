@@ -206,7 +206,7 @@ export default function FormularioProducto({ usuario }) {
             <button type="button" onClick={() => navigate('/inventario')} className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
               Cancelar
             </button>
-            <button type="submit" className="bg-blue-600 text-white font-bold py-2 px-6 rounded hover:bg-blue-700 transition">
+            <button type="submit" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded  transition">
               Guardar Producto
             </button>
           </div>

@@ -12,6 +12,10 @@ import api from './services/api';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
 function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
+  useEffect(() => {
+    document.title = "FrescoPOS";
+  }, []);
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <header className="bg-[#91cf5b] text-white h-12 flex items-center px-4 shadow-md">
@@ -29,6 +33,24 @@ function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
       <main className="flex-1 overflow-hidden">
         {children}
       </main>
+    </div>
+  );
+}
+
+function LandingPage() {
+  useEffect(() => {
+    document.title = "Raíces de Numpay";
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center relative">
+      <h1 className="text-5xl font-black text-[#91cf5b] mb-4 tracking-tighter">Raíces de Numpay</h1>
+      <p className="text-xl text-gray-600 font-medium mb-8">Nuestra página web estará disponible pronto.</p>
+      <div className="w-16 h-1 bg-[#91cf5b] mx-auto rounded-full"></div>
+      
+      <Link to="/fresco-login" className="absolute bottom-6 right-6 text-xs text-gray-500 hover:text-gray-800 transition-colors font-medium">
+        FrescoPOS
+      </Link>
     </div>
   );
 }
@@ -139,17 +161,7 @@ export default function App() {
           {/* Ruta secreta para los empleados */}
           <Route path="/fresco-login" element={<Login onLogin={setUsuario} />} />
           {/* Landing Page pública temporal */}
-          <Route path="/" element={
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center relative">
-              <h1 className="text-5xl font-black text-[#91cf5b] mb-4 tracking-tighter">Raíces de Numpay</h1>
-              <p className="text-xl text-gray-600 font-medium mb-8">Nuestra página web estará disponible pronto.</p>
-              <div className="w-16 h-1 bg-[#91cf5b] mx-auto rounded-full"></div>
-              
-              <Link to="/fresco-login" className="absolute bottom-6 right-6 text-xs text-gray-500 hover:text-gray-800 transition-colors font-medium">
-                FrescoPOS
-              </Link>
-            </div>
-          } />
+          <Route path="/" element={<LandingPage />} />
           {/* Redirigir cualquier otra ruta inventada a la página principal */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

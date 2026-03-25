@@ -104,7 +104,7 @@ export default function GestorCategorias({ usuario }) {
             {formulario.id && (
               <button type="button" onClick={() => setFormulario({ id: null, nombre: '', codigo: '' })} className="flex-1 bg-gray-200 py-2 rounded font-bold text-gray-700 hover:bg-gray-300 transition">Cancelar</button>
             )}
-            <button type="submit" className="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700 transition">Guardar</button>
+            <button type="submit" className="flex-1 text-white py-2 rounded font-bold bg-[#91cf5b] hover:bg-[#7ab848] transition">Guardar</button>
           </div>
         </form>
       </div>
