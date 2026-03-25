@@ -29,6 +29,7 @@ export default function Login({ onLogin }) {
 
       // Solicitamos los datos del usuario logueado
       const userResponse = await api.get('inventario/usuarios/me/');
+      localStorage.setItem('usuario', JSON.stringify(userResponse.data));
       onLogin(userResponse.data);
     } catch (err) {
       console.error(err);
@@ -42,8 +43,8 @@ export default function Login({ onLogin }) {
     <div className="min-h-screen bg-gray-200 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-black text-gray-800 tracking-tight">Nova</h1>
-          <p className="text-gray-500 mt-2">Ingrese sus credenciales</p>
+          <h1 className="text-3xl font-black text-[#91cf5b] tracking-tight">FrescoPOS</h1>
+          <p className="text-gray-500 mt-2"></p>
         </div>
 
         {error && (
@@ -60,7 +61,7 @@ export default function Login({ onLogin }) {
               name="username" 
               value={credenciales.username} 
               onChange={manejarCambio} 
-              className="w-full p-3 border rounded focus:outline-none focus:border-blue-500"
+              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent"
               placeholder="Ej: admin o caja"
               required
             />
@@ -72,7 +73,7 @@ export default function Login({ onLogin }) {
               name="password" 
               value={credenciales.password} 
               onChange={manejarCambio} 
-              className="w-full p-3 border rounded focus:outline-none focus:border-blue-500"
+              className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent"
               placeholder="••••••••"
               required
             />
@@ -81,9 +82,9 @@ export default function Login({ onLogin }) {
           <button 
             type="submit" 
             disabled={cargando}
-            className="w-full bg-gray-900 text-white font-bold py-3 px-4 rounded hover:bg-gray-800 transition disabled:opacity-50"
+            className="w-full bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-3 px-4 rounded transition disabled:opacity-50"
           >
-            {cargando ? 'Ingresando...' : 'Ingresar al Sistema'}
+            {cargando ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
         </form>
       </div>
