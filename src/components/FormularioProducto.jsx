@@ -122,7 +122,7 @@ export default function FormularioProducto({ usuario }) {
   if (cargando) return <div className="p-8 text-center text-gray-500">Cargando datos...</div>;
 
   return (
-    <div className="p-6 h-full flex justify-center bg-gray-100 overflow-y-auto relative">
+    <div className="p-6 h-full flex justify-center bg-[var(--color-fondo)] overflow-y-auto relative transition-colors duration-500">
       
       {notificacion.visible && (
         <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded shadow-lg text-white font-bold transition-all ${notificacion.tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -130,7 +130,7 @@ export default function FormularioProducto({ usuario }) {
         </div>
       )}
 
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-2xl h-fit">
+      <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-8 rounded-lg shadow-md w-full max-w-2xl h-fit">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
           {esEdicion ? 'Editar Producto' : 'Crear Nuevo Producto'}
         </h2>

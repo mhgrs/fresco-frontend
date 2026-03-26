@@ -44,8 +44,8 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-200 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full">
+    <div className="min-h-screen bg-[var(--color-fondo)] flex items-center justify-center p-4 transition-colors duration-500">
+      <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 p-8 rounded-xl shadow-lg max-w-sm w-full">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-black text-[#91cf5b] tracking-tight">FrescoPOS</h1>
           <p className="text-gray-500 mt-2"></p>

@@ -17,7 +17,7 @@ function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-[var(--color-fondo)] transition-colors duration-500">
       <header className="bg-[#91cf5b] text-white h-12 flex items-center px-4 shadow-md">
         <Link to="/" title="Volver al Dashboard" className="text-white/80 hover:text-white flex items-center justify-center bg-black/10 hover:bg-black/20 p-2 rounded transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -43,7 +43,7 @@ function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center relative">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--color-fondo)] p-6 text-center relative transition-colors duration-500">
       <h1 className="text-5xl font-black text-[#91cf5b] mb-4 tracking-tighter">Raíces de Numpay</h1>
       <p className="text-xl text-gray-600 font-medium mb-8">Nuestra página web estará disponible pronto.</p>
       <div className="w-16 h-1 bg-[#91cf5b] mx-auto rounded-full"></div>
@@ -60,6 +60,12 @@ export default function App() {
   const [verificandoSesion, setVerificandoSesion] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [sincronizando, setSincronizando] = useState(false);
+
+  // Variables globales de tema preparadas para un futuro selector
+  useEffect(() => {
+    document.documentElement.style.setProperty('--color-fondo', '#fcfbf7'); // Crema muy claro
+    document.documentElement.style.setProperty('--color-tarjeta', 'rgba(255, 255, 255, 0.27)'); // Blanco levemente transparente
+  }, []);
 
   useEffect(() => {
     const cargarUsuario = async () => {
@@ -151,7 +157,7 @@ export default function App() {
   };
 
   if (verificandoSesion) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center text-gray-500 font-medium">Cargando aplicación...</div>;
+    return <div className="min-h-screen bg-[var(--color-fondo)] flex items-center justify-center text-gray-500 font-medium transition-colors duration-500">Cargando aplicación...</div>;
   }
 
   if (!usuario) {

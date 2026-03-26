@@ -18,20 +18,20 @@ export default function AlertasInventario() {
   }, []);
 
   return (
-    <div className="p-6 h-full flex flex-col bg-gray-100 relative overflow-hidden">
+    <div className="p-6 h-full flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Alertas de Inventario</h1>
       </div>
       
-      <div className="bg-white rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
+      <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
         {cargando ? (
           <div className="p-8 text-center text-gray-500 font-medium">Cargando alertas...</div>
         ) : alertas.length === 0 ? (
-          <div className="p-8 text-center text-green-600 font-medium text-lg">No hay alertas de stock bajo. ¡Todo está en orden!</div>
+          <div className="p-8 text-center text-green-700 font-medium text-lg">No hay alertas de stock bajo. ¡Todo está en orden!</div>
         ) : (
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/20">
             {alertas.map(prod => (
-              <div key={prod.id} className="flex justify-between items-center p-5 border border-red-200 bg-red-50 rounded-lg shadow-sm hover:shadow transition">
+              <div key={prod.id} className="flex justify-between items-center p-5 border border-red-200 bg-red-50/80 rounded-lg shadow-sm hover:shadow transition">
                 <div>
                   <h3 className="font-bold text-red-800 text-lg">{prod.nombre}</h3>
                   <p className="text-sm text-red-600">SKU: {prod.sku}</p>

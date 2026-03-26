@@ -140,7 +140,7 @@ export default function CatalogoProductos({ usuario }) {
   });
 
   return (
-    <div className="p-6 h-full flex flex-col bg-gray-100 relative overflow-hidden">
+    <div className="p-6 h-full flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
       
       {/* Toast Notification */}
       {notificacion.visible && (
@@ -229,21 +229,21 @@ export default function CatalogoProductos({ usuario }) {
       </div>
 
       {/* Buscador */}
-      <div className="mb-4 flex-none">
+      <div className="mb-3 flex-none">
         <input
           type="text"
           placeholder="Buscar producto por nombre, SKU o código de barras..."
-          className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#91cf5b] focus:border-[#91cf5b] transition-colors text-gray-700"
+          className="w-full py-2 px-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#91cf5b] focus:border-[#91cf5b] transition-colors text-gray-700"
           value={terminoBusqueda}
           onChange={(e) => setTerminoBusqueda(e.target.value)}
         />
       </div>
 
       {/* Pestañas de Categorías */}
-      <div className="flex space-x-2 mb-4 overflow-x-auto pb-2 flex-none custom-scrollbar">
+      <div className="flex space-x-2 mb-3 overflow-x-auto pb-1 flex-none custom-scrollbar">
         <button
           onClick={() => setCategoriaActiva('TODOS')}
-          className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${categoriaActiva === 'TODOS' ? 'bg-[#91cf5b] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}
+          className={`px-3 py-1 text-sm rounded-full font-bold whitespace-nowrap transition-colors ${categoriaActiva === 'TODOS' ? 'bg-[#91cf5b] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}
         >
           Todos
         </button>
@@ -251,20 +251,20 @@ export default function CatalogoProductos({ usuario }) {
           <button
             key={cat.id}
             onClick={() => setCategoriaActiva(cat.id)}
-            className={`px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${categoriaActiva === cat.id ? 'bg-[#91cf5b] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}
+            className={`px-3 py-1 text-sm rounded-full font-bold whitespace-nowrap transition-colors ${categoriaActiva === cat.id ? 'bg-[#91cf5b] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-200 border border-gray-200'}`}
           >
             {cat.nombre}
           </button>
         ))}
       </div>
       
-      <div className="bg-white rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
+      <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
         {cargando ? (
           <div className="p-8 text-center text-gray-500 font-medium">Cargando catálogo...</div>
         ) : (
           <div className="flex-1 overflow-y-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
+              <thead className="bg-white/60 sticky top-0 z-10 shadow-sm backdrop-blur-md">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">SKU</th>
                   <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
@@ -273,9 +273,9 @@ export default function CatalogoProductos({ usuario }) {
                   <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200">
                 {productosFiltrados.map(prod => (
-                  <tr key={prod.id} className={`hover:bg-gray-50 transition-colors ${!prod.esta_activo ? 'opacity-60 bg-gray-100' : ''}`}>
+                  <tr key={prod.id} className={`hover:bg-white/40 transition-colors ${!prod.esta_activo ? 'opacity-60 bg-gray-200/50' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">{prod.sku}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {prod.nombre} {!prod.esta_activo && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded ml-2">Inactivo</span>}

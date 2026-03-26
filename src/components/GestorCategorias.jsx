@@ -66,7 +66,7 @@ export default function GestorCategorias({ usuario }) {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col md:flex-row gap-6 bg-gray-100 relative overflow-hidden">
+    <div className="p-6 h-full flex flex-col md:flex-row gap-6 bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
       
       {/* Toast Notification */}
       {notificacion.visible && (
@@ -89,7 +89,7 @@ export default function GestorCategorias({ usuario }) {
         </div>
       )}
 
-      <div className="w-full md:w-1/3 bg-white p-6 rounded-lg shadow-md h-fit">
+      <div className="w-full md:w-1/3 bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-lg shadow-md h-fit">
         <h2 className="text-xl font-bold mb-4 border-b pb-2 text-gray-800">{formulario.id ? 'Editar' : 'Nueva'} Categoría</h2>
         <form onSubmit={guardarCategoria} className="space-y-4">
           <div>
@@ -109,10 +109,10 @@ export default function GestorCategorias({ usuario }) {
         </form>
       </div>
 
-      <div className="w-full md:w-2/3 bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+      <div className="w-full md:w-2/3 bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md overflow-hidden flex flex-col">
         <div className="flex-1 overflow-y-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0 shadow-sm">
+            <thead className="bg-white/60 backdrop-blur-md sticky top-0 shadow-sm">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">ID</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Código</th>
@@ -120,9 +120,9 @@ export default function GestorCategorias({ usuario }) {
                 <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-gray-200">
               {categorias.map(cat => (
-                <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={cat.id} className="hover:bg-white/40 transition-colors">
                   <td className="px-6 py-4 text-sm text-gray-500">{cat.id}</td>
                   <td className="px-6 py-4 font-bold text-gray-700">{cat.codigo}</td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{cat.nombre}</td>

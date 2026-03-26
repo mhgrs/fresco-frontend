@@ -23,8 +23,8 @@ export default function CierreCaja() {
   if (!reporte) return <div className="p-10 text-center text-red-500">Error al cargar datos.</div>;
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="p-8 max-w-3xl mx-auto min-h-full bg-[var(--color-fondo)] transition-colors duration-500">
+      <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md overflow-hidden">
         <div className="bg-gray-800 text-white p-6">
           <h1 className="text-2xl font-bold">Reporte Z - Cierre de Turno</h1>
           <p className="text-gray-300">Fecha Comercial: {reporte.fecha}</p>
@@ -32,11 +32,11 @@ export default function CierreCaja() {
 
         <div className="p-6">
           <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <div className="bg-blue-50/80 p-4 rounded-lg border border-blue-100">
               <p className="text-sm text-blue-600 font-semibold mb-1">Total Ingresos</p>
               <p className="text-3xl font-black text-blue-900">${reporte.total_ingresos}</p>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+            <div className="bg-white/60 p-4 rounded-lg border border-white/60">
               <p className="text-sm text-gray-600 font-semibold mb-1">Transacciones</p>
               <p className="text-3xl font-black text-gray-800">{reporte.cantidad_transacciones}</p>
             </div>
@@ -49,7 +49,7 @@ export default function CierreCaja() {
           ) : (
             <div className="space-y-3">
               {reporte.desglose.map((item) => (
-                <div key={item.metodo_pago} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div key={item.metodo_pago} className="flex justify-between items-center p-3 bg-white/60 rounded border border-white/40">
                   <span className="font-semibold text-gray-700">{item.metodo_pago}</span>
                   <span className="text-lg font-bold">${item.total_metodo}</span>
                 </div>
