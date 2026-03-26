@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 export default function EscanerCamara({ onScan, onClose }) {
   const [errorPermisos, setErrorPermisos] = useState('');
@@ -16,8 +16,26 @@ export default function EscanerCamara({ onScan, onClose }) {
 
     // Usamos Html5Qrcode directamente para encender la cámara sin clics adicionales
     html5QrCode.start(
-      { facingMode: "environment" }, // Cámara trasera por defecto
-      { fps: 10, qrbox: { width: 250, height: 150 } },
+      { 
+        facingMode: "environment", // Cámara trasera
+        // Forzamos al celular a usar resolución HD para no perder nitidez
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        // Intentar usar autoenfoque continuo si el dispositivo lo soporta
+        advanced: [{ focusMode: "continuous" }]
+      },
+      { 
+        fps: 15, // Aumentamos la tasa de escaneo a 15 cuadros por seg
+        qrbox: { width: 280, height: 150 }, // Hacemos la caja guía un poco más ancha
+        // Restringimos los formatos solo a códigos comerciales para evitar números falsos
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128
+        ]
+      },
       (textoDecodificado) => {
         if (isMounted) {
           html5QrCode.stop().then(() => onScan(textoDecodificado)).catch(console.error);
