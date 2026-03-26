@@ -1,8 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export default function EscanerCamara({ onScan, onClose }) {
+  const scannerIniciado = useRef(false);
+  const [errorPermisos, setErrorPermisos] = useState('');
+
   useEffect(() => {
+    // Validación de entorno seguro (HTTPS o localhost) requerida por navegadores móviles
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setErrorPermisos("Tu navegador bloqueó la cámara por seguridad. Para probarla en tu celular durante el desarrollo, debes acceder mediante HTTPS o configurar un túnel (ej. ngrok).");
+      return;
+    }
+
+    // Evitar doble inicialización por el StrictMode de React
+    if (scannerIniciado.current) return;
+    scannerIniciado.current = true;
+
     // Configuramos el escáner de la cámara
     const scanner = new Html5QrcodeScanner(
       "lector-codigo-barras",
@@ -25,7 +38,8 @@ export default function EscanerCamara({ onScan, onClose }) {
 
     // Limpieza cuando el usuario cierra el modal manualmente
     return () => {
-      scanner.clear().catch(error => console.error("Error deteniendo el escáner", error));
+      scanner.clear().catch(error => console.error("Error deteniendo escáner", error));
+      scannerIniciado.current = false;
     };
   }, [onScan]);
 
@@ -39,11 +53,19 @@ export default function EscanerCamara({ onScan, onClose }) {
           </button>
         </div>
         
-        <div id="lector-codigo-barras" className="w-full rounded-lg overflow-hidden bg-black"></div>
+        {errorPermisos ? (
+          <div className="bg-red-100 text-red-700 p-4 rounded-lg text-sm text-center font-medium">
+            {errorPermisos}
+          </div>
+        ) : (
+          <div id="lector-codigo-barras" className="w-full rounded-lg overflow-hidden bg-black min-h-[250px]"></div>
+        )}
         
-        <p className="text-xs text-gray-500 text-center mt-4 font-medium">
-          Enfoque el código de barras del producto dentro del recuadro para leerlo automáticamente.
-        </p>
+        {!errorPermisos && (
+          <p className="text-xs text-gray-500 text-center mt-4 font-medium">
+            Enfoque el código de barras del producto dentro del recuadro para leerlo automáticamente.
+          </p>
+        )}
       </div>
     </div>
   );
