@@ -331,7 +331,7 @@ export default function PuntoDeVenta() {
                   onBlur={() => validarCantidad(item.id, item.tipo_venta)}
                   step={item.tipo_venta === 'GRANEL' ? '0.001' : '1'}
                   min="0"
-                  className="w-16 text-center text-sm font-medium border rounded p-1 focus:outline-none focus:ring-1 focus:ring-[#91cf5b]"
+                  className="w-16 text-center border-0 shadow-sm text-sm font-medium border rounded p-1 focus:outline-none focus:ring-1 focus:ring-[#91cf5b]"
                 />
                 <button onClick={() => actualizarCantidadBotones(item.id, item.tipo_venta === 'GRANEL' ? 0.1 : 1, item.tipo_venta)} className="bg-gray-200 w-8 h-8 rounded text-gray-700 font-bold hover:bg-gray-300">+</button>
               </div>
