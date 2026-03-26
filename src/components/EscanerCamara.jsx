@@ -23,7 +23,7 @@ export default function EscanerCamara({ onScan, onClose }) {
 
         // Priorizar cámaras con 'back' o 'rear' en la etiqueta. Si no, usar la última de la lista.
         const rearCamera = devices.find(d => d.label.toLowerCase().includes('rear') || d.label.toLowerCase().includes('back'));
-        const cameraId = rearCamera ? rearCamera.id : devices[devices.length - 1].id;
+        const cameraId = rearCamera ? rearCamera.id : devices[devices.length - 2].id;
 
         await html5QrCode.start(
           cameraId, // Usar el ID de la cámara trasera encontrada
