@@ -13,51 +13,58 @@ export default function EscanerCamara({ onScan, onClose }) {
 
     let isMounted = true;
     const html5QrCode = new Html5Qrcode("lector-codigo-barras");
-
-    // Usamos Html5Qrcode directamente para encender la cámara sin clics adicionales
-    html5QrCode.start(
-      { facingMode: "environment" }, // Exactamente 1 llave requerida por la librería
-      { 
-        fps: 15, // Aumentamos la tasa de escaneo a 15 cuadros por seg
-        qrbox: { width: 280, height: 150 }, // Hacemos la caja guía un poco más ancha
-        // Pasamos las mejoras de resolución y enfoque dentro de videoConstraints
-        videoConstraints: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          advanced: [{ focusMode: "continuous" }]
-        },
-        // Restringimos los formatos solo a códigos comerciales para evitar números falsos
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.CODE_128
-        ]
-      },
-      (textoDecodificado) => {
-        if (isMounted) {
-          html5QrCode.stop().then(() => onScan(textoDecodificado)).catch(console.error);
+    
+    const startScanner = async () => {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (!devices || !devices.length) {
+          throw new Error("No se encontraron cámaras en el dispositivo.");
         }
-      },
-      (error) => { /* Ignorar errores de enfoque frame a frame */ }
-    ).then(() => {
-      // Si el componente se cerró de golpe mientras la cámara iniciaba (común en React StrictMode)
-      if (!isMounted) {
-        html5QrCode.stop().catch(console.error);
+
+        // Priorizar cámaras con 'back' o 'rear' en la etiqueta. Si no, usar la última de la lista.
+        const rearCamera = devices.find(d => d.label.toLowerCase().includes('rear') || d.label.toLowerCase().includes('back'));
+        const cameraId = rearCamera ? rearCamera.id : devices[devices.length - 1].id;
+
+        await html5QrCode.start(
+          cameraId, // Usar el ID de la cámara trasera encontrada
+          { 
+            fps: 15,
+            qrbox: { width: 280, height: 150 },
+            videoConstraints: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              advanced: [{ focusMode: "continuous" }]
+            },
+            formatsToSupport: [
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.EAN_8,
+              Html5QrcodeSupportedFormats.UPC_A,
+              Html5QrcodeSupportedFormats.UPC_E,
+              Html5QrcodeSupportedFormats.CODE_128
+            ]
+          },
+          (textoDecodificado) => {
+            if (isMounted) {
+              html5QrCode.stop().then(() => onScan(textoDecodificado)).catch(console.error);
+            }
+          },
+          (error) => { /* Ignorar errores de enfoque */ }
+        );
+      } catch (err) {
+        if (isMounted) {
+          setErrorPermisos("No se pudo iniciar la cámara. Asegúrese de dar permisos.");
+          console.error("Error iniciando cámara:", err);
+        }
       }
-    }).catch((err) => {
-      if (isMounted) {
-        setErrorPermisos("Debe otorgar permisos de cámara en su navegador para usar el escáner.");
-        console.error("Error iniciando cámara:", err);
-      }
-    });
+    };
+
+    startScanner();
 
     // Limpieza cuando el usuario cierra el modal manualmente
     return () => {
       isMounted = false;
-      if (html5QrCode.isScanning) {
-        html5QrCode.stop().catch(console.error);
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(err => console.error("Fallo al detener el escáner.", err));
       }
     };
   }, [onScan]);
