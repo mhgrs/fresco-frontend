@@ -64,7 +64,7 @@ export default function App() {
   // Variables globales de tema preparadas para un futuro selector
   useEffect(() => {
     document.documentElement.style.setProperty('--color-fondo', '#fcfbf7'); // Crema muy claro
-    document.documentElement.style.setProperty('--color-tarjeta', 'rgba(255, 255, 255, 0.27)'); // Blanco levemente transparente
+    document.documentElement.style.setProperty('--color-tarjeta', 'rgba(250, 250, 250, 0.38)'); // Blanco levemente transparente
   }, []);
 
   useEffect(() => {
