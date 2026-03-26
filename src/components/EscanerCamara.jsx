@@ -32,7 +32,7 @@ export default function EscanerCamara({ onScan, onClose }) {
             qrbox: { width: 280, height: 150 },
             videoConstraints: {
               width: { ideal: 1280 },
-              height: { ideal: 720 },
+              height: { ideal: 1080 },
               advanced: [{ focusMode: "continuous" }]
             },
             formatsToSupport: [
