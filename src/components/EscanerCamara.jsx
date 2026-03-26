@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { useEffect, useState } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 
 export default function EscanerCamara({ onScan, onClose }) {
-  const scannerIniciado = useRef(false);
   const [errorPermisos, setErrorPermisos] = useState('');
 
   useEffect(() => {
@@ -12,34 +11,37 @@ export default function EscanerCamara({ onScan, onClose }) {
       return;
     }
 
-    // Evitar doble inicialización por el StrictMode de React
-    if (scannerIniciado.current) return;
-    scannerIniciado.current = true;
+    let isMounted = true;
+    const html5QrCode = new Html5Qrcode("lector-codigo-barras");
 
-    // Configuramos el escáner de la cámara
-    const scanner = new Html5QrcodeScanner(
-      "lector-codigo-barras",
-      {
-        fps: 10, // Cuadros por segundo de lectura
-        qrbox: { width: 250, height: 150 }, // Tamaño del cuadro de enfoque
-        aspectRatio: 1.0,
+    // Usamos Html5Qrcode directamente para encender la cámara sin clics adicionales
+    html5QrCode.start(
+      { facingMode: "environment" }, // Cámara trasera por defecto
+      { fps: 10, qrbox: { width: 250, height: 150 } },
+      (textoDecodificado) => {
+        if (isMounted) {
+          html5QrCode.stop().then(() => onScan(textoDecodificado)).catch(console.error);
+        }
       },
-      false // verbose = false para no saturar la consola de logs
-    );
-
-    // Si la lectura es exitosa
-    const manejarEscaneoExitoso = (textoDecodificado) => {
-      scanner.clear(); // Apagamos y limpiamos el escáner
-      onScan(textoDecodificado); // Enviamos el texto al componente padre
-    };
-
-    // Iniciamos la cámara en el div con id="lector-codigo-barras"
-    scanner.render(manejarEscaneoExitoso, () => { /* Ignoramos errores continuos de enfoque */ });
+      (error) => { /* Ignorar errores de enfoque frame a frame */ }
+    ).then(() => {
+      // Si el componente se cerró de golpe mientras la cámara iniciaba (común en React StrictMode)
+      if (!isMounted) {
+        html5QrCode.stop().catch(console.error);
+      }
+    }).catch((err) => {
+      if (isMounted) {
+        setErrorPermisos("Debe otorgar permisos de cámara en su navegador para usar el escáner.");
+        console.error("Error iniciando cámara:", err);
+      }
+    });
 
     // Limpieza cuando el usuario cierra el modal manualmente
     return () => {
-      scanner.clear().catch(error => console.error("Error deteniendo escáner", error));
-      scannerIniciado.current = false;
+      isMounted = false;
+      if (html5QrCode.isScanning) {
+        html5QrCode.stop().catch(console.error);
+      }
     };
   }, [onScan]);
 
