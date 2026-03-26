@@ -247,7 +247,7 @@ export default function PuntoDeVenta() {
           <input
             ref={inputBusquedaRef}
             type="text"
-            className="w-full p-3 sm:p-4 text-sm sm:text-lg border-2 border-gray-300 rounded-lg h-10 sm:h-12 focus:outline-none"
+            className="w-full border-0 shadow-md p-3 sm:p-4 text-sm sm:text-lg border-2 border-gray-300 rounded-lg h-10 sm:h-12 focus:outline-none"
             placeholder="Escanee código de barras o busque por nombre/SKU..."
             value={terminoBusqueda}
             onChange={(e) => setTerminoBusqueda(e.target.value)}
