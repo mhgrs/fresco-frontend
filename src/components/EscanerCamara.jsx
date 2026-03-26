@@ -16,17 +16,16 @@ export default function EscanerCamara({ onScan, onClose }) {
 
     // Usamos Html5Qrcode directamente para encender la cámara sin clics adicionales
     html5QrCode.start(
-      { 
-        facingMode: "environment", // Cámara trasera
-        // Forzamos al celular a usar resolución HD para no perder nitidez
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        // Intentar usar autoenfoque continuo si el dispositivo lo soporta
-        advanced: [{ focusMode: "continuous" }]
-      },
+      { facingMode: "environment" }, // Exactamente 1 llave requerida por la librería
       { 
         fps: 15, // Aumentamos la tasa de escaneo a 15 cuadros por seg
         qrbox: { width: 280, height: 150 }, // Hacemos la caja guía un poco más ancha
+        // Pasamos las mejoras de resolución y enfoque dentro de videoConstraints
+        videoConstraints: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          advanced: [{ focusMode: "continuous" }]
+        },
         // Restringimos los formatos solo a códigos comerciales para evitar números falsos
         formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
