@@ -74,14 +74,20 @@ export default function App() {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         try {
           const response = await api.get('inventario/usuarios/me/');
-          setUsuario(response.data);
-          localStorage.setItem('usuario', JSON.stringify(response.data));
+          // Garantizamos que roles siempre sea un array para evitar errores
+          const userData = { ...response.data, roles: response.data.roles || [] };
+          setUsuario(userData);
+          localStorage.setItem('usuario', JSON.stringify(userData));
         } catch (error) {
           // Si falla por falta de internet, intentar recuperar perfil desde caché
           if (!error.response || !navigator.onLine) {
             console.warn("Sin conexión al verificar sesión. Usando caché.");
-            const cachedUser = localStorage.getItem('usuario');
-            if (cachedUser) setUsuario(JSON.parse(cachedUser));
+            const cachedUser = localStorage.getItem('usuario'); // Esto podría tener la cadena 'rol' antigua
+            if (cachedUser) {
+              const parsedUser = JSON.parse(cachedUser);
+              // Aseguramos que 'roles' sea un array, convirtiendo la cadena 'rol' antigua si es necesario
+              setUsuario({ ...parsedUser, roles: Array.isArray(parsedUser.roles) ? parsedUser.roles : (parsedUser.rol ? [parsedUser.rol] : []) });
+            }
           } else {
             console.error("Sesión expirada o inválida");
             localStorage.removeItem('access_token');
@@ -95,6 +101,59 @@ export default function App() {
     };
     cargarUsuario();
   }, []);
+
+  const manejarCerrarSesion = () => {
+    setUsuario(null);
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('usuario');
+    delete api.defaults.headers.common['Authorization'];
+  };
+
+  // Interceptor para manejar la expiración del token
+  useEffect(() => {
+    const interceptor = api.interceptors.response.use(
+      response => response,
+      async error => {
+        const originalRequest = error.config;
+        // Si el error es 401 y no es la solicitud de refresh token y no hemos reintentado
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true; // Marcar la solicitud como reintentada
+          try {
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (!refreshToken) {
+              throw new Error("No refresh token available.");
+            }
+
+            // Intentar obtener un nuevo access token usando el refresh token
+            // Usamos axios.post directamente y la baseURL de nuestra instancia 'api'
+            const response = await axios.post(`${api.defaults.baseURL}token/refresh/`, {
+              refresh: refreshToken
+            });
+
+            const newAccessToken = response.data.access;
+            localStorage.setItem('access_token', newAccessToken);
+            api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+            originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+
+            // Reintentar la solicitud original con el nuevo token
+            return api(originalRequest);
+          } catch (refreshError) {
+            console.error("Error al refrescar el token o refresh token inválido:", refreshError);
+            // Si el refresh falla, cerrar sesión
+            manejarCerrarSesion();
+            return Promise.reject(refreshError);
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Función de limpieza para remover el interceptor cuando el componente se desmonte
+    return () => {
+      api.interceptors.response.eject(interceptor);
+    };
+  }, [usuario]); // Dependencia en usuario para asegurar que el interceptor se reconfigure si el usuario cambia
 
   useEffect(() => {
     const sincronizarVentas = async () => {
@@ -148,14 +207,6 @@ export default function App() {
     };
   }, [usuario]);
 
-  const manejarCerrarSesion = () => {
-    setUsuario(null);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('usuario');
-    delete api.defaults.headers.common['Authorization'];
-  };
-
   if (verificandoSesion) {
     return <div className="min-h-screen bg-[var(--color-fondo)] flex items-center justify-center text-gray-500 font-medium transition-colors duration-500">Cargando aplicación...</div>;
   }
@@ -184,31 +235,31 @@ export default function App() {
         {/* Si un empleado logueado entra al login por error, lo mandamos al Dashboard */}
         <Route path="/fresco-login" element={<Navigate to="/" replace />} />
         
-        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO')) && (
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
           <Route path="/pos" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><PuntoDeVenta /></ModuleLayout>} />
         )}
         
-        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
           <Route path="/inventario" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><CatalogoProductos usuario={usuario} /></ModuleLayout>} />
         )}
 
-        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
           <Route path="/inventario/nuevo" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
         )}
 
-        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
           <Route path="/inventario/editar/:id" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
         )}
 
-        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR')) && (
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
           <Route path="/categorias" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><GestorCategorias usuario={usuario} /></ModuleLayout>} />
         )}
 
-        {['ADMIN', 'SUPERVISOR'].includes(usuario.rol) && (
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
           <Route path="/reportes" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><CierreCaja /></ModuleLayout>} />
         )}
 
-        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
           <Route path="/alertas" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><AlertasInventario /></ModuleLayout>} />
         )}
 

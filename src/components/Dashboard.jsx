@@ -8,7 +8,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   useEffect(() => {
     document.title = "FrescoPOS";
 
-    if (usuario.roles.includes('ADMIN')) {
+    if (usuario.roles?.includes('ADMIN')) {
       api.get('inventario/productos/')
         .then(res => {
           const bajoUmbral = res.data.filter(p => p.esta_activo && parseFloat(p.stock) <= parseFloat(p.umbral_stock));
@@ -31,7 +31,9 @@ export default function Dashboard({ usuario, cerrarSesion }) {
         <div className="flex justify-between items-center mb-10 border-b border-gray-300 pb-4">
           <div>
             <h1 className="text-3xl font-black text-[#91cf5b]">FrescoPOS</h1> 
-            <p className="text-gray-600 text-xs mt-1">Usuario activo: <span className="font-bold">{usuario.nombre}</span> ({usuario.roles.join(', ')})</p>
+            <p className="text-gray-600 text-xs mt-1">
+              Usuario activo: <span className="font-bold">{usuario.nombre || usuario.username}</span> ({usuario.roles?.length > 0 ? usuario.roles.join(', ') : 'Sin rol'})
+            </p>
           </div>
           <button onClick={cerrarSesion} title="Cerrar Sesión" className=" hover:bg-red-200 text-red-600 p-3 rounded-full transition flex items-center justify-center shadow-sm">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -41,7 +43,14 @@ export default function Dashboard({ usuario, cerrarSesion }) {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6"> 
-           {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
+          {(!usuario.roles || usuario.roles.length === 0) && (
+            <div className="col-span-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded shadow-sm">
+              <p className="font-bold text-sm">Tu usuario no tiene permisos asignados.</p>
+              <p className="text-xs mt-1">Para acceder a los módulos, un administrador debe ingresar a <strong>http://localhost:8000/fresco-admin/</strong> y asignarte un rol (ej. ADMIN) en la sección de Usuarios.</p>
+            </div>
+          )}
+
+           {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
             <Link to="/alertas" className="relative border-0 bg-[var(--color-tarjeta)] backdrop-blur-sm border  p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center aspect-square">
               {alertas.length > 0 && (
                 <span className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md animate-pulse">
@@ -54,7 +63,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
             </Link>
           )}
           
-          {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO')) && (
+          {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
             <Link to="/pos" className="bg-[var(--color-tarjeta)] border-0 backdrop-blur-sm border  p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center  aspect-square">
               <span className="text-4xl mb-2">💰</span>
               <h2 className="text-base font-bold text-gray-800 leading-tight">Punto de Venta</h2>
@@ -62,7 +71,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
             </Link>
           )}
 
-          {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
+          {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
             <Link to="/inventario" className="bg-[var(--color-tarjeta)] border-0 backdrop-blur-sm border  p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center  aspect-square">
               <span className="text-4xl mb-2">📦</span>
               <h2 className="text-base font-bold text-gray-800 leading-tight">Catálogo de Productos</h2>
@@ -70,7 +79,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
             </Link>
           )}
 
-          {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR')) && (
+          {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
             <Link to="/reportes" className="bg-[var(--color-tarjeta)] border-0 backdrop-blur-sm border  p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center  aspect-square">
               <span className="text-4xl mb-2">📊</span>
               <h2 className="text-base font-bold text-gray-800 leading-tight">Reporte</h2>
