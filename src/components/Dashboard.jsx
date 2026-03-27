@@ -30,9 +30,9 @@ export default function Dashboard({ usuario, cerrarSesion }) {
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-10 border-b border-gray-300 pb-4">
           <div>
-            <h1 className="text-3xl font-black text-[#91cf5b]">FrescoPOS</h1> 
+            <h1 className="text-3xl font-black text-[#91cf5b]">Fresco</h1> 
             <p className="text-gray-600 text-xs mt-1">
-              Usuario activo: <span className="font-bold">{usuario.nombre || usuario.username}</span> ({usuario.roles?.length > 0 ? usuario.roles.join(', ') : 'Sin rol'})
+              Usuario activo: <span className="font-bold">{usuario.nombre || usuario.username}</span>
             </p>
           </div>
           <button onClick={cerrarSesion} title="Cerrar Sesión" className=" hover:bg-red-200 text-red-600 p-3 rounded-full transition flex items-center justify-center shadow-sm">
@@ -46,7 +46,11 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           {(!usuario.roles || usuario.roles.length === 0) && (
             <div className="col-span-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded shadow-sm">
               <p className="font-bold text-sm">Tu usuario no tiene permisos asignados.</p>
-              <p className="text-xs mt-1">Para acceder a los módulos, un administrador debe ingresar a <strong>http://localhost:8000/fresco-admin/</strong> y asignarte un rol (ej. ADMIN) en la sección de Usuarios.</p>
+              <p className="text-xs mt-1">
+                Para acceder a los módulos, un administrador debe ingresar al
+                <a href="/fresco-admin" target="_blank" rel="noopener noreferrer" className="font-bold text-blue-600 hover:underline"> panel de administración </a>
+                y asignarte un rol (ej. ADMIN).
+              </p>
             </div>
           )}
 

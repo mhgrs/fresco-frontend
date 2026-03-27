@@ -27,7 +27,7 @@ function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
         <div className="ml-auto flex items-center gap-3 font-black tracking-wider">
           {sincronizando && <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded animate-pulse">Sincronizando...</span>}
           {!isOnline && <span className="text-xs bg-red-500 text-white px-2 py-1 rounded shadow-sm">Modo Offline</span>}
-          FrescoPOS
+          Fresco
         </div>
       </header>
       <main className="flex-1 overflow-hidden">
