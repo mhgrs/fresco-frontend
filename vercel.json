@@ -1,5 +1,12 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/fresco-admin/:path*",
+      "destination": "https://pos-system-wfog.onrender.com/fresco-admin/:path*"
+    },
+    {
+      "source": "/static/:path*",
+      "destination": "https://pos-system-wfog.onrender.com/static/:path*"
+    }
   ]
 }
