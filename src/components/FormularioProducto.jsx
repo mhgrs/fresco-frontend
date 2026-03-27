@@ -8,7 +8,8 @@ export default function FormularioProducto({ usuario }) {
   const { id } = useParams();
   const esEdicion = Boolean(id);
 
-  const isBodega = usuario?.rol === 'BODEGA';
+  const isBodega = usuario?.roles.includes('BODEGA');
+  const isSupervisor = usuario?.roles.includes('SUPERVISOR');
 
   const [categorias, setCategorias] = useState([]);
   const [cargando, setCargando] = useState(esEdicion);
@@ -177,7 +178,7 @@ export default function FormularioProducto({ usuario }) {
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Stock Actual {formulario.tipo_venta === 'UNIDAD' ? '' : '(Kilos, max 2 decimales)'}
-              </label>
+              </label> 
               <input 
                 disabled={isBodega}
                 type="number" 
@@ -191,7 +192,7 @@ export default function FormularioProducto({ usuario }) {
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Umbral Alerta Mínima
-              </label>
+              </label> 
               <input 
                 disabled={isBodega}
                 type="number" 
@@ -208,10 +209,10 @@ export default function FormularioProducto({ usuario }) {
           <div>
             <label className="block text-sm font-medium text-gray-700">Cód. Barras</label>
             <div className="flex mt-1">
-              <input disabled={isBodega} type="text" name="codigo_barras" value={formulario.codigo_barras} onChange={manejarCambio} className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Opcional" />
+              <input disabled={isBodega || isSupervisor} type="text" name="codigo_barras" value={formulario.codigo_barras} onChange={manejarCambio} className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Opcional" />
               <button 
                 type="button" 
-                disabled={isBodega}
+                disabled={isBodega || isSupervisor}
                 onClick={() => setEscanerAbierto(true)}
                 className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-r border border-gray-300 transition-colors disabled:opacity-50 flex items-center justify-center"
                 title="Escanear con cámara"
@@ -225,7 +226,7 @@ export default function FormularioProducto({ usuario }) {
             <button type="button" onClick={() => navigate('/inventario')} className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
               Cancelar
             </button>
-            <button type="submit" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded  transition">
+            <button type="submit" disabled={usuario?.roles.includes('CAJERO') && esEdicion} className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded  transition disabled:opacity-50">
               Guardar Producto
             </button>
           </div>

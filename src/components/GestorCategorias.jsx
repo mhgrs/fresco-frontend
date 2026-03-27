@@ -46,7 +46,7 @@ export default function GestorCategorias({ usuario }) {
   const editar = (cat) => setFormulario({ id: cat.id, nombre: cat.nombre, codigo: cat.codigo });
 
   const intentarEliminar = (cat) => {
-    if (!['ADMIN', 'SUPERVISOR'].includes(usuario?.rol)) {
+    if (!usuario?.roles.includes('ADMIN') && !usuario?.roles.includes('SUPERVISOR')) {
       mostrarNotificacion('No tienes los permisos', 'error');
       return;
     }

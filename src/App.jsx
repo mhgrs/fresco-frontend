@@ -184,23 +184,23 @@ export default function App() {
         {/* Si un empleado logueado entra al login por error, lo mandamos al Dashboard */}
         <Route path="/fresco-login" element={<Navigate to="/" replace />} />
         
-        {['ADMIN', 'SUPERVISOR', 'CAJERO'].includes(usuario.rol) && (
+        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO')) && (
           <Route path="/pos" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><PuntoDeVenta /></ModuleLayout>} />
         )}
         
-        {['ADMIN', 'SUPERVISOR', 'CAJERO', 'BODEGA'].includes(usuario.rol) && (
+        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
           <Route path="/inventario" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><CatalogoProductos usuario={usuario} /></ModuleLayout>} />
         )}
 
-        {['ADMIN', 'SUPERVISOR'].includes(usuario.rol) && (
+        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
           <Route path="/inventario/nuevo" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
         )}
 
-        {['ADMIN', 'SUPERVISOR', 'BODEGA'].includes(usuario.rol) && (
+        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
           <Route path="/inventario/editar/:id" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
         )}
 
-        {['ADMIN', 'SUPERVISOR', 'BODEGA'].includes(usuario.rol) && (
+        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR')) && (
           <Route path="/categorias" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><GestorCategorias usuario={usuario} /></ModuleLayout>} />
         )}
 
@@ -208,7 +208,7 @@ export default function App() {
           <Route path="/reportes" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><CierreCaja /></ModuleLayout>} />
         )}
 
-        {['ADMIN', 'SUPERVISOR', 'CAJERO'].includes(usuario.rol) && (
+        {(usuario.roles.includes('ADMIN') || usuario.roles.includes('SUPERVISOR') || usuario.roles.includes('CAJERO') || usuario.roles.includes('BODEGA')) && (
           <Route path="/alertas" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><AlertasInventario /></ModuleLayout>} />
         )}
 
