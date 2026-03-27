@@ -55,6 +55,19 @@ function LandingPage() {
   );
 }
 
+// Componente para saltar del Frontend (Vercel) al Backend (Render/Localhost)
+function AdminRedirect() {
+  useEffect(() => {
+    // Tomamos la URL base configurada en axios (ej: https://tu-backend.onrender.com/api/)
+    // y la transformamos en https://tu-backend.onrender.com/fresco-admin/
+    const backendUrl = api.defaults.baseURL ? api.defaults.baseURL.replace('/api/', '/') : 'http://localhost:8000/';
+    window.location.replace(`${backendUrl}fresco-admin/`);
+  }, []);
+  
+  return <div className="min-h-screen bg-[var(--color-fondo)] flex items-center justify-center text-gray-500 font-medium">Redirigiendo a Administración...</div>;
+}
+
+
 export default function App() {
   const [usuario, setUsuario] = useState(null);
   const [verificandoSesion, setVerificandoSesion] = useState(true);
@@ -219,6 +232,8 @@ export default function App() {
           <Route path="/fresco-login" element={<Login onLogin={setUsuario} />} />
           {/* Landing Page pública temporal */}
           <Route path="/" element={<LandingPage />} />
+          {/* Redirección al Admin de Django */}
+          <Route path="/fresco-admin/*" element={<AdminRedirect />} />
           {/* Redirigir cualquier otra ruta inventada a la página principal */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -235,6 +250,9 @@ export default function App() {
         {/* Si un empleado logueado entra al login por error, lo mandamos al Dashboard */}
         <Route path="/fresco-login" element={<Navigate to="/" replace />} />
         
+        {/* Redirección al Admin de Django para usuarios logueados */}
+        <Route path="/fresco-admin/*" element={<AdminRedirect />} />
+
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
           <Route path="/pos" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><PuntoDeVenta /></ModuleLayout>} />
         )}
