@@ -270,6 +270,7 @@ export default function CatalogoProductos({ usuario }) {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">SKU</th>
                   <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Proveedores</th>
                   <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Precio</th>
                   <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
                   <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -281,15 +282,17 @@ export default function CatalogoProductos({ usuario }) {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">{prod.sku}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {prod.nombre} {!prod.esta_activo && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded ml-2">Inactivo</span>}
-                    {prod.proveedores && (
-                      <div className="mt-1.5 flex flex-wrap gap-1">
-                        {prod.proveedores.split(',').map((prov, i) => (
-                          <span key={i} className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-bold shadow-sm">
-                            🏢 {prov.trim()}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {prod.proveedores && (
+                        <div className="flex flex-wrap gap-1">
+                          {prod.proveedores.split(',').map((prov, i) => (
+                            <span key={i} className="text-[10px]  px-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full font-bold shadow-sm whitespace-nowrap">
+                               {prov.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 font-medium">${prod.precio}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
