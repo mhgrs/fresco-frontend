@@ -9,6 +9,7 @@ import CatalogoProductos from './components/CatalogoProductos';
 import FormularioProducto from './components/FormularioProducto';
 import GestorCategorias from './components/GestorCategorias';
 import AlertasInventario from './components/AlertasInventario';
+import LandingPage from './components/LandingPage';
 import api from './services/api';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
@@ -20,7 +21,7 @@ function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
   return (
     <div className="flex flex-col h-screen bg-[var(--color-fondo)] transition-colors duration-500">
       <header className="bg-[#91cf5b] text-white h-12 flex items-center px-4 shadow-md">
-        <Link to="/" title="Volver al Dashboard" className="text-white/80 hover:text-white flex items-center justify-center bg-black/10 hover:bg-black/20 p-2 rounded transition">
+        <Link to="/dashboard" title="Volver al Dashboard" className="text-white/80 hover:text-white flex items-center justify-center bg-black/10 hover:bg-black/20 p-2 rounded transition">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
           </svg>
@@ -34,24 +35,6 @@ function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
       <main className="flex-1 overflow-hidden">
         {children}
       </main>
-    </div>
-  );
-}
-
-function LandingPage() {
-  useEffect(() => {
-    document.title = "Raíces de Numpay";
-  }, []);
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--color-fondo)] p-6 text-center relative transition-colors duration-500">
-      <h1 className="text-5xl font-black text-[#91cf5b] mb-4 tracking-tighter">Raíces de Numpay</h1>
-      <p className="text-xl text-gray-600 font-medium mb-8">Nuestra página web estará disponible pronto.</p>
-      <div className="w-16 h-1 bg-[#91cf5b] mx-auto rounded-full"></div>
-      
-      <Link to="/fresco-login" className="absolute bottom-6 right-6 text-xs text-gray-500 hover:text-gray-800 transition-colors font-medium">
-        Fresco
-      </Link>
     </div>
   );
 }
@@ -247,8 +230,8 @@ export default function App() {
         <Routes>
           {/* Ruta secreta para los empleados */}
           <Route path="/fresco-login" element={<Login onLogin={setUsuario} />} />
-          {/* Landing Page pública temporal */}
-          <Route path="/" element={<LandingPage />} />
+          {/* Landing Page pública */}
+          <Route path="/" element={<LandingPage usuario={null} />} />
           {/* Redirección al Admin de Django */}
           <Route path="/fresco-admin/*" element={<AdminRedirect />} />
           {/* Redirigir cualquier otra ruta inventada a la página principal */}
@@ -261,11 +244,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta principal: Dashboard sin el botón de volver atrás */}
-        <Route path="/" element={<Dashboard usuario={usuario} cerrarSesion={manejarCerrarSesion} />} />
+        {/* Landing Page pública, ahora accesible incluso logueado (como portada) */}
+        <Route path="/" element={<LandingPage usuario={usuario} />} />
         
-        {/* Si un empleado logueado entra al login por error, lo mandamos al Dashboard */}
-        <Route path="/fresco-login" element={<Navigate to="/" replace />} />
+        {/* Ruta principal del sistema: Dashboard */}
+        <Route path="/dashboard" element={<Dashboard usuario={usuario} cerrarSesion={manejarCerrarSesion} />} />
+        
+        {/* Si un empleado logueado entra al login por error, lo mandamos directo a su Dashboard */}
+        <Route path="/fresco-login" element={<Navigate to="/dashboard" replace />} />
 
         {/* Redirección al Admin de Django para usuarios logueados */}
         <Route path="/fresco-admin/*" element={<AdminRedirect />} />
@@ -298,7 +284,7 @@ export default function App() {
           <Route path="/alertas" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><AlertasInventario /></ModuleLayout>} />
         )}
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
