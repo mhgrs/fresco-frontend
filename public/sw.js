@@ -1,15 +1,18 @@
-const CACHE_NAME = 'fresco-pos-cache-v1';
+const CACHE_NAME = 'fresco-pos-cache-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  '/'
 ];
 
 // Instalación: Guardar archivos básicos en caché
 self.addEventListener('install', event => {
+  // Forzar al Service Worker a activarse inmediatamente sin esperar a que se cierren las pestañas
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => {
+        // Usamos add individual con catch para que si un archivo falla, el SW se instale de todos modos
+        return Promise.allSettled(urlsToCache.map(url => cache.add(url).catch(err => console.log('Fallo al cachear predeterminado:', url))));
+      })
   );
 });
 
@@ -41,6 +44,9 @@ self.addEventListener('fetch', event => {
 
 // Limpieza de cachés antiguos al actualizar la app
 self.addEventListener('activate', event => {
+  // Tomar el control de los clientes de inmediato
+  event.waitUntil(clients.claim());
+
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => Promise.all(

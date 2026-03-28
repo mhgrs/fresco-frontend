@@ -17,8 +17,10 @@
     }
   ],
   "start_url": "/",
+  "id": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "theme_color": "#91cf5b",
   "background_color": "#fcfbf7"
 }
