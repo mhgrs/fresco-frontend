@@ -11,7 +11,7 @@ export default function CierreCaja() {
         const respuesta = await api.get('inventario/ventas/reporte_z/');
         setReporte(respuesta.data);
       } catch (error) {
-        console.error("Error al obtener reporte Z:", error);
+        console.error("Error al obtener reporte:", error);
       } finally {
         setCargando(false);
       }
@@ -26,7 +26,7 @@ export default function CierreCaja() {
     <div className="p-8 max-w-3xl mx-auto min-h-full bg-[var(--color-fondo)] transition-colors duration-500">
       <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md overflow-hidden">
         <div className="bg-gray-800 text-white p-6">
-          <h1 className="text-2xl font-bold">Reporte Z - Cierre de Turno</h1>
+          <h1 className="text-2xl font-bold">Reporte - Cierre de Turno</h1>
           <p className="text-gray-300">Fecha Comercial: {reporte.fecha}</p>
         </div>
 

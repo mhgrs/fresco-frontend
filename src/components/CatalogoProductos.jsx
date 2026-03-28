@@ -132,10 +132,12 @@ export default function CatalogoProductos({ usuario }) {
     if (!terminoBusqueda.trim()) return true;
     
     const termino = terminoBusqueda.toLowerCase();
+    const provs = (prod.proveedores || '').toLowerCase();
     return (
       prod.nombre.toLowerCase().includes(termino) ||
       prod.sku.toLowerCase().includes(termino) ||
-      (prod.codigo_barras && prod.codigo_barras.toLowerCase().includes(termino))
+      (prod.codigo_barras && prod.codigo_barras.toLowerCase().includes(termino)) ||
+      provs.includes(termino)
     );
   });
 
@@ -279,6 +281,15 @@ export default function CatalogoProductos({ usuario }) {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">{prod.sku}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {prod.nombre} {!prod.esta_activo && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded ml-2">Inactivo</span>}
+                    {prod.proveedores && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {prod.proveedores.split(',').map((prov, i) => (
+                          <span key={i} className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full font-bold shadow-sm">
+                            🏢 {prov.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 font-medium">${prod.precio}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">

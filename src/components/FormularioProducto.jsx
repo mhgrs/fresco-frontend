@@ -21,7 +21,7 @@ export default function FormularioProducto({ usuario }) {
   const [escanerAbierto, setEscanerAbierto] = useState(false);
 
   const [formulario, setFormulario] = useState({
-    nombre: '', categoria: '', precio: '', tipo_venta: 'UNIDAD', codigo_barras: '', stock: '', umbral_stock: '5'
+    nombre: '', categoria: '', precio: '', tipo_venta: 'UNIDAD', codigo_barras: '', stock: '', umbral_stock: '5', proveedores: ''
   });
 
   const mostrarNotificacion = (mensaje, tipo = 'success') => {
@@ -51,7 +51,8 @@ export default function FormularioProducto({ usuario }) {
             tipo_venta: p.tipo_venta,
             codigo_barras: p.codigo_barras || '',
             stock: stockInicial,
-            umbral_stock: umbralInicial
+            umbral_stock: umbralInicial,
+            proveedores: p.proveedores || ''
           });
         }
       } catch (error) {
@@ -93,7 +94,8 @@ export default function FormularioProducto({ usuario }) {
       precio: parseInt(formulario.precio),
       stock: stockFinal,
       umbral_stock: umbralFinal,
-      codigo_barras: formulario.codigo_barras.trim() || null
+      codigo_barras: formulario.codigo_barras.trim() || null,
+      proveedores: formulario.proveedores.trim() || null
     };
 
     try {
@@ -128,6 +130,23 @@ export default function FormularioProducto({ usuario }) {
     setFormulario({ ...formulario, codigo_barras: codigo });
     setEscanerAbierto(false);
     mostrarNotificacion('Código escaneado exitosamente', 'success');
+  };
+
+  const [proveedorInput, setProveedorInput] = useState('');
+  const agregarProveedor = (e) => {
+    e.preventDefault();
+    if (proveedorInput.trim()) {
+      const actuales = formulario.proveedores ? formulario.proveedores.split(',').map(p => p.trim()) : [];
+      if (!actuales.includes(proveedorInput.trim())) {
+        actuales.push(proveedorInput.trim());
+        setFormulario({ ...formulario, proveedores: actuales.join(', ') });
+      }
+      setProveedorInput('');
+    }
+  };
+  const quitarProveedor = (provToRemove) => {
+    const actuales = formulario.proveedores.split(',').map(p => p.trim()).filter(p => p !== provToRemove);
+    setFormulario({ ...formulario, proveedores: actuales.join(', ') });
   };
 
   if (cargando) return <div className="p-8 text-center text-gray-500">Cargando datos...</div>;
@@ -222,6 +241,31 @@ export default function FormularioProducto({ usuario }) {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
               </button>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Proveedores (Opcional)</label>
+            <div className="flex mt-1">
+              <input 
+                type="text" 
+                value={proveedorInput}
+                onChange={(e) => setProveedorInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); agregarProveedor(e); } }}
+                className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500" 
+                placeholder="Ej: Soprole, Coca-Cola..." 
+              />
+              <button type="button" onClick={agregarProveedor} className="bg-gray-200 px-4 rounded-r border border-gray-300 font-bold hover:bg-gray-300 text-gray-700 transition">Agregar</button>
+            </div>
+            {formulario.proveedores && (
+              <div className="flex flex-wrap gap-2 mt-3 p-2 bg-gray-50 rounded-lg border border-gray-100 min-h-[40px]">
+                {formulario.proveedores.split(',').map((prov, idx) => (
+                  <span key={idx} className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full flex items-center shadow-sm border border-blue-200">
+                    🏢 {prov.trim()}
+                    <button type="button" onClick={() => quitarProveedor(prov.trim())} className="ml-2 text-blue-500 hover:text-red-500 font-bold text-base leading-none focus:outline-none" title="Quitar">&times;</button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-4 pt-4 border-t mt-6">
