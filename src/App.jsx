@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
+import axios from 'axios';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import PuntoDeVenta from './components/PuntoDeVenta';
@@ -53,6 +54,34 @@ function LandingPage() {
       </Link>
     </div>
   );
+}
+
+// Helper function para obtener la URL base del backend para el panel de administración
+const getDjangoAdminBaseUrl = () => {
+  if (api.defaults.baseURL) {
+    let baseUrl = api.defaults.baseURL;
+    // Aseguramos que la URL termine con '/' para una manipulación consistente
+    if (!baseUrl.endsWith('/')) {
+      baseUrl += '/';
+    }
+    // Si la URL termina con '/api/', la reemplazamos por '/'
+    if (baseUrl.endsWith('/api/')) {
+      return baseUrl.replace('/api/', '/');
+    }
+    // Si no termina con '/api/', asumimos que ya es la URL base del dominio
+    return baseUrl;
+  }
+  return 'http://localhost:8000/'; // Fallback para desarrollo local si no hay baseURL configurada
+};
+
+// Componente para saltar del Frontend (Vercel) al Backend (Render/Localhost)
+function AdminRedirect() {
+  useEffect(() => {
+    const backendBaseUrl = getDjangoAdminBaseUrl();
+    window.location.replace(`${backendBaseUrl}fresco-admin/`);
+  }, []);
+  
+  return <div className="min-h-screen bg-[var(--color-fondo)] flex items-center justify-center text-gray-500 font-medium">Redirigiendo a Administración...</div>;
 }
 
 
@@ -220,6 +249,8 @@ export default function App() {
           <Route path="/fresco-login" element={<Login onLogin={setUsuario} />} />
           {/* Landing Page pública temporal */}
           <Route path="/" element={<LandingPage />} />
+          {/* Redirección al Admin de Django */}
+          <Route path="/fresco-admin/*" element={<AdminRedirect />} />
           {/* Redirigir cualquier otra ruta inventada a la página principal */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -235,6 +266,9 @@ export default function App() {
         
         {/* Si un empleado logueado entra al login por error, lo mandamos al Dashboard */}
         <Route path="/fresco-login" element={<Navigate to="/" replace />} />
+
+        {/* Redirección al Admin de Django para usuarios logueados */}
+        <Route path="/fresco-admin/*" element={<AdminRedirect />} />
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
           <Route path="/pos" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><PuntoDeVenta /></ModuleLayout>} />
