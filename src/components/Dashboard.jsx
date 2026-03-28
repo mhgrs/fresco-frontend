@@ -6,7 +6,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   const [alertas, setAlertas] = useState([]);
 
   useEffect(() => {
-    document.title = "FrescoPOS";
+    document.title = "Fresco";
 
     if (usuario.roles?.includes('ADMIN')) {
       api.get('inventario/productos/')

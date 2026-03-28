@@ -7,7 +7,7 @@ export default function Login({ onLogin }) {
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
-    document.title = "FrescoPOS";
+    document.title = "Fresco";
   }, []);
 
   const manejarCambio = (e) => {
