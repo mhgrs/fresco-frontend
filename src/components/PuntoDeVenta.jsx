@@ -386,8 +386,8 @@ export default function PuntoDeVenta() {
             </div>
 
             {/* Ajuste de texto para evitar desbordamientos en TRANSFERENCIA */}
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {['EFECTIVO', 'TARJETA', 'TRANSFERENCIA'].map(m => (
+            <div className="grid grid-cols-2 gap-2 mb-6">
+              {['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'ANOTADO'].map(m => (
                 <button
                   key={m}
                   onClick={() => setMetodoPago(m)}
