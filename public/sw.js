@@ -36,8 +36,12 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Si todo falla (offline) y es una petición de navegación (cambio de ruta en React), devolver index.html
         if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
+          return caches.match('/').then(response => {
+             return response || new Response('Aplicación Offline', { status: 503, statusText: 'Service Unavailable' });
+          });
         }
+        // Retornar una respuesta inofensiva si falla la carga de otro recurso (imágenes, scripts extra)
+        return new Response('', { status: 408, statusText: 'Request Timeout' });
       })
   );
 });
