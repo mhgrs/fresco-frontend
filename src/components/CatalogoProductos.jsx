@@ -16,6 +16,9 @@ export default function CatalogoProductos({ usuario }) {
   const [ajusteStock, setAjusteStock] = useState({ visible: false, producto: null, tipo: 'ingreso', cantidad: '' });
 
   const navigate = useNavigate();
+  
+  const [paginaActual, setPaginaActual] = useState(1);
+  const PRODUCTOS_POR_PAGINA = 50;
 
   const mostrarNotificacion = (mensaje, tipo = 'success') => {
     setNotificacion({ visible: true, mensaje, tipo });
@@ -38,6 +41,11 @@ export default function CatalogoProductos({ usuario }) {
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  // Resetear la página a 1 cuando se cambian los filtros (búsqueda o categoría)
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [terminoBusqueda, categoriaActiva]);
 
   const alternarEstado = async (id, estadoActual) => {
     if (!['ADMIN', 'SUPERVISOR'].includes(usuario?.rol)) {
@@ -140,6 +148,12 @@ export default function CatalogoProductos({ usuario }) {
       provs.includes(termino)
     );
   });
+
+  // Lógica de Paginación
+  const indiceUltimoProducto = paginaActual * PRODUCTOS_POR_PAGINA;
+  const indicePrimerProducto = indiceUltimoProducto - PRODUCTOS_POR_PAGINA;
+  const productosPaginados = productosFiltrados.slice(indicePrimerProducto, indiceUltimoProducto);
+  const totalPaginas = Math.ceil(productosFiltrados.length / PRODUCTOS_POR_PAGINA);
 
   return (
     <div className="p-6 h-full flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
@@ -277,7 +291,7 @@ export default function CatalogoProductos({ usuario }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {productosFiltrados.map(prod => (
+                {productosPaginados.map(prod => (
                   <tr key={prod.id} className={`hover:bg-white/40 transition-colors ${!prod.esta_activo ? 'opacity-60 bg-gray-200/50' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">{prod.sku}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
@@ -339,6 +353,34 @@ export default function CatalogoProductos({ usuario }) {
             </table>
           )}
         </div>
+
+        {/* Controles de Paginación */}
+        {totalPaginas > 1 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-3 bg-white/60 backdrop-blur-md border-t border-gray-200 flex-none gap-2">
+            <span className="text-sm text-gray-700 font-medium">
+              Mostrando {indicePrimerProducto + 1} a {Math.min(indiceUltimoProducto, productosFiltrados.length)} de {productosFiltrados.length} resultados
+            </span>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
+                disabled={paginaActual === 1}
+                className="px-3 py-1 bg-white border border-gray-300 rounded text-sm font-bold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                Anterior
+              </button>
+              <span className="px-3 py-1 text-sm font-bold text-gray-700 flex items-center bg-gray-100 rounded border border-gray-200">
+                Página {paginaActual} de {totalPaginas}
+              </span>
+              <button
+                onClick={() => setPaginaActual(prev => Math.min(prev + 1, totalPaginas))}
+                disabled={paginaActual === totalPaginas}
+                className="px-3 py-1 bg-white border border-gray-300 rounded text-sm font-bold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

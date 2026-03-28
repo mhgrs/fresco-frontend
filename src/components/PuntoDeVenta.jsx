@@ -222,7 +222,19 @@ export default function PuntoDeVenta() {
         setEfectivoRecibido('');
         setMetodoPago('EFECTIVO');
       } else {
-        mostrarNotificacion('Error al registrar la venta', 'error');
+        // Leemos el error exacto enviado por el backend
+        const errorData = error.response?.data;
+        console.error("❌ Detalle del error del backend:", errorData);
+        
+        let msgError = "Error al registrar la venta";
+        if (errorData) {
+          if (typeof errorData === 'object' && !errorData.error) {
+             msgError = "Error de validación (Revisa la consola)";
+          } else if (errorData.error) {
+             msgError = errorData.error;
+          }
+        }
+        mostrarNotificacion(msgError, 'error');
       }
     } finally {
       setProcesando(false);
