@@ -91,7 +91,14 @@ export default function Dashboard({ usuario, cerrarSesion }) {
             </Link>
           )}
 
-         
+          {usuario.roles?.includes('ADMIN') && (
+            <a href="/fresco-admin" target="_blank" rel="noopener noreferrer" className="bg-[var(--color-tarjeta)] border-0 backdrop-blur-sm border p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center aspect-square">
+              <span className="text-4xl mb-2">⚙️</span>
+              <h2 className="text-base font-bold text-gray-800 leading-tight">Panel Admin</h2>
+              <p className="text-gray-500 mt-1 text-xs">Gestionar usuarios y sistema</p>
+            </a>
+          )}
+
         </div>
       </div>
     </div>

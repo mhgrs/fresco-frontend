@@ -5,7 +5,6 @@ import api from '../services/api';
 export default function CatalogoProductos({ usuario }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
-  const [cargando, setCargando] = useState(true);
 
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState('TODOS');
@@ -24,7 +23,6 @@ export default function CatalogoProductos({ usuario }) {
   };
 
   const cargarDatos = async () => {
-    setCargando(true);
     try {
       const [resProd, resCat] = await Promise.all([
         api.get('inventario/productos/'),
@@ -34,8 +32,6 @@ export default function CatalogoProductos({ usuario }) {
       setCategorias(resCat.data);
     } catch (error) {
       console.error(error);
-    } finally {
-      setCargando(false);
     }
   };
 
@@ -49,9 +45,9 @@ export default function CatalogoProductos({ usuario }) {
       return;
     }
     try {
-      await api.patch(`inventario/productos/${id}/`, { esta_activo: !estadoActual });
+      const res = await api.patch(`inventario/productos/${id}/`, { esta_activo: !estadoActual });
       mostrarNotificacion(`Producto ${estadoActual ? 'oculto' : 'visible'}`, 'success');
-      cargarDatos();
+      setProductos(productos.map(p => p.id === id ? res.data : p));
     } catch (error) {
       mostrarNotificacion('Error al actualizar el estado', 'error');
     }
@@ -69,8 +65,8 @@ export default function CatalogoProductos({ usuario }) {
     try {
       await api.delete(`inventario/productos/${confirmarEliminar.id}/`);
       mostrarNotificacion('Producto eliminado permanentemente', 'success');
+      setProductos(productos.filter(p => p.id !== confirmarEliminar.id));
       setConfirmarEliminar({ visible: false, id: null, nombre: '' });
-      cargarDatos();
     } catch (error) {
       mostrarNotificacion('No se puede eliminar porque tiene historial de ventas', 'error');
       setConfirmarEliminar({ visible: false, id: null, nombre: '' });
@@ -100,10 +96,10 @@ export default function CatalogoProductos({ usuario }) {
       // Formatear decimales según tipo para evitar desbordes en BBDD
       const stockFinal = ajusteStock.producto.tipo_venta === 'UNIDAD' ? Math.round(nuevoStock) : parseFloat(nuevoStock.toFixed(3));
 
-      await api.patch(`inventario/productos/${ajusteStock.producto.id}/`, { stock: stockFinal });
+      const res = await api.patch(`inventario/productos/${ajusteStock.producto.id}/`, { stock: stockFinal });
       mostrarNotificacion(`Stock actualizado exitosamente. Nuevo stock: ${stockFinal}`, 'success');
+      setProductos(productos.map(p => p.id === ajusteStock.producto.id ? res.data : p));
       setAjusteStock({ visible: false, producto: null, tipo: 'ingreso', cantidad: '' });
-      cargarDatos();
     } catch (error) {
       mostrarNotificacion('Error al actualizar el stock', 'error');
     }
@@ -263,10 +259,10 @@ export default function CatalogoProductos({ usuario }) {
       </div>
       
       <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
-        {cargando ? (
-          <div className="p-8 text-center text-gray-500 font-medium">Cargando catálogo...</div>
-        ) : (
-          <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
+          {productosFiltrados.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 font-medium">No se encontraron productos.</div>
+          ) : (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-white/60 sticky top-0 z-10 shadow-sm backdrop-blur-md">
                 <tr>
@@ -327,8 +323,8 @@ export default function CatalogoProductos({ usuario }) {
                 ))}
               </tbody>
             </table>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

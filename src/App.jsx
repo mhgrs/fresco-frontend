@@ -14,7 +14,7 @@ import api from './services/api';
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
 function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
   useEffect(() => {
-    document.title = "FrescoPOS";
+    document.title = "Fresco";
   }, []);
 
   return (
@@ -50,7 +50,7 @@ function LandingPage() {
       <div className="w-16 h-1 bg-[#91cf5b] mx-auto rounded-full"></div>
       
       <Link to="/fresco-login" className="absolute bottom-6 right-6 text-xs text-gray-500 hover:text-gray-800 transition-colors font-medium">
-        FrescoPOS
+        Fresco
       </Link>
     </div>
   );

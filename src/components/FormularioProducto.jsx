@@ -42,14 +42,16 @@ export default function FormularioProducto({ usuario }) {
         if (esEdicion) {
           const resProd = await api.get(`inventario/productos/${id}/`);
           const p = resProd.data;
+          const stockInicial = p.tipo_venta === 'UNIDAD' ? Math.round(p.stock) : p.stock;
+          const umbralInicial = p.umbral_stock !== undefined ? (p.tipo_venta === 'UNIDAD' ? Math.round(p.umbral_stock) : p.umbral_stock) : '5';
           setFormulario({
             nombre: p.nombre,
             categoria: p.categoria,
             precio: p.precio,
             tipo_venta: p.tipo_venta,
             codigo_barras: p.codigo_barras || '',
-            stock: p.stock,
-            umbral_stock: p.umbral_stock !== undefined ? p.umbral_stock : '5'
+            stock: stockInicial,
+            umbral_stock: umbralInicial
           });
         }
       } catch (error) {
