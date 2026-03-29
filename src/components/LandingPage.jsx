@@ -33,9 +33,10 @@ export default function LandingPage({ usuario }) {
                 Ir al Dashboard
               </Link>
             ) : (
-              <Link to="/fresco-login" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-6 py-2 rounded-full font-bold shadow-md transition-all active:scale-95 inline-block">
-                Iniciar Sesión
-              </Link>
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <Link to="/fresco-login" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">Iniciar Sesión</Link>
+                <Link to="/registro" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95 inline-block">Crear Cuenta</Link>
+              </div>
             )}
           </div>
         </div>
@@ -53,7 +54,7 @@ export default function LandingPage({ usuario }) {
             Lleva la gestión de tu inventario y punto de venta al siguiente nivel. Diseñado para ser rápido, minimalista y completamente seguro.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Link to={usuario ? "/dashboard" : "/fresco-login"} className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all active:scale-95">
+            <Link to={usuario ? "/dashboard" : "/registro"} className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all active:scale-95">
               Comenzar a vender
             </Link>
             <a href="#caracteristicas" className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg shadow-sm transition-all active:scale-95">

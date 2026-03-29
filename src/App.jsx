@@ -10,6 +10,8 @@ import FormularioProducto from './components/FormularioProducto';
 import GestorCategorias from './components/GestorCategorias';
 import AlertasInventario from './components/AlertasInventario';
 import LandingPage from './components/LandingPage';
+import Registro from './components/Registro';
+import VerificarEmail from './components/VerificarEmail';
 import api from './services/api';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
@@ -230,6 +232,10 @@ export default function App() {
         <Routes>
           {/* Ruta secreta para los empleados */}
           <Route path="/fresco-login" element={<Login onLogin={setUsuario} />} />
+          {/* Rutas Públicas de SaaS */}
+          <Route path="/registro" element={<Registro />} />
+          <Route path="/verificar-email/:token" element={<VerificarEmail />} />
+          
           {/* Landing Page pública */}
           <Route path="/" element={<LandingPage usuario={null} />} />
           {/* Redirección al Admin de Django */}
@@ -252,6 +258,8 @@ export default function App() {
         
         {/* Si un empleado logueado entra al login por error, lo mandamos directo a su Dashboard */}
         <Route path="/fresco-login" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/registro" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/verificar-email/:token" element={<Navigate to="/dashboard" replace />} />
 
         {/* Redirección al Admin de Django para usuarios logueados */}
         <Route path="/fresco-admin/*" element={<AdminRedirect />} />
