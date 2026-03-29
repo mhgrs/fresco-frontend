@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 
 export default function Registro() {
+  const [paso, setPaso] = useState(1);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     email: '',
     password: '',
+    confirm_password: '',
     telefono: '',
-    nacionalidad: '',
+    nacionalidad: 'Chile',
     direccion: ''
   });
   const [cargando, setCargando] = useState(false);
@@ -23,21 +25,47 @@ export default function Registro() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const verificarCorreo = async (e) => {
+    e.preventDefault();
+    if (!formData.email) return;
+    setCargando(true);
+    setMensaje({ tipo: '', texto: '' });
+    try {
+      const res = await api.post('inventario/auth/verificar-correo/', { email: formData.email });
+      if (res.data.existe) {
+        setMensaje({ tipo: 'error', texto: 'Este correo ya tiene una cuenta asociada. Inicia sesión.' });
+      } else {
+        setPaso(2);
+      }
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: 'Ocurrió un error al verificar el correo.' });
+    } finally {
+      setCargando(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (formData.password !== formData.confirm_password) {
+      setMensaje({ tipo: 'error', texto: 'Las contraseñas no coinciden.' });
+      return;
+    }
+
     setCargando(true);
     setMensaje({ tipo: '', texto: '' });
 
     try {
-      const res = await api.post('inventario/auth/registro/', formData);
+      const { confirm_password, ...datosEnviar } = formData;
+      const res = await api.post('inventario/auth/registro/', datosEnviar);
       setMensaje({ tipo: 'success', texto: res.data.mensaje || 'Registro exitoso. Revisa tu correo electrónico para verificar tu cuenta.' });
       setFormData({
-        first_name: '', last_name: '', email: '', password: '', telefono: '', nacionalidad: '', direccion: ''
+        first_name: '', last_name: '', email: '', password: '', confirm_password: '', telefono: '', nacionalidad: 'Chile', direccion: ''
       });
+      setPaso(1);
     } catch (error) {
       let errorText = 'Ocurrió un error al registrar. Por favor intenta de nuevo.';
       if (error.response?.data) {
-          // Toma el primer error de validación que mande Django
           const firstKey = Object.keys(error.response.data)[0];
           const firstError = error.response.data[firstKey];
           errorText = `${firstKey === 'email' ? 'Correo' : firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
@@ -50,11 +78,22 @@ export default function Registro() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--color-fondo)] p-4 transition-colors duration-500">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100">
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100 relative">
+        {/* Botón volver atrás si estamos en paso 2 y no ha finalizado con éxito */}
+        {paso === 2 && mensaje.tipo !== 'success' && (
+           <button 
+             onClick={() => setPaso(1)} 
+             className="absolute top-6 left-6 text-gray-400 hover:text-gray-800 transition"
+             title="Volver"
+           >
+             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+           </button>
+        )}
+
         <div className="text-center mb-8">
           <h1 className="text-3xl font-black text-[#91cf5b] tracking-tighter mb-2">Fresco</h1>
           <h2 className="text-xl font-bold text-gray-800">Crea tu cuenta</h2>
-          <p className="text-sm text-gray-500 mt-1">Únete para empezar a gestionar tu negocio</p>
+          <p className="text-sm text-gray-500 mt-1">{paso === 1 ? "Comencemos con tu correo electrónico" : "Completa tus datos para finalizar"}</p>
         </div>
 
         {mensaje.texto && (
@@ -63,23 +102,42 @@ export default function Registro() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label><input type="text" name="first_name" required value={formData.first_name} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label><input type="text" name="last_name" required value={formData.last_name} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
-          </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico *</label><input type="email" name="email" required value={formData.email} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label><input type="password" name="password" required minLength="8" value={formData.password} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label><input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Nacionalidad</label><input type="text" name="nacionalidad" value={formData.nacionalidad} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
-          </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label><input type="text" name="direccion" value={formData.direccion} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+        {paso === 1 && mensaje.tipo !== 'success' && (
+          <form onSubmit={verificarCorreo} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico *</label>
+              <input type="email" name="email" required autoFocus value={formData.email} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" placeholder="ejemplo@correo.com" />
+            </div>
+            
+            <button type="submit" disabled={cargando || !formData.email} className="w-full bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 mt-4">
+              {cargando ? 'Verificando...' : 'Continuar'}
+            </button>
+          </form>
+        )}
 
-          <button type="submit" disabled={cargando || mensaje.tipo === 'success'} className="w-full bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 mt-4">
-            {cargando ? 'Registrando...' : 'Registrarme'}
-          </button>
-        </form>
+        {paso === 2 && mensaje.tipo !== 'success' && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label><input type="text" name="first_name" required autoFocus value={formData.first_name} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label><input type="text" name="last_name" required value={formData.last_name} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label><input type="password" name="password" required minLength="8" value={formData.password} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Confirmar *</label><input type="password" name="confirm_password" required minLength="8" value={formData.confirm_password} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">País</label><select name="nacionalidad" value={formData.nacionalidad} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition bg-white"><option value="Chile">Chile</option></select></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label><input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+            </div>
+            <div><label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label><input type="text" name="direccion" value={formData.direccion} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+
+            <button type="submit" disabled={cargando} className="w-full bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 mt-4">
+              {cargando ? 'Registrando...' : 'Registrarme'}
+            </button>
+          </form>
+        )}
 
         <div className="mt-8 text-center border-t border-gray-100 pt-6">
           <p className="text-sm text-gray-600 font-medium">
