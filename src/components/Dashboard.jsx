@@ -4,13 +4,11 @@ import api from '../services/api';
 
 export default function Dashboard({ usuario, cerrarSesion }) {
   const [alertas, setAlertas] = useState([]);
-  const [codigoInvitacion, setCodigoInvitacion] = useState('');
-  const [generandoCodigo, setGenerandoCodigo] = useState(false);
 
   useEffect(() => {
     document.title = "Fresco";
 
-    if (usuario.roles?.includes('ADMIN')) {
+    if (usuario.roles?.includes('ADMIN') || usuario.is_superuser) {
       api.get('inventario/productos/')
         .then(res => {
           const bajoUmbral = res.data.filter(p => p.esta_activo && parseFloat(p.stock) <= parseFloat(p.umbral_stock));
@@ -25,19 +23,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           }
         });
     }
-  }, [usuario.roles]);
-
-  const generarCodigo = async () => {
-    setGenerandoCodigo(true);
-    try {
-      const res = await api.post('inventario/empresas/generar_codigo/');
-      setCodigoInvitacion(res.data.codigo);
-    } catch (error) {
-      alert("Error al generar código: " + (error.response?.data?.error || "Error desconocido"));
-    } finally {
-      setGenerandoCodigo(false);
-    }
-  };
+  }, [usuario.roles, usuario.is_superuser]);
 
   return (
     <div className="min-h-screen bg-[var(--color-fondo)] p-8 transition-colors duration-500">
@@ -105,7 +91,15 @@ export default function Dashboard({ usuario, cerrarSesion }) {
             </Link>
           )}
 
-          {usuario.roles?.includes('ADMIN') && (
+          {(usuario.roles?.includes('ADMIN') || usuario.is_superuser) && (
+            <Link to="/configuracion" className="bg-[var(--color-tarjeta)] border-0 backdrop-blur-sm border p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center aspect-square">
+              <span className="text-4xl mb-2">🛠️</span>
+              <h2 className="text-base font-bold text-gray-800 leading-tight">Configuración</h2>
+              <p className="text-gray-500 mt-1 text-xs">Gestionar equipo y empresa</p>
+            </Link>
+          )}
+
+          {(usuario.roles?.includes('ADMIN') || usuario.is_superuser) && (
             <a href="/fresco-admin" target="_blank" rel="noopener noreferrer" className="bg-[var(--color-tarjeta)] border-0 backdrop-blur-sm border p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center aspect-square">
               <span className="text-4xl mb-2">⚙️</span>
               <h2 className="text-base font-bold text-gray-800 leading-tight">Panel Admin</h2>
@@ -114,27 +108,6 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           )}
 
         </div>
-
-        {/* Panel Administrativo Rápido */}
-        {usuario.roles?.includes('ADMIN') && (
-          <div className="mt-8 bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-2xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <h3 className="font-bold text-gray-800">Invitar Empleados</h3>
-              <p className="text-sm text-gray-500 mt-1">Genera un código de un solo uso para que tu personal se una a esta empresa.</p>
-            </div>
-            <div className="flex items-center">
-              {codigoInvitacion ? (
-                <div className="bg-gray-100 border border-gray-300 px-6 py-2 rounded-xl text-2xl font-black tracking-widest text-gray-800 shadow-inner select-all" title="Copiar este código">
-                  {codigoInvitacion}
-                </div>
-              ) : (
-                <button onClick={generarCodigo} disabled={generandoCodigo} className="bg-gray-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold shadow-md transition-all active:scale-95 disabled:opacity-50">
-                  {generandoCodigo ? 'Generando...' : 'Generar Código'}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

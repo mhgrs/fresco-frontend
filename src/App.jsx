@@ -13,6 +13,7 @@ import LandingPage from './components/LandingPage';
 import Registro from './components/Registro';
 import VerificarEmail from './components/VerificarEmail';
 import OnboardingEmpresa from './components/OnboardingEmpresa';
+import GestionEmpresa from './components/GestionEmpresa'; // NUEVO
 import api from './services/api';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
@@ -300,6 +301,10 @@ export default function App() {
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
           <Route path="/alertas" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><AlertasInventario /></ModuleLayout>} />
+        )}
+
+        {(usuario.roles?.includes('ADMIN') || usuario.is_superuser) && (
+          <Route path="/configuracion" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><GestionEmpresa usuario={usuario} /></ModuleLayout>} />
         )}
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
