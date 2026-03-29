@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import Login from './components/Login';
@@ -12,6 +12,7 @@ import AlertasInventario from './components/AlertasInventario';
 import LandingPage from './components/LandingPage';
 import Registro from './components/Registro';
 import VerificarEmail from './components/VerificarEmail';
+import OnboardingEmpresa from './components/OnboardingEmpresa';
 import api from './services/api';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
@@ -82,8 +83,8 @@ export default function App() {
     document.documentElement.style.setProperty('--color-tarjeta', 'rgba(250, 250, 250, 0.38)'); // Blanco levemente transparente
   }, []);
 
-  useEffect(() => {
-    const cargarUsuario = async () => {
+  // Lo extraemos a un useCallback para poder pasarlo al Onboarding y recargar al terminar
+  const cargarUsuario = useCallback(async () => {
       const token = localStorage.getItem('access_token');
       if (token) {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -113,9 +114,11 @@ export default function App() {
         }
       }
       setVerificandoSesion(false);
-    };
-    cargarUsuario();
   }, []);
+
+  useEffect(() => {
+    cargarUsuario();
+  }, [cargarUsuario]);
 
   const manejarCerrarSesion = () => {
     setUsuario(null);
@@ -242,6 +245,18 @@ export default function App() {
           <Route path="/fresco-admin/*" element={<AdminRedirect />} />
           {/* Redirigir cualquier otra ruta inventada a la página principal */}
           <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
+  // Si el usuario está autenticado pero no tiene empresa, bloqueamos el acceso al dashboard
+  if (usuario && !usuario.empresa) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/onboarding" element={<OnboardingEmpresa onCompletado={cargarUsuario} cerrarSesion={manejarCerrarSesion} />} />
+          <Route path="*" element={<Navigate to="/onboarding" replace />} />
         </Routes>
       </BrowserRouter>
     );
