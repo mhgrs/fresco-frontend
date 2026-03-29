@@ -29,12 +29,15 @@ export default function LandingPage({ usuario }) {
           {/* Derecha: Botón de Acción Dinámico */}
           <div>
             {usuario ? (
-              <Link to="/dashboard" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-6 py-2 rounded-full font-bold shadow-md transition-all active:scale-95 inline-block">
-                Ir al Dashboard
-              </Link>
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-bold text-gray-600 hidden sm:block">Hola, {usuario.nombre || usuario.username}</span>
+                <Link to="/dashboard" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-6 py-2 rounded-full font-bold shadow-md transition-all active:scale-95 inline-block">
+                  Ir al Dashboard
+                </Link>
+              </div>
             ) : (
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                <Link to="/fresco-login" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">Iniciar Sesión</Link>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <Link to="/fresco-login" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">Iniciar Sesión</Link>
                 <Link to="/registro" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95 inline-block">Crear Cuenta</Link>
               </div>
             )}

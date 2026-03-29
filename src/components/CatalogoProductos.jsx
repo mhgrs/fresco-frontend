@@ -48,8 +48,8 @@ export default function CatalogoProductos({ usuario }) {
   }, [terminoBusqueda, categoriaActiva]);
 
   const alternarEstado = async (id, estadoActual) => {
-    if (!['ADMIN', 'SUPERVISOR'].includes(usuario?.rol)) {
-      mostrarNotificacion('No tienes los permisos', 'error');
+    if (!isAuthorized(['ADMIN', 'SUPERVISOR'])) {
+      mostrarNotificacion('No tienes permisos para esta acción.', 'error');
       return;
     }
     try {

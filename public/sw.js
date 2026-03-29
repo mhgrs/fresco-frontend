@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fresco-pos-cache-v2';
+const CACHE_NAME = 'fresco-pos-cache-v3';
 const urlsToCache = [
   '/'
 ];
