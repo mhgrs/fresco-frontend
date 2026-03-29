@@ -100,7 +100,8 @@ export default function FormularioProducto({ usuario }) {
 
     try {
       if (esEdicion) {
-        await api.put(`inventario/productos/${id}/`, payload);
+        // Usamos PATCH en lugar de PUT para no sobrescribir datos ocultos como la empresa o esta_activo
+        await api.patch(`inventario/productos/${id}/`, payload);
         mostrarNotificacion('Producto actualizado exitosamente', 'success');
       } else {
         await api.post('inventario/productos/', payload);

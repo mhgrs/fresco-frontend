@@ -30,7 +30,8 @@ export default function GestorCategorias({ usuario }) {
     e.preventDefault();
     try {
       if (formulario.id) {
-        await api.put(`inventario/categorias/${formulario.id}/`, { nombre: formulario.nombre, codigo: formulario.codigo.toUpperCase() });
+        // Usamos PATCH en lugar de PUT para modificaciones parciales
+        await api.patch(`inventario/categorias/${formulario.id}/`, { nombre: formulario.nombre, codigo: formulario.codigo.toUpperCase() });
         mostrarNotificacion('Categoría actualizada exitosamente', 'success');
       } else {
         await api.post('inventario/categorias/', { nombre: formulario.nombre, codigo: formulario.codigo.toUpperCase() });
