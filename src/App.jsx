@@ -229,12 +229,12 @@ export default function App() {
     return <div className="min-h-screen bg-[var(--color-fondo)] flex items-center justify-center text-gray-500 font-medium transition-colors duration-500">Cargando aplicación...</div>;
   }
 
-  if (!usuario) {
-    return (
-      <BrowserRouter>
+  return (
+    <BrowserRouter>
+      {!usuario ? (
         <Routes>
           {/* Ruta secreta para los empleados */}
-          <Route path="/fresco-login" element={<Login onLogin={setUsuario} />} />
+          <Route path="/fresco-login" element={<Login onLogin={(u) => setUsuario({ ...u, roles: u.roles || [] })} />} />
           {/* Rutas Públicas de SaaS */}
           <Route path="/registro" element={<Registro />} />
           <Route path="/verificar-email/:token" element={<VerificarEmail />} />
@@ -246,25 +246,13 @@ export default function App() {
           {/* Redirigir cualquier otra ruta inventada a la página principal */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
-    );
-  }
-
-  // Si el usuario está autenticado pero no tiene empresa, bloqueamos el acceso al dashboard
-  if (usuario && !usuario.empresa) {
-    return (
-      <BrowserRouter>
+      ) : !usuario.empresa ? (
         <Routes>
           <Route path="/onboarding" element={<OnboardingEmpresa onCompletado={cargarUsuario} cerrarSesion={manejarCerrarSesion} />} />
           <Route path="*" element={<Navigate to="/onboarding" replace />} />
         </Routes>
-      </BrowserRouter>
-    );
-  }
-
-  return (
-    <BrowserRouter>
-      <Routes>
+      ) : (
+        <Routes>
         {/* Landing Page pública, ahora accesible incluso logueado (como portada) */}
         <Route path="/" element={<LandingPage usuario={usuario} />} />
         
@@ -309,6 +297,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+      )}
     </BrowserRouter>
   );
 }
