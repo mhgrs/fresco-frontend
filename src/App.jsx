@@ -16,7 +16,7 @@ import OnboardingEmpresa from './components/OnboardingEmpresa';
 import api from './services/api';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
-function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
+function ModuleLayout({ children, isOnline = true, sincronizando = false, cerrarSesion }) {
   useEffect(() => {
     document.title = "Fresco";
   }, []);
@@ -33,6 +33,13 @@ function ModuleLayout({ children, isOnline = true, sincronizando = false }) {
           {sincronizando && <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded animate-pulse">Sincronizando...</span>}
           {!isOnline && <span className="text-xs bg-red-500 text-white px-2 py-1 rounded shadow-sm">Modo Offline</span>}
           Fresco
+          {cerrarSesion && (
+            <button onClick={cerrarSesion} title="Cerrar Sesión" className="ml-2 bg-black/10 hover:bg-red-500 hover:text-white text-white/90 p-1.5 rounded transition flex items-center justify-center">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
+            </button>
+          )}
         </div>
       </header>
       <main className="flex-1 overflow-hidden">
@@ -268,31 +275,31 @@ export default function App() {
         <Route path="/fresco-admin/*" element={<AdminRedirect />} />
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
-          <Route path="/pos" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><PuntoDeVenta /></ModuleLayout>} />
+          <Route path="/pos" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><PuntoDeVenta /></ModuleLayout>} />
         )}
         
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
-          <Route path="/inventario" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><CatalogoProductos usuario={usuario} /></ModuleLayout>} />
+          <Route path="/inventario" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><CatalogoProductos usuario={usuario} /></ModuleLayout>} />
         )}
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
-          <Route path="/inventario/nuevo" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
+          <Route path="/inventario/nuevo" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
         )}
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
-          <Route path="/inventario/editar/:id" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
+          <Route path="/inventario/editar/:id" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
         )}
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
-          <Route path="/categorias" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><GestorCategorias usuario={usuario} /></ModuleLayout>} />
+          <Route path="/categorias" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><GestorCategorias usuario={usuario} /></ModuleLayout>} />
         )}
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
-          <Route path="/reportes" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><CierreCaja /></ModuleLayout>} />
+          <Route path="/reportes" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><CierreCaja /></ModuleLayout>} />
         )}
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
-          <Route path="/alertas" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando}><AlertasInventario /></ModuleLayout>} />
+          <Route path="/alertas" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><AlertasInventario /></ModuleLayout>} />
         )}
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
