@@ -144,9 +144,11 @@ export default function CatalogoProductos({ usuario }) {
     
     const termino = terminoBusqueda.toLowerCase();
     const provs = (prod.proveedores || '').toLowerCase();
+    const marca = (prod.marca || '').toLowerCase();
     return (
       prod.nombre.toLowerCase().includes(termino) ||
       prod.sku.toLowerCase().includes(termino) ||
+      marca.includes(termino) ||
       (prod.codigo_barras && prod.codigo_barras.toLowerCase().includes(termino)) ||
       provs.includes(termino)
     );
@@ -172,9 +174,9 @@ export default function CatalogoProductos({ usuario }) {
     if (configOrden.clave === 'precio' || configOrden.clave === 'stock') {
       valorA = parseFloat(valorA);
       valorB = parseFloat(valorB);
-    } else if (typeof valorA === 'string') {
-      valorA = valorA.toLowerCase();
-      valorB = valorB.toLowerCase();
+    } else if (typeof valorA === 'string' || valorA === null) {
+      valorA = (valorA || '').toLowerCase();
+      valorB = (valorB || '').toLowerCase();
     }
 
     if (valorA < valorB) return configOrden.direccion === 'asc' ? -1 : 1;
@@ -324,13 +326,16 @@ export default function CatalogoProductos({ usuario }) {
                   <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group select-none" onClick={() => solicitarOrden('nombre')}>
                     Producto {renderIconoOrden('nombre')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Proveedores</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group select-none" onClick={() => solicitarOrden('marca')}>
+                    Marca {renderIconoOrden('marca')}
+                  </th>
                   <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group select-none" onClick={() => solicitarOrden('precio')}>
                     Precio {renderIconoOrden('precio')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group select-none" onClick={() => solicitarOrden('stock')}>
                     Stock {renderIconoOrden('stock')}
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Proveedores</th>
                   <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
@@ -340,6 +345,15 @@ export default function CatalogoProductos({ usuario }) {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">{prod.sku}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">
                       {prod.nombre} {!prod.esta_activo && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded ml-2">Inactivo</span>}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">
+                      {prod.marca}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 font-medium">${prod.precio}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${prod.stock > 10 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {prod.tipo_venta === 'UNIDAD' ? `${Math.round(prod.stock)} u` : `${parseFloat(prod.stock)} kg`}
+                      </span> 
                     </td>
                     <td className="px-6 py-4">
                       {prod.proveedores && (
@@ -351,12 +365,6 @@ export default function CatalogoProductos({ usuario }) {
                           ))}
                         </div>
                       )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 font-medium">${prod.precio}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${prod.stock > 10 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {prod.tipo_venta === 'UNIDAD' ? `${Math.round(prod.stock)} u` : `${parseFloat(prod.stock)} kg`}
-                      </span> 
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium flex justify-center space-x-4">
                       {/* ICONO AJUSTAR STOCK */}
