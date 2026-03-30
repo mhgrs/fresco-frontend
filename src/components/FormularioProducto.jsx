@@ -127,10 +127,27 @@ export default function FormularioProducto({ usuario }) {
     }
   };
 
+  const buscarMaestro = async (codigo) => {
+    if (!codigo || codigo.trim() === '') return;
+    try {
+      const res = await api.get(`inventario/maestro/${codigo}/`);
+      if (res.data && res.data.nombre_estandarizado) {
+        setFormulario(prev => ({
+          ...prev,
+          // Si el usuario ya escribió un nombre, lo respetamos, sino autocompletamos
+          nombre: prev.nombre || res.data.nombre_estandarizado
+        }));
+        mostrarNotificacion('¡Sugerencia encontrada en catálogo global!', 'success');
+      }
+    } catch (error) {
+      // Si arroja 404 no hacemos nada, significa que es la primera vez que vemos este producto
+    }
+  };
+
   const manejarEscaneo = (codigo) => {
     setFormulario({ ...formulario, codigo_barras: codigo });
     setEscanerAbierto(false);
-    mostrarNotificacion('Código escaneado exitosamente', 'success');
+    buscarMaestro(codigo);
   };
 
   const [proveedorInput, setProveedorInput] = useState('');
@@ -167,6 +184,22 @@ export default function FormularioProducto({ usuario }) {
         </h2>
         
         <form onSubmit={guardarProducto} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Cód. Barras (Escanea primero para autocompletar)</label>
+            <div className="flex mt-1">
+              <input disabled={isBodega || isSupervisor} type="text" name="codigo_barras" value={formulario.codigo_barras} onChange={manejarCambio} onBlur={(e) => buscarMaestro(e.target.value)} className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Escanear o escribir..." />
+              <button 
+                type="button" 
+                disabled={isBodega || isSupervisor}
+                onClick={() => setEscanerAbierto(true)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-r border border-gray-300 transition-colors disabled:opacity-50 flex items-center justify-center"
+                title="Escanear con cámara"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
             <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
@@ -225,22 +258,6 @@ export default function FormularioProducto({ usuario }) {
                 onChange={manejarCambio} 
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" 
               />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Cód. Barras</label>
-            <div className="flex mt-1">
-              <input disabled={isBodega || isSupervisor} type="text" name="codigo_barras" value={formulario.codigo_barras} onChange={manejarCambio} className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Opcional" />
-              <button 
-                type="button" 
-                disabled={isBodega || isSupervisor}
-                onClick={() => setEscanerAbierto(true)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-r border border-gray-300 transition-colors disabled:opacity-50 flex items-center justify-center"
-                title="Escanear con cámara"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-              </button>
             </div>
           </div>
 
