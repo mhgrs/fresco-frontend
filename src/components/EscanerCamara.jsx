@@ -50,7 +50,7 @@ export default function EscanerCamara({ onScan, onClose }) {
 
         // 3. Configuración para el escáner.
         const config = {
-          fps: 10,
+          fps: 20,
           qrbox: { width: 250, height: 150 },
           formatsToSupport: [
             Html5QrcodeSupportedFormats.EAN_13,
@@ -62,7 +62,8 @@ export default function EscanerCamara({ onScan, onClose }) {
           videoConstraints: {
             width: { ideal: 1920 },
             height: { ideal: 1080 },
-            facingMode: "environment", // Como fallback para navegadores que lo prefieran.
+            facingMode: "environment",
+            advanced: [{ focusMode: "continuous" }] , 
           }
         };
 

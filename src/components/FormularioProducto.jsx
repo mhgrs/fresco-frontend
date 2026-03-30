@@ -278,7 +278,7 @@ export default function FormularioProducto({ usuario }) {
               <div className="flex flex-wrap gap-2 mt-3 p-2 bg-gray-50 rounded-lg border border-gray-100 min-h-[40px]">
                 {formulario.proveedores.split(',').map((prov, idx) => (
                   <span key={idx} className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full flex items-center shadow-sm border border-blue-200">
-                    🏢 {prov.trim()}
+                    {prov.trim()}
                     <button type="button" onClick={() => quitarProveedor(prov.trim())} className="ml-2 text-blue-500 hover:text-red-500 font-bold text-base leading-none focus:outline-none" title="Quitar">&times;</button>
                   </span>
                 ))}
