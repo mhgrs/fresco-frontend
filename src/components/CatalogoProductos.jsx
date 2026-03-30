@@ -20,6 +20,9 @@ export default function CatalogoProductos({ usuario }) {
   const [paginaActual, setPaginaActual] = useState(1);
   const PRODUCTOS_POR_PAGINA = 50;
 
+  // Estado para el ordenamiento de la tabla
+  const [configOrden, setConfigOrden] = useState({ clave: null, direccion: 'asc' });
+
   const mostrarNotificacion = (mensaje, tipo = 'success') => {
     setNotificacion({ visible: true, mensaje, tipo });
     setTimeout(() => setNotificacion({ visible: false, mensaje: '', tipo: '' }), 3000);
@@ -149,11 +152,46 @@ export default function CatalogoProductos({ usuario }) {
     );
   });
 
+  // Función para manejar el clic en las cabeceras
+  const solicitarOrden = (clave) => {
+    let direccion = 'asc';
+    if (configOrden.clave === clave && configOrden.direccion === 'asc') {
+      direccion = 'desc';
+    }
+    setConfigOrden({ clave, direccion });
+  };
+
+  // Aplicar el ordenamiento
+  const productosOrdenados = [...productosFiltrados].sort((a, b) => {
+    if (!configOrden.clave) return 0;
+    
+    let valorA = a[configOrden.clave];
+    let valorB = b[configOrden.clave];
+
+    // Convertir a número para precio y stock, a minúsculas para strings
+    if (configOrden.clave === 'precio' || configOrden.clave === 'stock') {
+      valorA = parseFloat(valorA);
+      valorB = parseFloat(valorB);
+    } else if (typeof valorA === 'string') {
+      valorA = valorA.toLowerCase();
+      valorB = valorB.toLowerCase();
+    }
+
+    if (valorA < valorB) return configOrden.direccion === 'asc' ? -1 : 1;
+    if (valorA > valorB) return configOrden.direccion === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   // Lógica de Paginación
   const indiceUltimoProducto = paginaActual * PRODUCTOS_POR_PAGINA;
   const indicePrimerProducto = indiceUltimoProducto - PRODUCTOS_POR_PAGINA;
-  const productosPaginados = productosFiltrados.slice(indicePrimerProducto, indiceUltimoProducto);
-  const totalPaginas = Math.ceil(productosFiltrados.length / PRODUCTOS_POR_PAGINA);
+  const productosPaginados = productosOrdenados.slice(indicePrimerProducto, indiceUltimoProducto);
+  const totalPaginas = Math.ceil(productosOrdenados.length / PRODUCTOS_POR_PAGINA);
+
+  const renderIconoOrden = (clave) => {
+    if (configOrden.clave !== clave) return <span className="ml-1 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">↕</span>;
+    return configOrden.direccion === 'asc' ? <span className="ml-1 text-[#91cf5b] font-black">↑</span> : <span className="ml-1 text-[#91cf5b] font-black">↓</span>;
+  };
 
   return (
     <div className="p-6 h-full flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
@@ -283,10 +321,16 @@ export default function CatalogoProductos({ usuario }) {
               <thead className="bg-white/60 sticky top-0 z-10 shadow-sm backdrop-blur-md">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">SKU</th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group select-none" onClick={() => solicitarOrden('nombre')}>
+                    Producto {renderIconoOrden('nombre')}
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Proveedores</th>
-                  <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Precio</th>
-                  <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
+                  <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group select-none" onClick={() => solicitarOrden('precio')}>
+                    Precio {renderIconoOrden('precio')}
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors group select-none" onClick={() => solicitarOrden('stock')}>
+                    Stock {renderIconoOrden('stock')}
+                  </th>
                   <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
