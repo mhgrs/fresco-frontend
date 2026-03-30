@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fresco-pos-cache-v3';
+const CACHE_NAME = 'fresco-pos-cache-v4';
 const urlsToCache = [
   '/'
 ];
@@ -16,32 +16,34 @@ self.addEventListener('install', event => {
   );
 });
 
-// Interceptar peticiones para servir desde caché si estamos offline
+// Interceptar peticiones con estrategia "Network First" (Red primero, caché como respaldo)
 self.addEventListener('fetch', event => {
   // No interceptamos llamadas a la API, dejamos que Axios y App.jsx manejen los datos offline
   if (event.request.url.includes('/api/')) return;
 
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        if (response) return response; // Devuelve la versión en caché
-        
-        return fetch(event.request).then(response => {
-          // Guardar archivos nuevos (JS, CSS empaquetados por Vite) en caché dinámicamente
-          if (!response || response.status !== 200 || response.type !== 'basic') return response;
+        // Si la red responde correctamente, actualizamos la caché dinámica
+        if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
-          return response;
-        });
-      }).catch(() => {
-        // Si todo falla (offline) y es una petición de navegación (cambio de ruta en React), devolver index.html
-        if (event.request.mode === 'navigate') {
-          return caches.match('/').then(response => {
-             return response || new Response('Aplicación Offline', { status: 503, statusText: 'Service Unavailable' });
-          });
         }
-        // Retornar una respuesta inofensiva si falla la carga de otro recurso (imágenes, scripts extra)
-        return new Response('', { status: 408, statusText: 'Request Timeout' });
+        return response;
+      })
+      .catch(() => {
+        // Si no hay red (offline), buscamos en la caché
+        return caches.match(event.request).then(cachedResponse => {
+          if (cachedResponse) return cachedResponse;
+          
+          // Si es navegación y no está en caché, devolvemos el index principal
+          if (event.request.mode === 'navigate') {
+            return caches.match('/').then(res => {
+               return res || new Response('Aplicación Offline', { status: 503, statusText: 'Service Unavailable' });
+            });
+          }
+          return new Response('', { status: 408, statusText: 'Request Timeout' });
+        });
       })
   );
 });
