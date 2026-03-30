@@ -42,7 +42,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6"> 
+        <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6"> 
           {(!usuario.roles || usuario.roles.length === 0) && (
             <div className="col-span-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded shadow-sm">
               <p className="font-bold text-sm">Tu usuario no tiene permisos asignados.</p>
@@ -94,18 +94,12 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           {(usuario.roles?.includes('ADMIN') || usuario.is_superuser) && (
             <Link to="/configuracion" className="bg-[var(--color-tarjeta)] border-0 backdrop-blur-sm border p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center aspect-square">
               <span className="text-4xl mb-2">🛠️</span>
-              <h2 className="text-base font-bold text-gray-800 leading-tight">Configuración</h2>
+              <h2 className="text-base font-bold text-gray-800 leading-tight">Panel admin</h2>
               <p className="text-gray-500 mt-1 text-xs">Gestionar equipo y empresa</p>
             </Link>
           )}
 
-          {(usuario.roles?.includes('ADMIN') || usuario.is_superuser) && (
-            <a href="/fresco-admin" target="_blank" rel="noopener noreferrer" className="bg-[var(--color-tarjeta)] border-0 backdrop-blur-sm border p-3 rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center text-center aspect-square">
-              <span className="text-4xl mb-2">⚙️</span>
-              <h2 className="text-base font-bold text-gray-800 leading-tight">Panel Admin</h2>
-              <p className="text-gray-500 mt-1 text-xs">Gestionar usuarios y sistema</p>
-            </a>
-          )}
+        
 
         </div>
       </div>
