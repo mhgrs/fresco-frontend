@@ -21,7 +21,7 @@ export default function FormularioProducto({ usuario }) {
   const [escanerAbierto, setEscanerAbierto] = useState(false);
 
   const [formulario, setFormulario] = useState({
-    nombre: '', categoria: '', precio: '', tipo_venta: 'UNIDAD', codigo_barras: '', stock: '', umbral_stock: '5', proveedores: ''
+    nombre: '', marca: '', categoria: '', precio: '', tipo_venta: 'UNIDAD', codigo_barras: '', stock: '', umbral_stock: '5', proveedores: ''
   });
 
   const mostrarNotificacion = (mensaje, tipo = 'success') => {
@@ -46,6 +46,7 @@ export default function FormularioProducto({ usuario }) {
           const umbralInicial = p.umbral_stock !== undefined ? (p.tipo_venta === 'UNIDAD' ? Math.round(p.umbral_stock) : p.umbral_stock) : '5';
           setFormulario({
             nombre: p.nombre,
+            marca: p.marca || '',
             categoria: p.categoria,
             precio: p.precio,
             tipo_venta: p.tipo_venta,
@@ -95,6 +96,7 @@ export default function FormularioProducto({ usuario }) {
       stock: stockFinal,
       umbral_stock: umbralFinal,
       codigo_barras: formulario.codigo_barras.trim() || null,
+      marca: formulario.marca.trim() || null,
       proveedores: formulario.proveedores.trim() || null
     };
 
@@ -131,13 +133,23 @@ export default function FormularioProducto({ usuario }) {
     if (!codigo || codigo.trim() === '') return;
     try {
       const res = await api.get(`inventario/maestro/${codigo}/`);
-      if (res.data && res.data.nombre_estandarizado) {
-        setFormulario(prev => ({
-          ...prev,
-          // Si el usuario ya escribió un nombre, lo respetamos, sino autocompletamos
-          nombre: prev.nombre || res.data.nombre_estandarizado
-        }));
-        mostrarNotificacion('¡Sugerencia encontrada en catálogo global!', 'success');
+      if (res.data) {
+        const { nombre_estandarizado, marca } = res.data;
+        
+        setFormulario(prev => {
+          const shouldUpdateNombre = nombre_estandarizado && !prev.nombre;
+          const shouldUpdateMarca = marca && !prev.marca;
+
+          if (shouldUpdateNombre || shouldUpdateMarca) {
+            mostrarNotificacion('¡Sugerencia encontrada en catálogo global!', 'success');
+            return {
+              ...prev,
+              nombre: shouldUpdateNombre ? nombre_estandarizado : prev.nombre,
+              marca: shouldUpdateMarca ? marca : prev.marca,
+            };
+          }
+          return prev;
+        });
       }
     } catch (error) {
       // Si arroja 404 no hacemos nada, significa que es la primera vez que vemos este producto
@@ -203,6 +215,11 @@ export default function FormularioProducto({ usuario }) {
           <div>
             <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
             <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Marca (Opcional)</label>
+            <input type="text" name="marca" value={formulario.marca} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" placeholder="Ej: Coca-Cola, Soprole..." />
           </div>
 
           <div>
