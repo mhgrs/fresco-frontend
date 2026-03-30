@@ -74,7 +74,7 @@ function TabEquipo() {
     <div className="space-y-10">
       {/* Sección de Invitaciones */}
       <div className="bg-white/60 p-6 rounded-xl shadow-md border border-gray-200">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">Invitar Empleados</h3>
+        <h3 className="text-lg font-bold text-gray-800 mb-4">Invitar equipo de trabajo</h3>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-600 max-w-md">
             Genera un código de un solo uso para que un nuevo empleado se una a tu empresa. El empleado deberá registrarse primero y luego usar este código.
