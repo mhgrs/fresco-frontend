@@ -394,24 +394,24 @@ export default function PuntoDeVenta() {
 
       {/* Modal de Pago */}
       {modalAbierto && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--color-tarjeta)] backdrop-blur-xl border border-white/50 rounded-3xl p-8 w-full max-w-lg shadow-2xl">
-            <h2 className="text-3xl font-bold mb-6 text-gray-800">Procesar Pago</h2>
+        <div className="fixed inset-0  bg-[var(--color-tarjeta)] flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-fondo)] backdrop-blur-xl border border-white/50 rounded-3xl p-8 w-full max-w-lg shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Procesar Pago</h2>
             <div className="text-center mb-8 bg-white/50 p-6 rounded-2xl shadow-inner border border-white/60">
               <p className="text-gray-500 font-medium uppercase text-sm tracking-wider">Monto Total</p>
-              <p className="text-6xl font-black text-gray-900 mt-1">${totalRedondeado}</p>
+              <p className="text-5xl font-black text-gray-900 mt-1">${totalRedondeado}</p>
               {metodoPago === 'EFECTIVO' && total !== totalRedondeado && (
-                <p className="text-sm text-gray-500 mt-2 font-medium">Monto original: ${total} (Redondeado)</p>
+                <p className="text-xs text-gray-500 mt-2 font-medium">Monto original: ${total} (Redondeado)</p>
               )}
             </div>
 
             {/* Ajuste de texto para evitar desbordamientos en TRANSFERENCIA */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            <div className="grid grid-cols-2  gap-3 mb-8">
               {['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'ANOTADO'].map(m => (
                 <button
                   key={m}
                   onClick={() => setMetodoPago(m)}
-                  className={`p-4 text-sm font-bold rounded-xl border-2 flex items-center justify-center text-center transition-all duration-200 ${metodoPago === m ? 'border-[#91cf5b] bg-white text-[#7ab848] shadow-lg scale-105' : 'border-gray-200/80 bg-white/60 text-gray-600 hover:bg-white hover:border-gray-300'}`}
+                  className={`p-4 text-sm  font-bold rounded-xl border-2 flex items-center justify-center text-center transition-all duration-200 ${metodoPago === m ? 'border-[#91cf5b] bg-white text-[#7ab848] shadow-lg scale-105' : 'border-gray-200/80 bg-white/60 text-gray-600 hover:bg-white hover:border-gray-300'}`}
                 >
                   {m}
                 </button>
@@ -424,11 +424,11 @@ export default function PuntoDeVenta() {
                 <input
                   type="number"
                   autoFocus
-                  className="w-full p-3 border border-gray-300/80 bg-white/80 rounded-lg focus:ring-2 focus:ring-[#91cf5b] text-2xl font-bold text-gray-800"
+                  className="w-full p-3 border border-gray-300/80 bg-white/80 rounded-lg focus:ring-2 focus:ring-[#91cf5b] text-xl font-bold text-gray-800"
                   value={efectivoRecibido}
                   onChange={(e) => setEfectivoRecibido(e.target.value)}
                 />
-                <div className={`mt-4 text-2xl font-bold flex justify-between ${vuelto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className={`mt-4 text-xl font-bold flex justify-between ${vuelto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   <span>Vuelto:</span> 
                   <span>${vuelto >= 0 ? vuelto : 0}</span>
                 </div>
