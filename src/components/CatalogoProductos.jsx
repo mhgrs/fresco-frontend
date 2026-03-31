@@ -6,6 +6,7 @@ export default function CatalogoProductos({ usuario }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
 
+  const [debouncedTermino, setDebouncedTermino] = useState('');
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState('TODOS');
 
@@ -49,6 +50,17 @@ export default function CatalogoProductos({ usuario }) {
   useEffect(() => {
     setPaginaActual(1);
   }, [terminoBusqueda, categoriaActiva]);
+
+  // Efecto para aplicar Debounce a la búsqueda
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedTermino(terminoBusqueda);
+    }, 200); // 200ms de retraso
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [terminoBusqueda]);
 
   const alternarEstado = async (id, estadoActual) => {
     if (!isAuthorized(['ADMIN', 'SUPERVISOR'])) {
@@ -140,9 +152,9 @@ export default function CatalogoProductos({ usuario }) {
     const coincideCategoria = categoriaActiva === 'TODOS' || prod.categoria === categoriaActiva;
     if (!coincideCategoria) return false;
 
-    if (!terminoBusqueda.trim()) return true;
+    if (!debouncedTermino.trim()) return true;
     
-    const termino = terminoBusqueda.toLowerCase();
+    const termino = debouncedTermino.toLowerCase();
     const provs = (prod.proveedores || '').toLowerCase();
     const marca = (prod.marca || '').toLowerCase();
     return (
