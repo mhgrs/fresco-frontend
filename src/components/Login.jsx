@@ -59,7 +59,7 @@ export default function Login({ onLogin }) {
 
         <form onSubmit={procesarLogin} className="space-y-4">
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">Usuario</label>
+            <label className="block text-gray-700 text-sm font-bold mb-2">Correo electrónico</label>
             <input 
               type="text" 
               name="username" 
