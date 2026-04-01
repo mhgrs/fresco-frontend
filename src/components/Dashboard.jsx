@@ -74,7 +74,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           </div>
           
           {/* Acciones Superiores */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 mt-3 sm:gap-3 flex-shrink-0">
             <div className="hidden sm:flex items-center bg-[var(--color-tarjeta)] backdrop-blur-md px-5 py-2.5 rounded-full shadow-sm border border-white/60">
                <span className="text-sm font-bold text-gray-700">
                  {usuario.empresa_nombre || 'Mi Empresa'}
