@@ -59,8 +59,9 @@ export default function Reportes() {
         {/* Categoría: Inventario */}
         <section>
           <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📦</span> Estado del Inventario</h3>
-          <div className="grid grid-cols-1 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <TarjetaMetrica titulo="Capital en Inventario" valor={`$${metricas.valor_inventario}`} subtitulo="Dinero retenido en mercadería activa." color="purple" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>} />
+            <TarjetaMetrica titulo="Alertas de Stock" valor={metricas.productos_stock_bajo} subtitulo="Productos por debajo del umbral mínimo" color="yellow" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>} />
           </div>
         </section>
 
