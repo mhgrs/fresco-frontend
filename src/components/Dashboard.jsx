@@ -8,6 +8,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   const dropdownRef = useRef(null);
   const [mostrarAjustes, setMostrarAjustes] = useState(false);
   const ajustesRef = useRef(null);
+  const [submenuActivo, setSubmenuActivo] = useState(null);
 
   useEffect(() => {
     document.title = "Fresco";
@@ -169,89 +170,128 @@ export default function Dashboard({ usuario, cerrarSesion }) {
         )}
 
         {/* Grid Principal de Módulos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10"> 
-          
-          {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
-            <Link to="/pos" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        {!submenuActivo ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10"> 
+            
+            {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
+              <button onClick={() => setSubmenuActivo('caja')} className="text-left relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-1">Caja</h2>
+                  <p className="text-gray-500 text-sm font-medium">Punto de venta y cierre de turno.</p>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-1">Punto de Venta</h2>
-                <p className="text-gray-500 text-sm font-medium">Registrar y procesar ventas rápidas.</p>
-              </div>
-              <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
-                <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </div>
-            </Link>
-          )}
-
-          {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
-            <Link to="/inventario" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                  <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-1">Catálogo e Inventario</h2>
-                <p className="text-gray-500 text-sm font-medium">Agrega productos, precios y categorías.</p>
-              </div>
-              <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
-                <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </div>
-            </Link>
-          )}
+              </button>
+            )}
 
-          {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
-            <Link to="/reportes" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
+              <Link to="/inventario" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-1">Catálogo e Inventario</h2>
+                  <p className="text-gray-500 text-sm font-medium">Agrega productos, precios y categorías.</p>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-1">Reportes del Negocio</h2>
-                <p className="text-gray-500 text-sm font-medium">Estadísticas, ventas e inventario.</p>
-              </div>
-              <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
-                <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </div>
-            </Link>
-          )}
-
-          {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
-            <Link to="/cierre-caja" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                  <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-1">Cierre de Caja</h2>
-                <p className="text-gray-500 text-sm font-medium">Cuadratura y reporte de turno (Z).</p>
-              </div>
-              <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
-                <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </div>
-            </Link>
-          )}
+              </Link>
+            )}
 
-          {(usuario.roles?.includes('ADMIN') || usuario.is_superuser) && (
-            <Link to="/configuracion" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
+              <Link to="/reportes" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-1">Reportes del Negocio</h2>
+                  <p className="text-gray-500 text-sm font-medium">Estadísticas, ventas e inventario.</p>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-1">Administración</h2>
-                <p className="text-gray-500 text-sm font-medium">Gestiona usuarios y configuración.</p>
-              </div>
-              <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
-                <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </div>
-            </Link>
-          )}
+                <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                  <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </div>
+              </Link>
+            )}
 
-        </div>
+            {(usuario.roles?.includes('ADMIN') || usuario.is_superuser) && (
+              <Link to="/configuracion" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                <div className="relative z-10">
+                  <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-800 mb-1">Administración</h2>
+                  <p className="text-gray-500 text-sm font-medium">Gestiona usuarios y configuración.</p>
+                </div>
+                <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                  <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </div>
+              </Link>
+            )}
+          </div>
+        ) : submenuActivo === 'caja' ? (
+          <div className="animate-fade-in">
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+              .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+            `}</style>
+            
+            <div className="flex items-center mb-6 gap-4 relative z-20">
+              <button onClick={() => setSubmenuActivo(null)} className="p-3 bg-white/80 hover:bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 transition-all flex items-center justify-center active:scale-95" title="Volver al inicio">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              </button>
+              <div>
+                <h2 className="text-2xl font-black text-gray-800 tracking-tight">Módulo de Caja</h2>
+                <p className="text-sm text-gray-500 font-medium mt-1">Selecciona una operación para continuar.</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+              {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
+                <Link to="/pos" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-1">Punto de Venta</h2>
+                    <p className="text-gray-500 text-sm font-medium">Registrar y procesar ventas rápidas.</p>
+                  </div>
+                  <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                    <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </div>
+                </Link>
+              )}
+
+              {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
+                <Link to="/cierre-caja" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-1">Cierre de Caja</h2>
+                    <p className="text-gray-500 text-sm font-medium">Cuadratura y reporte de turno (Z).</p>
+                  </div>
+                  <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                    <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </div>
+                </Link>
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

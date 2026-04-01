@@ -27,6 +27,7 @@ function TarjetaMetrica({ titulo, valor, subtitulo, icono, color }) {
 export default function Reportes() {
   const [metricas, setMetricas] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [tabActiva, setTabActiva] = useState('rendimiento');
 
   useEffect(() => {
     api.get('inventario/ventas/metricas/')
@@ -39,69 +40,167 @@ export default function Reportes() {
   if (!metricas) return <div className="p-10 text-center text-red-500">Error al cargar los datos.</div>;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 h-full overflow-y-auto bg-[var(--color-fondo)] custom-scrollbar">
-      <div className="max-w-6xl mx-auto space-y-10 pb-10">
-        
-        <div className="mb-8 border-b border-gray-200/50 pb-4">
+    <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
+      
+      {/* Cabecera y Tabs */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
           <h1 className="text-2xl sm:text-4xl font-black text-gray-800 tracking-tight">Reportes del Negocio</h1>
           <p className="text-gray-500 mt-1 font-medium">Visualiza el rendimiento de tus ventas e inventario.</p>
         </div>
+        
+        {/* Selector de Pestañas */}
+        <div className="flex bg-gray-200/60 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
+          <button 
+            onClick={() => setTabActiva('rendimiento')} 
+            className={`flex-1 sm:flex-none px-6 py-2 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${tabActiva === 'rendimiento' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Rendimiento de Ventas
+          </button>
+          <button 
+            onClick={() => setTabActiva('inventario')} 
+            className={`flex-1 sm:flex-none px-6 py-2 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${tabActiva === 'inventario' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Estado de Inventario
+          </button>
+        </div>
+      </div>
 
-        {/* Categoría: Ventas */}
-        <section>
-          <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📈</span> Rendimiento de Ventas</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <TarjetaMetrica titulo="Ventas este Mes" valor={`$${metricas.ventas_mes}`} subtitulo={`${metricas.tx_mes} transacciones realizadas`} color="green" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>} />
-            <TarjetaMetrica titulo="Ingresos Históricos" valor={`$${metricas.ventas_historicas}`} subtitulo="Total histórico de la empresa" color="blue" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>} />
-          </div>
-        </section>
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+        <style>{`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        `}</style>
 
-        {/* Categoría: Inventario */}
-        <section>
-          <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📦</span> Estado del Inventario</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <TarjetaMetrica titulo="Capital en Inventario" valor={`$${metricas.valor_inventario}`} subtitulo="Dinero retenido en mercadería activa." color="purple" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>} />
-            <TarjetaMetrica titulo="Alertas de Stock" valor={metricas.productos_stock_bajo} subtitulo="Productos por debajo del umbral mínimo" color="yellow" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>} />
-          </div>
-        </section>
-
-        {/* Categoría: Top Productos */}
-        <section>
-          <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">⭐</span> Ranking: Top 5 Productos</h3>
-          <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-3xl shadow-sm overflow-hidden p-2">
-            {metricas.top_productos.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">Aún no hay ventas registradas.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200/50">
-                  <thead className="bg-white/40">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
-                      <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Cantidad Vendida</th>
-                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Total Recaudado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200/50">
-                    {metricas.top_productos.map((prod, idx) => (
-                      <tr key={idx} className="hover:bg-white/60 transition-colors">
-                        <td className="px-6 py-5">
-                          <p className="text-sm font-bold text-gray-800">{prod.producto_nombre}</p>
-                          <p className="text-[10px] text-gray-500 font-mono mt-0.5">{prod.producto_sku}</p>
-                        </td>
-                        <td className="px-6 py-5 text-center">
-                          <span className="bg-gray-100 text-gray-700 text-sm font-bold px-3 py-1.5 rounded-lg">{parseFloat(prod.cantidad_vendida)}</span>
-                        </td>
-                        <td className="px-6 py-5 text-right text-lg font-black text-[#91cf5b]">
-                          ${prod.total_recaudado}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {tabActiva === 'rendimiento' && (
+          <div className="space-y-8 animate-fade-in pb-8">
+            <section>
+              <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📈</span> Métricas de Ventas</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <TarjetaMetrica titulo="Ventas Hoy" valor={`$${metricas.ventas_hoy}`} subtitulo="Total recaudado el día de hoy" color="green" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>} />
+                <TarjetaMetrica titulo="Ventas este Mes" valor={`$${metricas.ventas_mes}`} subtitulo={`${metricas.tx_mes} transacciones realizadas`} color="blue" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>} />
+                <TarjetaMetrica titulo="Ingresos Históricos" valor={`$${metricas.ventas_historicas}`} subtitulo="Total histórico de la empresa" color="purple" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>} />
               </div>
-            )}
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📅</span> Histórico de los Últimos 30 Días</h3>
+              <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-3xl shadow-sm overflow-hidden p-2">
+                {metricas.historico_diario.length === 0 ? (
+                  <div className="p-6 text-center text-gray-500">No hay historial de ventas en los últimos 30 días.</div>
+                ) : (
+                  <div className="overflow-x-auto max-h-96 custom-scrollbar">
+                    <table className="min-w-full divide-y divide-gray-200/50">
+                      <thead className="bg-white/40 sticky top-0">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
+                          <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Total Recaudado</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200/50">
+                        {metricas.historico_diario.map((dia, idx) => (
+                          <tr key={idx} className="hover:bg-white/60 transition-colors">
+                            <td className="px-6 py-4">
+                              <p className="text-sm font-bold text-gray-800">{dia.fecha}</p>
+                            </td>
+                            <td className="px-6 py-4 text-right text-base font-black text-[#91cf5b]">
+                              ${dia.total}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
-        </section>
+        )}
+
+        {tabActiva === 'inventario' && (
+          <div className="space-y-8 animate-fade-in pb-8">
+            <section>
+              <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📦</span> Estado General</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <TarjetaMetrica titulo="Alertas de Stock" valor={metricas.productos_stock_bajo} subtitulo="Productos por debajo del umbral mínimo" color="yellow" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>} />
+                <TarjetaMetrica titulo="Capital en Inventario" valor={`$${metricas.valor_inventario}`} subtitulo="Dinero retenido en mercadería activa" color="purple" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>} />
+              </div>
+            </section>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Categoría: Top Productos */}
+              <section>
+                <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">⭐</span> Más Vendidos</h3>
+                <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-3xl shadow-sm overflow-hidden p-2 h-full">
+                  {metricas.top_productos.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">Aún no hay ventas registradas.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200/50">
+                        <thead className="bg-white/40">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Cant</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200/50">
+                          {metricas.top_productos.map((prod, idx) => (
+                            <tr key={idx} className="hover:bg-white/60 transition-colors">
+                              <td className="px-4 py-3">
+                                <p className="text-sm font-bold text-gray-800 line-clamp-1">{prod.producto_nombre}</p>
+                                <p className="text-[10px] text-gray-500 font-mono mt-0.5">{prod.producto_sku}</p>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <span className="bg-green-100 text-green-700 text-sm font-bold px-2 py-1 rounded-lg">{parseFloat(prod.cantidad_vendida)}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Categoría: Menos Productos */}
+              <section>
+                <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📉</span> Menos Vendidos</h3>
+                <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-3xl shadow-sm overflow-hidden p-2 h-full">
+                  {metricas.bottom_productos.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">Aún no hay ventas registradas.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200/50">
+                        <thead className="bg-white/40">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Cant</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200/50">
+                          {metricas.bottom_productos.map((prod, idx) => (
+                            <tr key={idx} className="hover:bg-white/60 transition-colors">
+                              <td className="px-4 py-3">
+                                <p className="text-sm font-bold text-gray-800 line-clamp-1">{prod.producto_nombre}</p>
+                                <p className="text-[10px] text-gray-500 font-mono mt-0.5">{prod.producto_sku}</p>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <span className="bg-red-100 text-red-700 text-sm font-bold px-2 py-1 rounded-lg">{parseFloat(prod.cantidad_vendida)}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
