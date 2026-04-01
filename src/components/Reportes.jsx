@@ -65,7 +65,7 @@ function TarjetaMetrica({ titulo, valor, subtitulo, icono, color, onClick, disab
         <p className="text-2xl sm:text-4xl font-black text-gray-800 mt-1 tracking-tight">{valor}</p>
         {subtitulo && <p className="text-xs text-gray-400 mt-2 font-medium">{subtitulo}</p>}
       </div>
-    </div>
+    </Component>
   );
 }
 
