@@ -62,19 +62,19 @@ export default function Dashboard({ usuario, cerrarSesion }) {
       <div className="max-w-6xl mx-auto relative">
         
         {/* Encabezado Superior */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6 relative z-20">
-          <div>
+        <div className="flex flex-row justify-between items-start md:items-center mb-10 md:mb-12 gap-4 relative z-20">
+          <div className="flex-1 min-w-0">
             <h1 className="text-sm font-black text-[#91cf5b] tracking-widest uppercase mb-1">Fresco</h1>
-            <h2 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">
+            <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight truncate">
               Hola, {usuario.nombre || usuario.username} 👋
             </h2> 
-            <p className="text-gray-500 text-sm md:text-base mt-2 font-medium">
+            <p className="text-gray-500 text-xs md:text-base mt-1 md:mt-2 font-medium truncate">
               {fechaCapitalizada}
             </p>
           </div>
           
           {/* Acciones Superiores */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <div className="hidden sm:flex items-center bg-[var(--color-tarjeta)] backdrop-blur-md px-5 py-2.5 rounded-full shadow-sm border border-white/60">
                <span className="text-sm font-bold text-gray-700">
                  {usuario.empresa_nombre || 'Mi Empresa'}
@@ -98,7 +98,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
                 {/* Desplegable de Alertas */}
                 {mostrarNotificaciones && (
-                  <div className="absolute right-0 mt-3 w-80 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform origin-top-right transition-all">
+                  <div className="absolute right-0 mt-3 w-[90vw] sm:w-80 max-w-sm bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform origin-top-right transition-all z-50">
                     <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                       <span className="font-bold text-gray-800 text-sm">Alertas Recientes</span>
                       {alertas.length > 0 && <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider">{alertas.length} Novedades</span>}
@@ -139,7 +139,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
               {/* Desplegable de Ajustes */}
               {mostrarAjustes && (
-                <div className="absolute right-0 mt-3 w-56 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform origin-top-right transition-all">
+                <div className="absolute right-0 mt-3 w-48 sm:w-56 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform origin-top-right transition-all z-50">
                   <div className="p-2">
                     {/* Aquí se agregarán más opciones en el futuro */}
                     <button 

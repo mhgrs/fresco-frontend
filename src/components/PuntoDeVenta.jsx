@@ -397,9 +397,9 @@ export default function PuntoDeVenta() {
       {/* Modal de Pago */}
       {modalAbierto && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-[var(--color-fondo)] border border-white/50 rounded-2xl sm:rounded-3xl m-5 p-4 w-full max-w-lg shadow-2xl max-h-[90vh] ">
-            <h2 className="text-xl font-bold mb-4 sm:mb-6 text-gray-800">Procesar Pago</h2>
-            <div className="text-center mb-3  bg-white/60 p-1 rounded-xl shadow-inner border border-white/60">
+          <div className="bg-[var(--color-fondo)] border border-white/50 rounded-2xl sm:rounded-3xl m-5 p-4 sm:p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+            <h2 className="text-xl font-bold mb-4 text-gray-800 flex-none">Procesar Pago</h2>
+            <div className="text-center mb-4 bg-white/60 p-3 rounded-xl shadow-inner border border-white/60 flex-none">
               <p className="text-gray-500 font-medium uppercase text-xs tracking-wider">Monto Total</p>
               <p className="text-3xl font-black text-gray-900 mt-1">${totalRedondeado}</p>
               {metodoPago === 'EFECTIVO' && total !== totalRedondeado && (
@@ -408,12 +408,12 @@ export default function PuntoDeVenta() {
             </div>
 
             {/* Ajuste de texto para evitar desbordamientos en TRANSFERENCIA */}
-            <div className="grid grid-cols-2  gap-2 sm:gap-3 mb-5 sm:mb-8">
+            <div className="grid grid-cols-2  gap-2 sm:gap-3 mb-4 flex-none">
               {['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'ANOTADO'].map(m => (
                 <button
                   key={m}
                   onClick={() => setMetodoPago(m)}
-                  className={`p-2 sm:p-4 text-[10px] sm:text-sm font-bold rounded-lg sm:rounded-xl border-2 flex items-center justify-center text-center transition-all duration-200 ${metodoPago === m ? 'border-[#91cf5b] bg-white text-[#7ab848] shadow-md sm:shadow-lg scale-105' : 'border-gray-200/80 bg-white/60 text-gray-600 hover:bg-white hover:border-gray-300'}`}
+                  className={`p-2 text-[10px] sm:text-sm font-bold rounded-lg sm:rounded-xl border-2 flex items-center justify-center text-center transition-all duration-200 ${metodoPago === m ? 'border-[#91cf5b] bg-white text-[#7ab848] shadow-md sm:shadow-lg scale-105' : 'border-gray-200/80 bg-white/60 text-gray-600 hover:bg-white hover:border-gray-300'}`}
                 >
                   {m === 'TRANSFERENCIA' ? <span className="hidden sm:inline">TRANSFERENCIA</span> : m}{m === 'TRANSFERENCIA' && <span className="sm:hidden">TRANSF.</span>}
                 </button>
@@ -421,7 +421,7 @@ export default function PuntoDeVenta() {
             </div>
 
             {metodoPago === 'EFECTIVO' && (
-              <div className="mb-5 sm:mb-8 bg-white/60 p-2 rounded-xl sm:rounded-2xl border border-white/60">
+              <div className="mb-4 bg-white/60 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/60 flex-none">
                 <label className="block text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2 font-semibold">Efectivo Recibido:</label>
                 <input
                   type="number"
@@ -437,7 +437,7 @@ export default function PuntoDeVenta() {
               </div>
             )}
 
-            <div className="flex space-x-3 sm:space-x-4 mt-6 sm:mt-8">
+            <div className="flex space-x-3 sm:space-x-4 mt-auto pt-2 flex-none">
               <button onClick={() => setModalAbierto(false)} className="flex-1  py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-bold text-sm sm:text-base text-gray-700 transition">Cancelar</button>
               <button 
                 onClick={procesarVenta}
