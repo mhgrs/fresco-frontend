@@ -66,7 +66,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-black text-[#91cf5b] tracking-widest uppercase mb-1">Fresco</h1>
             <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight truncate">
-              Hola, {usuario.nombre || usuario.username} 👋
+              Hola, {(usuario.nombre || usuario.username).split(' ')[0]} 👋
             </h2> 
             <p className="text-gray-500 text-xs md:text-base mt-1 md:mt-2 font-medium truncate">
               {fechaCapitalizada}
@@ -98,7 +98,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
                 {/* Desplegable de Alertas */}
                 {mostrarNotificaciones && (
-                  <div className="absolute right-0 mt-3 w-[90vw] sm:w-80 max-w-sm bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform origin-top-right transition-all z-50">
+                  <div className="absolute right-0  mt-3 w-[70vw] sm:w-80 max-w-sm bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform origin-top-right transition-all z-50">
                     <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                       <span className="font-bold text-gray-800 text-sm">Alertas Recientes</span>
                       {alertas.length > 0 && <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider">{alertas.length} Novedades</span>}
