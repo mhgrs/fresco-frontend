@@ -265,7 +265,7 @@ export default function PuntoDeVenta() {
           <input
             ref={inputBusquedaRef}
             type="text"
-            className="w-full bg-white/80 backdrop-blur-sm border-2 border-gray-200/80 shadow-sm p-3 sm:p-4 pl-9 sm:pl-12 text-xs sm:text-base rounded-xl sm:rounded-2xl h-12 sm:h-16 focus:outline-none focus:ring-2 focus:ring-[#91cf5b] focus:border-[#91cf5b] transition-all"
+            className="w-full bg-white/80 backdrop-blur-sm border-2 border-gray-200/80 shadow-sm p-3 sm:p-4 pl-9 sm:pl-12 text-xs sm:text-base rounded-xl sm:rounded-2xl h-12 sm:h-16 focus:outline-none focus:ring-[#91cf5b] focus:border-[#91cf5b] transition-all"
             placeholder="Buscar..."
             value={terminoBusqueda}
             onChange={(e) => setTerminoBusqueda(e.target.value)}
