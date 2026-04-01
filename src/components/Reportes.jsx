@@ -1,7 +1,47 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-function TarjetaMetrica({ titulo, valor, subtitulo, icono, color }) {
+function ChartModal({ config, onClose }) {
+  if (!config) return null;
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-gray-200">
+          <p className="label font-bold text-gray-700">{`${label}`}</p>
+          <p className="intro text-[#91cf5b] font-black">{`Ventas: $${new Intl.NumberFormat('es-CL').format(payload[0].value)}`}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white/95 border border-gray-200 rounded-2xl shadow-2xl w-full max-w-4xl h-[70vh] p-4 sm:p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-800">{config.title}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-red-500 p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <ResponsiveContainer width="100%" height="90%">
+          <BarChart data={config.data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+            <XAxis dataKey={config.xKey} tick={{ fontSize: 12 }} />
+            <YAxis tickFormatter={(value) => `$${new Intl.NumberFormat('es-CL').format(value)}`} tick={{ fontSize: 12 }} width={80} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(145, 207, 91, 0.1)' }} />
+            <Legend />
+            <Bar dataKey={config.yKey} name={config.barName} fill={config.color} radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+function TarjetaMetrica({ titulo, valor, subtitulo, icono, color, onClick, disabled = false }) {
   const colores = {
     green: 'bg-green-50 text-green-600 border-green-100',
     blue: 'bg-blue-50 text-blue-600 border-blue-100',
@@ -9,9 +49,14 @@ function TarjetaMetrica({ titulo, valor, subtitulo, icono, color }) {
     yellow: 'bg-yellow-50 text-yellow-600 border-yellow-100',
   };
   const theme = colores[color] || colores.blue;
+  const Component = onClick ? 'button' : 'div';
 
   return (
-    <div className="bg-white/60 backdrop-blur-md border border-white/80 p-5 sm:p-6 rounded-3xl shadow-sm flex items-start gap-4 transition-transform hover:-translate-y-1">
+    <Component 
+      onClick={onClick}
+      disabled={disabled}
+      className="bg-white/60 backdrop-blur-md border border-white/80 p-5 sm:p-6 rounded-3xl shadow-sm flex items-start gap-4 transition-transform hover:-translate-y-1 text-left w-full disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:-translate-y-0"
+    >
       <div className={`p-3 rounded-2xl ${theme} flex-shrink-0 shadow-inner`}>
         {icono}
       </div>
@@ -28,6 +73,7 @@ export default function Reportes() {
   const [metricas, setMetricas] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [tabActiva, setTabActiva] = useState('rendimiento');
+  const [chartConfig, setChartConfig] = useState(null);
 
   useEffect(() => {
     api.get('inventario/ventas/metricas/')
@@ -38,6 +84,49 @@ export default function Reportes() {
 
   if (cargando) return <div className="p-10 text-center text-gray-500 font-medium">Calculando inteligencia de negocio...</div>;
   if (!metricas) return <div className="p-10 text-center text-red-500">Error al cargar los datos.</div>;
+
+  const handleVentasHoyClick = () => {
+    const fullHoursData = Array.from({ length: 24 }, (_, i) => ({ fecha: `${i}:00`, total: 0 }));
+    metricas.ventas_por_hora_hoy?.forEach(item => {
+      if (fullHoursData[item.hora]) fullHoursData[item.hora].total = item.total;
+    });
+
+    setChartConfig({
+      data: fullHoursData,
+      xKey: 'fecha',
+      yKey: 'total',
+      title: 'Ventas de Hoy por Hora',
+      barName: 'Ventas',
+      color: '#82ca9d'
+    });
+  };
+
+  const handleVentasMesClick = () => {
+    setChartConfig({
+      data: metricas.historico_diario_mes,
+      xKey: 'fecha',
+      yKey: 'total',
+      title: 'Ventas Diarias del Mes',
+      barName: 'Ventas',
+      color: '#8884d8'
+    });
+  };
+
+  const handleVentasHistoricasClick = () => {
+    setChartConfig({
+      data: metricas.historico_semanal,
+      xKey: 'fecha',
+      yKey: 'total',
+      title: 'Ventas Semanales (Histórico)',
+      barName: 'Ventas',
+      color: '#a368d8'
+    });
+  };
+
+  const formatCurrency = (value) => {
+    if (typeof value !== 'number') return '$0';
+    return `$${new Intl.NumberFormat('es-CL').format(value)}`;
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
@@ -107,7 +196,7 @@ export default function Reportes() {
                               <p className="text-sm font-bold text-gray-800">{dia.fecha}</p>
                             </td>
                             <td className="px-6 py-4 text-right text-base font-black text-[#91cf5b]">
-                              ${dia.total}
+                              {formatCurrency(dia.total)}
                             </td>
                           </tr>
                         ))}
@@ -135,7 +224,7 @@ export default function Reportes() {
               <section>
                 <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">⭐</span> Más Vendidos</h3>
                 <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-3xl shadow-sm overflow-hidden p-2 h-full">
-                  {metricas.top_productos.length === 0 ? (
+                  {!metricas.top_productos || metricas.top_productos.length === 0 ? (
                     <div className="p-6 text-center text-gray-500">Aún no hay ventas registradas.</div>
                   ) : (
                     <div className="overflow-x-auto">
@@ -169,7 +258,7 @@ export default function Reportes() {
               <section>
                 <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📉</span> Menos Vendidos</h3>
                 <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-3xl shadow-sm overflow-hidden p-2 h-full">
-                  {metricas.bottom_productos.length === 0 ? (
+                  {!metricas.bottom_productos || metricas.bottom_productos.length === 0 ? (
                     <div className="p-6 text-center text-gray-500">Aún no hay ventas registradas.</div>
                   ) : (
                     <div className="overflow-x-auto">
@@ -202,6 +291,8 @@ export default function Reportes() {
           </div>
         )}
       </div>
+
+      <ChartModal config={chartConfig} onClose={() => setChartConfig(null)} />
     </div>
   );
 }
