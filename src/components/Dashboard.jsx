@@ -210,8 +210,24 @@ export default function Dashboard({ usuario, cerrarSesion }) {
                 <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800 mb-1">Cierre y Reportes</h2>
-                <p className="text-gray-500 text-sm font-medium">Resumen de transacciones del día.</p>
+                <h2 className="text-xl font-bold text-gray-800 mb-1">Reportes del Negocio</h2>
+                <p className="text-gray-500 text-sm font-medium">Estadísticas, ventas e inventario.</p>
+              </div>
+              <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </div>
+            </Link>
+          )}
+
+          {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
+            <Link to="/cierre-caja" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 mb-1">Cierre de Caja</h2>
+                <p className="text-gray-500 text-sm font-medium">Cuadratura y reporte de turno (Z).</p>
               </div>
               <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
                 <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>

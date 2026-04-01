@@ -5,6 +5,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import PuntoDeVenta from './components/PuntoDeVenta';
 import CierreCaja from './components/CierreCaja';
+import Reportes from './components/Reportes';
 import CatalogoProductos from './components/CatalogoProductos';
 import FormularioProducto from './components/FormularioProducto';
 import GestorCategorias from './components/GestorCategorias';
@@ -296,7 +297,11 @@ export default function App() {
         )}
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
-          <Route path="/reportes" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><CierreCaja /></ModuleLayout>} />
+          <Route path="/reportes" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><Reportes /></ModuleLayout>} />
+        )}
+        
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO')) && (
+          <Route path="/cierre-caja" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} cerrarSesion={manejarCerrarSesion}><CierreCaja /></ModuleLayout>} />
         )}
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
