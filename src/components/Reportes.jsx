@@ -55,7 +55,7 @@ function TarjetaMetrica({ titulo, valor, subtitulo, icono, color, onClick, disab
     <Component 
       onClick={onClick}
       disabled={disabled}
-      className="bg-white/60 backdrop-blur-md border border-white/80 p-5 sm:p-6 rounded-3xl shadow-sm flex items-start gap-4 transition-transform hover:-translate-y-1 text-left w-full disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:-translate-y-0"
+      className={`bg-white/60 backdrop-blur-md border border-white/80 p-5 sm:p-6 rounded-3xl shadow-sm flex items-start gap-4 transition-transform text-left w-full disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-[#91cf5b]' : ''}`}
     >
       <div className={`p-3 rounded-2xl ${theme} flex-shrink-0 shadow-inner`}>
         {icono}
@@ -169,9 +169,9 @@ export default function Reportes() {
             <section>
               <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📈</span> Métricas de Ventas</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <TarjetaMetrica titulo="Ventas Hoy" valor={`$${metricas.ventas_hoy}`} subtitulo="Total recaudado el día de hoy" color="green" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>} />
-                <TarjetaMetrica titulo="Ventas este Mes" valor={`$${metricas.ventas_mes}`} subtitulo={`${metricas.tx_mes} transacciones realizadas`} color="blue" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>} />
-                <TarjetaMetrica titulo="Ingresos Históricos" valor={`$${metricas.ventas_historicas}`} subtitulo="Total histórico de la empresa" color="purple" icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>} />
+                <TarjetaMetrica titulo="Ventas Hoy" valor={formatCurrency(metricas.ventas_hoy)} subtitulo="Total recaudado el día de hoy" color="green" onClick={handleVentasHoyClick} disabled={Number(metricas.ventas_hoy) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>} />
+                <TarjetaMetrica titulo="Ventas este Mes" valor={formatCurrency(metricas.ventas_mes)} subtitulo={`${metricas.tx_mes} transacciones realizadas`} color="blue" onClick={handleVentasMesClick} disabled={Number(metricas.ventas_mes) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>} />
+                <TarjetaMetrica titulo="Ingresos Históricos" valor={formatCurrency(metricas.ventas_historicas)} subtitulo="Total histórico de la empresa" color="purple" onClick={handleVentasHistoricasClick} disabled={Number(metricas.ventas_historicas) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>} />
               </div>
             </section>
 
