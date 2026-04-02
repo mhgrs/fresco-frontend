@@ -208,9 +208,6 @@ export default function CatalogoProductos({ usuario }) {
       <div className="flex justify-between  mx-autoitems-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Catálogo de Productos</h1>
         <div className="flex items-center space-x-2">
-          <Link to="/inventario/movimientos" title="Movimientos de Inventario" className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded shadow-sm transition flex items-center justify-center font-bold">
-            Movimientos
-          </Link>
           {(usuario?.roles.includes('ADMIN') || usuario?.roles.includes('SUPERVISOR')) && (
             <Link to="/categorias" title="Administrar Categorías" className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded shadow-sm transition flex items-center justify-center">
               <span className="text-lg">🏷️</span>

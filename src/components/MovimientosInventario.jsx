@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { useLocation } from 'react-router-dom';
 
 export default function MovimientosInventario({ usuario }) {
-  const location = useLocation();
-  const productoPreseleccionado = location.state?.productoPreseleccionado || null;
 
   const [productos, setProductos] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
@@ -13,13 +10,13 @@ export default function MovimientosInventario({ usuario }) {
   
   const [tabActiva, setTabActiva] = useState('registro');
 
-  const [formulario, setFormulario] = useState({
-    producto_id: productoPreseleccionado?.id || '',
-    tipo: 'INGRESO',
-    cantidad: '',
-    motivo: 'MERMA',
-    descripcion: ''
-  });
+  // Estado del Formulario Global y la Búsqueda
+  const [formularioGlobal, setFormularioGlobal] = useState({ tipo: 'INGRESO', motivo: 'MERMA', descripcion: '' });
+  const [busqueda, setBusqueda] = useState('');
+  const [resultadosBusqueda, setResultadosBusqueda] = useState([]);
+  
+  // Carrito de Movimientos: Array de { producto, cantidad }
+  const [seleccionados, setSeleccionados] = useState([]);
 
   const mostrarNotificacion = (mensaje, tipo = 'success') => {
     setNotificacion({ visible: true, mensaje, tipo });
@@ -46,42 +43,76 @@ export default function MovimientosInventario({ usuario }) {
     cargarDatos();
   }, []);
 
-  const manejarCambio = (e) => {
-    const { name, value } = e.target;
-    setFormulario({ ...formulario, [name]: value });
+  // Efecto buscador
+  useEffect(() => {
+    if (!busqueda.trim()) {
+      setResultadosBusqueda([]);
+      return;
+    }
+    const term = busqueda.toLowerCase();
+    const filtrados = productos.filter(p => 
+      p.nombre.toLowerCase().includes(term) || 
+      p.sku.toLowerCase().includes(term) || 
+      (p.codigo_barras && p.codigo_barras.toLowerCase().includes(term))
+    );
+    setResultadosBusqueda(filtrados);
+  }, [busqueda, productos]);
+
+  const agregarProducto = (prod) => {
+    if (!seleccionados.find(s => s.producto.id === prod.id)) {
+      setSeleccionados([...seleccionados, { producto: prod, cantidad: '' }]);
+    }
+    setBusqueda('');
+  };
+
+  const removerProducto = (id) => {
+    setSeleccionados(seleccionados.filter(s => s.producto.id !== id));
+  };
+
+  const actualizarCantidad = (id, valor) => {
+    setSeleccionados(seleccionados.map(s => s.producto.id === id ? { ...s, cantidad: valor } : s));
   };
 
   const guardarMovimiento = async (e) => {
     e.preventDefault();
-    if (!formulario.producto_id) {
-      mostrarNotificacion('Seleccione un producto', 'error');
+    if (seleccionados.length === 0) {
+      mostrarNotificacion('Debes agregar al menos un producto', 'error');
+      return;
+    }
+    
+    // Validación obligatoria de descripción si el motivo es OTRO
+    if (formularioGlobal.tipo === 'RETIRO' && formularioGlobal.motivo === 'OTRO' && !formularioGlobal.descripcion.trim()) {
+      mostrarNotificacion('La descripción es obligatoria cuando el motivo de retiro es "Otro".', 'error');
       return;
     }
 
+    for (let item of seleccionados) {
+      if (!item.cantidad || parseFloat(item.cantidad) <= 0) {
+        mostrarNotificacion(`Ingresa una cantidad válida mayor a 0 para ${item.producto.nombre}`, 'error');
+        return;
+      }
+    }
+
     try {
-      await api.post(`inventario/productos/${formulario.producto_id}/ajustar_stock/`, {
-        tipo: formulario.tipo,
-        cantidad: formulario.cantidad,
-        motivo: formulario.tipo === 'EGRESO' ? formulario.motivo : null,
-        descripcion: formulario.tipo === 'EGRESO' ? formulario.descripcion : null
-      });
+      // Enviar peticiones simultáneas por cada producto
+      await Promise.all(seleccionados.map(item => 
+        api.post(`inventario/productos/${item.producto.id}/ajustar_stock/`, {
+          tipo: formularioGlobal.tipo,
+          cantidad: item.cantidad,
+          motivo: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.motivo : null,
+          descripcion: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.descripcion : null
+        })
+      ));
       
-      mostrarNotificacion('Movimiento registrado exitosamente', 'success');
-      setFormulario({
-        producto_id: '',
-        tipo: 'INGRESO',
-        cantidad: '',
-        motivo: 'MERMA',
-        descripcion: ''
-      });
+      mostrarNotificacion('Todos los movimientos han sido registrados exitosamente', 'success');
+      setSeleccionados([]);
+      setFormularioGlobal({ ...formularioGlobal, descripcion: '' });
       cargarDatos(); // Recargar historial y listado de productos actualizado
       setTabActiva('historial');
     } catch (error) {
       mostrarNotificacion(error.response?.data?.error || 'Error al registrar el movimiento', 'error');
     }
   };
-
-  const productoSeleccionado = productos.find(p => p.id === Number(formulario.producto_id));
 
   return (
     <div className="p-6 h-full w-full max-w-[1400px] mx-auto flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
@@ -108,43 +139,92 @@ export default function MovimientosInventario({ usuario }) {
         {cargando ? (
            <div className="p-8 text-center text-gray-500 font-medium">Cargando...</div>
         ) : tabActiva === 'registro' ? (
-          <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-lg shadow-md max-w-2xl overflow-y-auto custom-scrollbar">
-            <form onSubmit={guardarMovimiento} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Producto</label>
-                <select required name="producto_id" value={formulario.producto_id} onChange={manejarCambio} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b] bg-white">
-                  <option value="">Seleccione un producto...</option>
-                  {productos.map(p => (
-                    <option key={p.id} value={p.id}>{p.nombre} (Stock: {p.tipo_venta === 'UNIDAD' ? Math.round(p.stock) : Number(p.stock).toFixed(2)})</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex bg-gray-200 rounded-lg p-1">
-                <button type="button" onClick={() => setFormulario({ ...formulario, tipo: 'INGRESO' })} className={`flex-1 py-2 font-bold rounded-md transition ${formulario.tipo === 'INGRESO' ? 'bg-green-500 text-white shadow' : 'text-gray-600 hover:bg-gray-300'}`}>Ingreso (+)</button>
-                <button type="button" onClick={() => setFormulario({ ...formulario, tipo: 'EGRESO' })} className={`flex-1 py-2 font-bold rounded-md transition ${formulario.tipo === 'EGRESO' ? 'bg-red-500 text-white shadow' : 'text-gray-600 hover:bg-gray-300'}`}>Egreso (-)</button>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cantidad {productoSeleccionado?.tipo_venta === 'GRANEL' ? '(Kilos)' : '(Unidades)'}</label>
-                <input required type="number" name="cantidad" min={productoSeleccionado?.tipo_venta === 'UNIDAD' ? "1" : "0.001"} step={productoSeleccionado?.tipo_venta === 'UNIDAD' ? '1' : 'any'} value={formulario.cantidad} onChange={manejarCambio} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b]" placeholder="0" />
-              </div>
-              {formulario.tipo === 'EGRESO' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Motivo del Egreso</label>
-                    <select required name="motivo" value={formulario.motivo} onChange={manejarCambio} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b] bg-white">
+          <div className="flex flex-col md:flex-row gap-6 h-full overflow-hidden">
+            
+            {/* Columna Izquierda: Buscador y Formulario Global */}
+            <div className="w-full md:w-1/3 flex flex-col gap-4">
+              <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-lg shadow-sm">
+                <div className="flex bg-gray-200 rounded-lg p-1 mb-4">
+                  <button type="button" onClick={() => setFormularioGlobal({ ...formularioGlobal, tipo: 'INGRESO' })} className={`flex-1 py-2 font-bold rounded-md transition ${formularioGlobal.tipo === 'INGRESO' ? 'bg-green-500 text-white shadow' : 'text-gray-600 hover:bg-gray-300'}`}>Ingreso (+)</button>
+                  <button type="button" onClick={() => setFormularioGlobal({ ...formularioGlobal, tipo: 'RETIRO' })} className={`flex-1 py-2 font-bold rounded-md transition ${formularioGlobal.tipo === 'RETIRO' ? 'bg-red-500 text-white shadow' : 'text-gray-600 hover:bg-gray-300'}`}>Retiro (-)</button>
+                </div>
+                
+                {formularioGlobal.tipo === 'RETIRO' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Motivo del Retiro</label>
+                      <select required value={formularioGlobal.motivo} onChange={(e) => setFormularioGlobal({...formularioGlobal, motivo: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500 bg-white">
                       <option value="MERMA">Merma</option><option value="DANADO">Dañado</option><option value="CONSUMO">Consumo interno</option><option value="OTRO">Otro</option>
-                    </select>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Descripción {formularioGlobal.motivo === 'OTRO' && <span className="text-red-500 font-black">*</span>}
+                      </label>
+                      <input type="text" maxLength="100" value={formularioGlobal.descripcion} onChange={(e) => setFormularioGlobal({...formularioGlobal, descripcion: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500" placeholder="Ej: Retiro por donación..." />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Descripción (Opcional, máx 100 caract.)</label>
-                    <input type="text" name="descripcion" maxLength="100" value={formulario.descripcion} onChange={manejarCambio} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b]" placeholder="Detalles adicionales..." />
-                  </div>
-                </>
-              )}
-              <div className="flex justify-end pt-4 border-t">
-                <button type="submit" className={`px-6 py-2 text-white rounded font-bold transition shadow-md ${formulario.tipo === 'INGRESO' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}>Registrar Movimiento</button>
+                )}
               </div>
-            </form>
+
+              <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-lg shadow-sm flex flex-col flex-1 min-h-0">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Buscar Producto</label>
+                <input 
+                  type="text" 
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b]" 
+                  placeholder="Nombre, SKU o Cód. de barras..." 
+                  value={busqueda} 
+                  onChange={(e) => setBusqueda(e.target.value)} 
+                />
+                <div className="mt-2 flex-1 overflow-y-auto custom-scrollbar border rounded border-gray-100 bg-white">
+                  {resultadosBusqueda.map(prod => (
+                     <div key={prod.id} onClick={() => agregarProducto(prod)} className="p-3 border-b hover:bg-gray-50 cursor-pointer transition">
+                        <p className="text-sm font-bold text-gray-800 line-clamp-1">{prod.nombre}</p>
+                        <div className="flex justify-between mt-1">
+                           <p className="text-xs text-gray-500 font-mono">{prod.sku}</p>
+                           <p className="text-xs font-semibold text-blue-600">Stock: {prod.tipo_venta === 'UNIDAD' ? Math.round(prod.stock) : Number(prod.stock).toFixed(2)}</p>
+                        </div>
+                     </div>
+                  ))}
+                  {busqueda && resultadosBusqueda.length === 0 && <p className="p-4 text-center text-sm text-gray-500">No hay coincidencias.</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* Columna Derecha: Lista de Productos a Mover (Carrito) */}
+            <div className="w-full md:w-2/3 bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-sm flex flex-col overflow-hidden">
+              <div className="p-4 border-b border-gray-200 bg-white/40 flex justify-between items-center">
+                 <h3 className="font-bold text-gray-800 text-lg">Productos a Procesar ({seleccionados.length})</h3>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                 {seleccionados.length === 0 && (
+                    <div className="h-full flex items-center justify-center text-gray-400 font-medium text-center">
+                       Busca y selecciona productos a la izquierda<br/>para agregarlos a esta lista.
+                    </div>
+                 )}
+                 {seleccionados.map(item => (
+                    <div key={item.producto.id} className="flex items-center gap-4 bg-white p-3 rounded border border-gray-200 shadow-sm">
+                       <div className="flex-1">
+                          <p className="font-bold text-gray-800 text-sm line-clamp-1">{item.producto.nombre}</p>
+                          <p className="text-xs text-gray-500">Stock actual: {item.producto.tipo_venta === 'UNIDAD' ? Math.round(item.producto.stock) : Number(item.producto.stock).toFixed(2)}</p>
+                       </div>
+                       <div className="w-32">
+                          <label className="block text-[10px] text-gray-500 font-bold uppercase mb-1">Cantidad a mover</label>
+                          <input type="number" min={item.producto.tipo_venta === 'UNIDAD' ? "1" : "0.001"} step={item.producto.tipo_venta === 'UNIDAD' ? '1' : 'any'} className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b] font-bold" placeholder="0" value={item.cantidad} onChange={(e) => actualizarCantidad(item.producto.id, e.target.value)} />
+                       </div>
+                       <button onClick={() => removerProducto(item.producto.id)} className="text-red-400 hover:text-red-600 p-2" title="Quitar">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                       </button>
+                    </div>
+                 ))}
+              </div>
+              <div className="p-4 border-t border-gray-200 bg-white/60">
+                 <button onClick={guardarMovimiento} disabled={seleccionados.length === 0} className={`w-full py-3 text-white rounded font-bold transition shadow-md ${formularioGlobal.tipo === 'INGRESO' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} disabled:opacity-50 disabled:cursor-not-allowed`}>
+                    Registrar Movimientos
+                 </button>
+              </div>
+            </div>
+
           </div>
         ) : (
           <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
@@ -154,7 +234,7 @@ export default function MovimientosInventario({ usuario }) {
                   <tr><th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th><th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Usuario</th><th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th><th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th><th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Cantidad</th><th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Detalles</th></tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {movimientos.map(mov => (<tr key={mov.id} className="hover:bg-white/40 transition-colors"><td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{mov.fecha}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{mov.usuario}</td><td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-bold text-gray-900">{mov.producto_nombre}</div><div className="text-xs text-gray-500 font-mono">{mov.producto_sku}</div></td><td className="px-6 py-4 whitespace-nowrap text-center"><span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${mov.tipo === 'INGRESO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{mov.tipo}</span></td><td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-700">{mov.tipo === 'INGRESO' ? '+' : '-'}{mov.producto_tipo_venta === 'UNIDAD' ? Math.round(mov.cantidad) : Number(mov.cantidad).toFixed(2)}</td><td className="px-6 py-4 text-sm text-gray-600">{mov.tipo === 'EGRESO' && (<><span className="font-semibold text-gray-800">{mov.motivo}</span>{mov.descripcion && <span className="block text-xs mt-0.5 text-gray-500 truncate max-w-xs" title={mov.descripcion}>{mov.descripcion}</span>}</>)}</td></tr>))}
+                  {movimientos.map(mov => (<tr key={mov.id} className="hover:bg-white/40 transition-colors"><td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{mov.fecha}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{mov.usuario}</td><td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-bold text-gray-900">{mov.producto_nombre}</div><div className="text-xs text-gray-500 font-mono">{mov.producto_sku}</div></td><td className="px-6 py-4 whitespace-nowrap text-center"><span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${mov.tipo === 'INGRESO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{mov.tipo}</span></td><td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-700">{mov.tipo === 'INGRESO' ? '+' : '-'}{mov.producto_tipo_venta === 'UNIDAD' ? Math.round(mov.cantidad) : Number(mov.cantidad).toFixed(2)}</td><td className="px-6 py-4 text-sm text-gray-600">{mov.tipo === 'RETIRO' && (<><span className="font-semibold text-gray-800">{mov.motivo}</span>{mov.descripcion && <span className="block text-xs mt-0.5 text-gray-500 truncate max-w-xs" title={mov.descripcion}>{mov.descripcion}</span>}</>)}</td></tr>))}
                   {movimientos.length === 0 && (<tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500 font-medium">No hay movimientos registrados.</td></tr>)}
                 </tbody>
               </table>
