@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 function ChartModal({ config, onClose }) {
   if (!config) return null;
@@ -9,8 +9,12 @@ function ChartModal({ config, onClose }) {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white/80 backdrop-blur-md p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="label font-bold text-gray-700">{`${label}`}</p>
-          <p className="intro text-[#91cf5b] font-black">{`Ventas: $${new Intl.NumberFormat('es-CL').format(payload[0].value)}`}</p>
+          <p className="label font-bold text-gray-700 mb-1">{`${label}`}</p>
+          {payload.map((entry, index) => (
+            <p key={index} className="font-black text-sm" style={{ color: entry.color }}>
+              {`${entry.name}: ${entry.name === 'Ventas' ? '$' + new Intl.NumberFormat('es-CL').format(entry.value) : entry.value}`}
+            </p>
+          ))}
         </div>
       );
     }
@@ -28,14 +32,20 @@ function ChartModal({ config, onClose }) {
         </div>
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={config.data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <ComposedChart data={config.data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
               <XAxis dataKey={config.xKey} tick={{ fontSize: 12 }} />
-              <YAxis tickFormatter={(value) => `$${new Intl.NumberFormat('es-CL').format(value)}`} tick={{ fontSize: 12 }} width={80} />
+              <YAxis yAxisId="left" tickFormatter={(value) => `$${new Intl.NumberFormat('es-CL').format(value)}`} tick={{ fontSize: 12 }} width={80} />
+              {config.lineDataKey && (
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} width={40} />
+              )}
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(145, 207, 91, 0.1)' }} />
               <Legend />
-              <Bar dataKey={config.yKey} name={config.barName} fill={config.color} radius={[4, 4, 0, 0]} />
-            </BarChart>
+              <Bar yAxisId="left" dataKey={config.yKey} name={config.barName} fill={config.color} radius={[4, 4, 0, 0]} />
+              {config.lineDataKey && (
+                <Line yAxisId="right" type="monotone" dataKey={config.lineDataKey} name={config.lineName} stroke="#ff7300" strokeDasharray="5 5" strokeWidth={2} dot={{ r: 4 }} />
+              )}
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -88,17 +98,22 @@ export default function Reportes() {
   if (!metricas) return <div className="p-10 text-center text-red-500">Error al cargar los datos.</div>;
 
   const handleVentasHoyClick = () => {
-    const fullHoursData = Array.from({ length: 24 }, (_, i) => ({ fecha: `${i}:00`, total: 0 }));
+    const fullHoursData = Array.from({ length: 24 }, (_, i) => ({ fecha: `${i}:00`, total: 0, tx_count: 0 }));
     metricas.ventas_por_hora_hoy?.forEach(item => {
-      if (fullHoursData[item.hora]) fullHoursData[item.hora].total = item.total;
+      if (fullHoursData[item.hora]) {
+        fullHoursData[item.hora].total = item.total;
+        fullHoursData[item.hora].tx_count = item.tx_count;
+      }
     });
 
     setChartConfig({
       data: fullHoursData,
       xKey: 'fecha',
       yKey: 'total',
+      lineDataKey: 'tx_count',
       title: 'Ventas de Hoy por Hora',
       barName: 'Ventas',
+      lineName: 'Transacciones',
       color: '#82ca9d'
     });
   };
@@ -108,8 +123,10 @@ export default function Reportes() {
       data: metricas.historico_diario_mes,
       xKey: 'fecha',
       yKey: 'total',
+      lineDataKey: 'tx_count',
       title: 'Ventas Diarias del Mes',
       barName: 'Ventas',
+      lineName: 'Transacciones',
       color: '#8884d8'
     });
   };
@@ -119,8 +136,10 @@ export default function Reportes() {
       data: metricas.historico_semanal,
       xKey: 'fecha',
       yKey: 'total',
+      lineDataKey: 'tx_count',
       title: 'Ventas Semanales (Histórico)',
       barName: 'Ventas',
+      lineName: 'Transacciones',
       color: '#a368d8'
     });
   };
@@ -171,9 +190,9 @@ export default function Reportes() {
             <section>
               <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2"><span className="text-2xl">📈</span> Métricas de Ventas</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                <TarjetaMetrica titulo="Ventas Hoy" valor={formatCurrency(metricas.ventas_hoy)} subtitulo="Total recaudado el día de hoy" color="green" onClick={handleVentasHoyClick} disabled={Number(metricas.ventas_hoy) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>} />
-                <TarjetaMetrica titulo="Ventas este Mes" valor={formatCurrency(metricas.ventas_mes)} subtitulo={`${metricas.tx_mes} transacciones realizadas`} color="blue" onClick={handleVentasMesClick} disabled={Number(metricas.ventas_mes) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>} />
-                <TarjetaMetrica titulo="Ingresos Históricos" valor={formatCurrency(metricas.ventas_historicas)} subtitulo="Total histórico de la empresa" color="purple" onClick={handleVentasHistoricasClick} disabled={Number(metricas.ventas_historicas) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>} />
+                <TarjetaMetrica titulo="Ventas Hoy" valor={formatCurrency(metricas.ventas_hoy)} subtitulo={`${metricas.tx_hoy || 0} transacciones realizadas`} color="green" onClick={handleVentasHoyClick} disabled={Number(metricas.ventas_hoy) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>} />
+                <TarjetaMetrica titulo="Ventas este Mes" valor={formatCurrency(metricas.ventas_mes)} subtitulo={`${metricas.tx_mes || 0} transacciones realizadas`} color="blue" onClick={handleVentasMesClick} disabled={Number(metricas.ventas_mes) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>} />
+                <TarjetaMetrica titulo="Ingresos Históricos" valor={formatCurrency(metricas.ventas_historicas)} subtitulo={`${metricas.tx_historicas || 0} transacciones en total`} color="purple" onClick={handleVentasHistoricasClick} disabled={Number(metricas.ventas_historicas) <= 0} icono={<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>} />
               </div>
             </section>
 
