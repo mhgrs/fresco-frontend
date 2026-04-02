@@ -244,7 +244,7 @@ export default function PuntoDeVenta() {
 
   return (
     // CONTENEDORES ESTRICTOS: h-full y overflow-hidden previenen que el botón se esconda
-    <div className="flex h-full w-full bg-[var(--color-fondo)] font-sans relative overflow-hidden transition-colors duration-500 p-2 sm:p-4 gap-2 sm:gap-4 flex-row">
+    <div className="flex h-full w-full max-w-[1400px] mx-auto bg-[var(--color-fondo)] font-sans relative overflow-hidden transition-colors duration-500 p-2 sm:p-4 gap-2 sm:gap-4 flex-row">
       
       {/* Notificación Toast */}
       {notificacion.visible && (
