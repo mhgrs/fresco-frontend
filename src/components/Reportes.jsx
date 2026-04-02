@@ -150,7 +150,7 @@ export default function Reportes() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
+    <div className="p-4 sm:p-6 lg:p-8 h-full w-full max-w-[1400px] mx-auto flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
       
       {/* Cabecera y Tabs */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">

@@ -327,7 +327,7 @@ export default function PuntoDeVenta() {
 
       {/* Panel Derecho */}
       <div className="w-5/12 bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-2xl sm:rounded-3xl flex flex-col shadow-2xl h-full overflow-hidden">
-        <div className="p-3 sm:p-6 flex-none flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-1 sm:gap-2">
+        <div className="pt-2 pl-3 flex-none flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-1 sm:gap-2">
           <h2 className="text-sm sm:text-2xl font-bold text-gray-800 truncate">Venta Actual</h2>
           {carrito.length > 0 && (
             <button onClick={vaciarCarrito} title="Vaciar todo el carrito" className="text-[10px] sm:text-xs text-red-500 hover:bg-red-100 hover:text-red-600 font-bold flex items-center transition-colors p-1 sm:p-2 rounded-lg self-end sm:self-auto">

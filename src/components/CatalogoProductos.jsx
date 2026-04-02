@@ -13,8 +13,6 @@ export default function CatalogoProductos({ usuario }) {
   // Modal de confirmación IN-APP (Sin window.confirm)
   const [confirmarEliminar, setConfirmarEliminar] = useState({ visible: false, id: null, nombre: '' });
   const [notificacion, setNotificacion] = useState({ visible: false, mensaje: '', tipo: '' });
-  
-  const [ajusteStock, setAjusteStock] = useState({ visible: false, producto: null, tipo: 'ingreso', cantidad: '' });
 
   const navigate = useNavigate();
   
@@ -101,31 +99,7 @@ export default function CatalogoProductos({ usuario }) {
       mostrarNotificacion('No tienes los permisos', 'error');
       return;
     }
-    setAjusteStock({ visible: true, producto, tipo: 'ingreso', cantidad: '' });
-  };
-
-  const ejecutarAjusteStock = async (e) => {
-    e.preventDefault();
-    try {
-      const cantidad = parseFloat(ajusteStock.cantidad);
-      if (isNaN(cantidad) || cantidad <= 0) {
-        mostrarNotificacion('Ingrese una cantidad válida mayor a 0', 'error');
-        return;
-      }
-
-      const stockActual = parseFloat(ajusteStock.producto.stock);
-      const nuevoStock = ajusteStock.tipo === 'ingreso' ? stockActual + cantidad : stockActual - cantidad;
-      
-      // Formatear decimales según tipo para evitar desbordes en BBDD
-      const stockFinal = ajusteStock.producto.tipo_venta === 'UNIDAD' ? Math.round(nuevoStock) : parseFloat(nuevoStock.toFixed(3));
-
-      const res = await api.patch(`inventario/productos/${ajusteStock.producto.id}/`, { stock: stockFinal });
-      mostrarNotificacion(`Stock actualizado exitosamente. Nuevo stock: ${stockFinal}`, 'success');
-      setProductos(productos.map(p => p.id === ajusteStock.producto.id ? res.data : p));
-      setAjusteStock({ visible: false, producto: null, tipo: 'ingreso', cantidad: '' });
-    } catch (error) {
-      mostrarNotificacion('Error al actualizar el stock', 'error');
-    }
+    navigate('/inventario/movimientos', { state: { productoPreseleccionado: producto } });
   };
 
   const isAuthorized = (roles) => {
@@ -208,7 +182,7 @@ export default function CatalogoProductos({ usuario }) {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
+    <div className="p-6 h-full w-full max-w-[1400px] mx-auto flex flex-col bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
       
       {/* Toast Notification */}
       {notificacion.visible && (
@@ -231,59 +205,12 @@ export default function CatalogoProductos({ usuario }) {
         </div>
       )}
 
-      {/* Modal Ajuste de Stock */}
-      {ajusteStock.visible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
-            <h3 className="text-xl font-bold mb-4 border-b pb-2">Ajustar Stock</h3>
-            <p className="text-gray-700 mb-4 font-medium">{ajusteStock.producto.nombre}</p>
-
-            <form onSubmit={ejecutarAjusteStock}>
-              <div className="flex bg-gray-200 rounded-lg p-1 mb-4">
-                <button type="button" onClick={() => setAjusteStock({ ...ajusteStock, tipo: 'ingreso' })} className={`flex-1 py-2 font-bold rounded-md transition ${ajusteStock.tipo === 'ingreso' ? 'bg-green-500 text-white shadow' : 'text-gray-600 hover:bg-gray-300'}`}>
-                  Ingreso (+)
-                </button>
-                <button type="button" onClick={() => setAjusteStock({ ...ajusteStock, tipo: 'egreso' })} className={`flex-1 py-2 font-bold rounded-md transition ${ajusteStock.tipo === 'egreso' ? 'bg-red-500 text-white shadow' : 'text-gray-600 hover:bg-gray-300'}`}>
-                  Egreso (-)
-                </button>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cantidad a {ajusteStock.tipo === 'ingreso' ? 'agregar' : 'retirar'}
-                  {ajusteStock.producto.tipo_venta === 'UNIDAD' ? ' (Enteros)' : ' (Kilos)'}
-                </label>
-                <input 
-                  required 
-                  autoFocus 
-                  type="number" 
-                  min={ajusteStock.producto.tipo_venta === 'UNIDAD' ? "1" : "0.001"} 
-                  step={ajusteStock.producto.tipo_venta === 'UNIDAD' ? '1' : 'any'} 
-                  value={ajusteStock.cantidad} 
-                  onChange={(e) => setAjusteStock({ ...ajusteStock, cantidad: e.target.value })} 
-                  onKeyDown={(e) => {
-                    if (ajusteStock.producto.tipo_venta === 'UNIDAD' && (e.key === '.' || e.key === ',')) {
-                      e.preventDefault();
-                    }
-                  }}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b] text-lg" 
-                  placeholder="0" 
-                />
-                <p className="text-xs text-gray-500 mt-2">Stock actual: {ajusteStock.producto.tipo_venta === 'UNIDAD' ? Math.round(ajusteStock.producto.stock) : parseFloat(ajusteStock.producto.stock)}</p>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <button type="button" onClick={() => setAjusteStock({ visible: false, producto: null, tipo: 'ingreso', cantidad: '' })} className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded font-bold text-gray-800 transition">Cancelar</button>
-                <button type="submit" className={`px-4 py-2 text-white rounded font-bold transition ${ajusteStock.tipo === 'ingreso' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}>Guardar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between  mx-autoitems-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Catálogo de Productos</h1>
         <div className="flex items-center space-x-2">
+          <Link to="/inventario/movimientos" title="Movimientos de Inventario" className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded shadow-sm transition flex items-center justify-center font-bold">
+            Movimientos
+          </Link>
           {(usuario?.roles.includes('ADMIN') || usuario?.roles.includes('SUPERVISOR')) && (
             <Link to="/categorias" title="Administrar Categorías" className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded shadow-sm transition flex items-center justify-center">
               <span className="text-lg">🏷️</span>

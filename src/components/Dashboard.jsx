@@ -59,7 +59,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   const fechaCapitalizada = fechaActual.charAt(0).toUpperCase() + fechaActual.slice(1);
 
   return (
-    <div className="min-h-screen bg-[var(--color-fondo)] py-6 lg:py-10 px-6 lg:px-16 xl:px-24 transition-colors duration-500 font-sans">
+    <div className="min-h-screen bg-[var(--color-fondo)] py-6 lg:py-6 px-6 lg:px-16 xl:px-24 transition-colors duration-500 font-sans">
       <div className="max-w-6xl mx-auto relative">
         
         {/* Encabezado Superior */}
@@ -291,7 +291,60 @@ export default function Dashboard({ usuario, cerrarSesion }) {
               )}
             </div>
           </div>
-        ) : null}
+        ) : submenuActivo === 'administracion' ? (
+          <div className="animate-fade-in">
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+              .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+            `}</style>
+            
+            <div className="flex items-center mb-6 gap-4 relative z-20">
+              <button onClick={() => setSubmenuActivo(null)} className="p-3 bg-white/80 hover:bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 transition-all flex items-center justify-center active:scale-95" title="Volver al inicio">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              </button>
+              <div>
+                <h2 className="text-2xl font-black text-gray-800 tracking-tight">Módulo de Administración</h2>
+                <p className="text-sm text-gray-500 font-medium mt-1">Gestiona reportes y el equipo de trabajo.</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+              {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
+                <Link to="/reportes" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-1">Reportes del Negocio</h2>
+                    <p className="text-gray-500 text-sm font-medium">Estadísticas, ventas e inventario.</p>
+                  </div>
+                  <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                    <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </div>
+                </Link>
+              )}
+              {(usuario.roles?.includes('ADMIN') || usuario.is_superuser) && (
+                <Link to="/configuracion" className="relative bg-[var(--color-tarjeta)] backdrop-blur-md p-6 rounded-3xl shadow-lg border border-white/60 hover:shadow-2xl hover:border-[#91cf5b]/50 transition-all group flex flex-col justify-between h-52 overflow-hidden hover:-translate-y-1">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150"></div>
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 bg-white text-[#91cf5b] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 group-hover:bg-[#91cf5b] group-hover:text-white transition-colors duration-300">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-1">Equipo</h2>
+                    <p className="text-gray-500 text-sm font-medium">Gestiona usuarios y permisos.</p>
+                  </div>
+                  <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity text-[#91cf5b] relative z-10">
+                    <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </div>
+                </Link>
+              )}
+            </div>
+          </div>
+        ) : null }
       </div>
     </div>
   );

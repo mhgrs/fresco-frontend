@@ -67,7 +67,7 @@ export default function GestorCategorias({ usuario }) {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col md:flex-row gap-6 bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
+    <div className="p-6 h-full w-full max-w-[1400px] mx-auto flex flex-col md:flex-row gap-6 bg-[var(--color-fondo)] relative overflow-hidden transition-colors duration-500">
       
       {/* Toast Notification */}
       {notificacion.visible && (

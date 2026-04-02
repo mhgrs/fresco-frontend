@@ -20,6 +20,17 @@ export default function FormularioProducto({ usuario }) {
   const [nuevaCat, setNuevaCat] = useState({ nombre: '', codigo: '' });
   const [escanerAbierto, setEscanerAbierto] = useState(false);
 
+  // Estados para el autocompletado de Marcas
+  const [marcasExistentes, setMarcasExistentes] = useState([]);
+  const [sugerenciasMarca, setSugerenciasMarca] = useState([]);
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
+
+  // NUEVO: Estados para autocompletado de Proveedores
+  const [proveedoresExistentes, setProveedoresExistentes] = useState([]);
+  const [sugerenciasProveedor, setSugerenciasProveedor] = useState([]);
+  const [mostrarSugerenciasProveedor, setMostrarSugerenciasProveedor] = useState(false);
+  const [proveedorInput, setProveedorInput] = useState('');
+
   const [formulario, setFormulario] = useState({
     nombre: '', marca: '', categoria: '', precio: '', tipo_venta: 'UNIDAD', codigo_barras: '', stock: '', umbral_stock: '5', proveedores: ''
   });
@@ -39,6 +50,21 @@ export default function FormularioProducto({ usuario }) {
     const inicializarDatos = async () => {
       try {
         await cargarCategorias();
+        
+        // Cargar todos los productos para extraer marcas existentes únicas
+        const resTodos = await api.get('inventario/productos/');
+        const marcasUnicas = [...new Set(resTodos.data.map(p => p.marca).filter(Boolean))];
+        setMarcasExistentes(marcasUnicas.sort());
+
+        // NUEVO: Extraer proveedores únicos
+        const todosProveedores = resTodos.data
+          .map(p => p.proveedores)
+          .filter(Boolean)
+          .flatMap(p => p.split(',').map(s => s.trim()))
+          .filter(Boolean);
+        const proveedoresUnicos = [...new Set(todosProveedores)];
+        setProveedoresExistentes(proveedoresUnicos.sort());
+
         if (esEdicion) {
           const resProd = await api.get(`inventario/productos/${id}/`);
           const p = resProd.data;
@@ -65,6 +91,34 @@ export default function FormularioProducto({ usuario }) {
     };
     inicializarDatos();
   }, [id, esEdicion, navigate]);
+
+  // Efecto Debounce de 200ms para filtrar sugerencias de marca
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formulario.marca && mostrarSugerencias) {
+        const termino = formulario.marca.toLowerCase();
+        const filtradas = marcasExistentes.filter(m => m.toLowerCase().includes(termino));
+        setSugerenciasMarca(filtradas);
+      } else {
+        setSugerenciasMarca([]);
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [formulario.marca, marcasExistentes, mostrarSugerencias]);
+
+  // Efecto Debounce de 200ms para filtrar sugerencias de proveedor
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (proveedorInput && mostrarSugerenciasProveedor) {
+        const termino = proveedorInput.toLowerCase();
+        const filtradas = proveedoresExistentes.filter(p => p.toLowerCase().includes(termino));
+        setSugerenciasProveedor(filtradas);
+      } else {
+        setSugerenciasProveedor([]);
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [proveedorInput, proveedoresExistentes, mostrarSugerenciasProveedor]);
 
   const manejarCambio = (e) => {
     const { name, value } = e.target;
@@ -162,7 +216,6 @@ export default function FormularioProducto({ usuario }) {
     buscarMaestro(codigo);
   };
 
-  const [proveedorInput, setProveedorInput] = useState('');
   const agregarProveedor = (e) => {
     e.preventDefault();
     if (proveedorInput.trim()) {
@@ -212,14 +265,38 @@ export default function FormularioProducto({ usuario }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
-            <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700">Marca *</label>
+            <input 
+              required 
+              type="text" 
+              name="marca" 
+              value={formulario.marca} 
+              autoComplete="off"
+              onChange={(e) => { manejarCambio(e); setMostrarSugerencias(true); }} 
+              onFocus={() => setMostrarSugerencias(true)}
+              onBlur={() => setTimeout(() => setMostrarSugerencias(false), 200)}
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" 
+              placeholder="Ej: Coca-Cola, Soprole..." 
+            />
+            {mostrarSugerencias && sugerenciasMarca.length > 0 && (
+              <ul className="absolute z-10 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-lg max-h-40 overflow-y-auto custom-scrollbar">
+                {sugerenciasMarca.map((marcaItem, idx) => (
+                  <li 
+                    key={idx} 
+                    className="px-4 py-2 hover:bg-[#91cf5b] hover:text-white cursor-pointer transition-colors text-sm text-gray-700"
+                    onClick={() => { setFormulario({ ...formulario, marca: marcaItem }); setMostrarSugerencias(false); }}
+                  >
+                    {marcaItem}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Marca (Opcional)</label>
-            <input type="text" name="marca" value={formulario.marca} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" placeholder="Ej: Coca-Cola, Soprole..." />
+            <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
+            <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
           </div>
 
           <div>
@@ -280,16 +357,34 @@ export default function FormularioProducto({ usuario }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Proveedores (Opcional)</label>
-            <div className="flex mt-1">
-              <input 
-                type="text" 
-                value={proveedorInput}
-                onChange={(e) => setProveedorInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); agregarProveedor(e); } }}
-                className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500" 
-                placeholder="Ej: Soprole, Coca-Cola..." 
-              />
-              <button type="button" onClick={agregarProveedor} className="bg-gray-200 px-4 rounded-r border border-gray-300 font-bold hover:bg-gray-300 text-gray-700 transition">Agregar</button>
+            <div className="relative">
+              <div className="flex mt-1">
+                <input 
+                  type="text" 
+                  value={proveedorInput}
+                  autoComplete="off"
+                  onChange={(e) => { setProveedorInput(e.target.value); setMostrarSugerenciasProveedor(true); }}
+                  onFocus={() => setMostrarSugerenciasProveedor(true)}
+                  onBlur={() => setTimeout(() => setMostrarSugerenciasProveedor(false), 200)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); agregarProveedor(e); } }}
+                  className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500" 
+                  placeholder="Ej: Soprole, Coca-Cola..." 
+                />
+                <button type="button" onClick={agregarProveedor} className="bg-gray-200 px-4 rounded-r border border-gray-300 font-bold hover:bg-gray-300 text-gray-700 transition">Agregar</button>
+              </div>
+              {mostrarSugerenciasProveedor && sugerenciasProveedor.length > 0 && (
+                <ul className="absolute z-10 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-lg max-h-40 overflow-y-auto custom-scrollbar">
+                  {sugerenciasProveedor.map((provItem, idx) => (
+                    <li 
+                      key={idx} 
+                      className="px-4 py-2 hover:bg-[#91cf5b] hover:text-white cursor-pointer transition-colors text-sm text-gray-700"
+                      onClick={() => { setProveedorInput(provItem); setMostrarSugerenciasProveedor(false); }}
+                    >
+                      {provItem}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             {formulario.proveedores && (
               <div className="flex flex-wrap gap-2 mt-3 p-2 bg-gray-50 rounded-lg border border-gray-100 min-h-[40px]">

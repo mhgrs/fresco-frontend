@@ -15,6 +15,7 @@ import Registro from './components/Registro';
 import VerificarEmail from './components/VerificarEmail';
 import OnboardingEmpresa from './components/OnboardingEmpresa';
 import GestionEmpresa from './components/GestionEmpresa'; // NUEVO
+import MovimientosInventario from './components/MovimientosInventario'; // NUEVO
 import api from './services/api';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
@@ -310,6 +311,10 @@ export default function App() {
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
           <Route path="/inventario/editar/:id" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} usuario={usuario}><FormularioProducto usuario={usuario} /></ModuleLayout>} />
+        )}
+
+        {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR') || usuario.roles?.includes('CAJERO') || usuario.roles?.includes('BODEGA')) && (
+          <Route path="/inventario/movimientos" element={<ModuleLayout isOnline={isOnline} sincronizando={sincronizando} usuario={usuario}><MovimientosInventario usuario={usuario} /></ModuleLayout>} />
         )}
 
         {(usuario.roles?.includes('ADMIN') || usuario.roles?.includes('SUPERVISOR')) && (
