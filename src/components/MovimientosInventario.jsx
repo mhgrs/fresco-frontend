@@ -87,7 +87,8 @@ export default function MovimientosInventario({ usuario }) {
     }
 
     for (let item of seleccionados) {
-      if (!item.cantidad || parseFloat(item.cantidad) <= 0) {
+      const cantParseada = parseFloat(String(item.cantidad).replace(',', '.'));
+      if (!item.cantidad || isNaN(cantParseada) || cantParseada <= 0) {
         mostrarNotificacion(`Ingresa una cantidad válida mayor a 0 para ${item.producto.nombre}`, 'error');
         return;
       }
@@ -95,14 +96,15 @@ export default function MovimientosInventario({ usuario }) {
 
     try {
       // Enviar peticiones simultáneas por cada producto
-      await Promise.all(seleccionados.map(item => 
-        api.post(`inventario/productos/${item.producto.id}/ajustar_stock/`, {
+      await Promise.all(seleccionados.map(item => {
+        const cantParseada = parseFloat(String(item.cantidad).replace(',', '.'));
+        return api.post(`inventario/productos/${item.producto.id}/ajustar_stock/`, {
           tipo: formularioGlobal.tipo,
-          cantidad: item.cantidad,
+          cantidad: cantParseada,
           motivo: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.motivo : null,
           descripcion: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.descripcion : null
         })
-      ));
+      }));
       
       mostrarNotificacion('Todos los movimientos han sido registrados exitosamente', 'success');
       setSeleccionados([]);
