@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useLocation } from 'react-router-dom';
 
 export default function MovimientosInventario({ usuario }) {
+  const location = useLocation();
+  const productoPreseleccionado = location.state?.productoPreseleccionado || null;
 
   const [productos, setProductos] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
@@ -16,7 +19,10 @@ export default function MovimientosInventario({ usuario }) {
   const [resultadosBusqueda, setResultadosBusqueda] = useState([]);
   
   // Carrito de Movimientos: Array de { producto, cantidad }
-  const [seleccionados, setSeleccionados] = useState([]);
+  const [seleccionados, setSeleccionados] = useState(
+    productoPreseleccionado ? [{ producto: productoPreseleccionado, cantidad: '' }] : []
+  );
+  const [procesando, setProcesando] = useState(false);
 
   const mostrarNotificacion = (mensaje, tipo = 'success') => {
     setNotificacion({ visible: true, mensaje, tipo });
@@ -49,7 +55,24 @@ export default function MovimientosInventario({ usuario }) {
       setResultadosBusqueda([]);
       return;
     }
-    const term = busqueda.toLowerCase();
+    const term = busqueda.toLowerCase().trim();
+
+    // Autocompletado exacto (ideal para lectores de códigos de barra)
+    const coincidenciaExacta = productos.find(
+      p => (p.codigo_barras && p.codigo_barras.toLowerCase() === term) || p.sku.toLowerCase() === term
+    );
+
+    if (coincidenciaExacta && term.length >= 4) {
+      setSeleccionados(prev => {
+        if (!prev.find(s => s.producto.id === coincidenciaExacta.id)) {
+          return [...prev, { producto: coincidenciaExacta, cantidad: '' }];
+        }
+        return prev;
+      });
+      setBusqueda('');
+      return;
+    }
+
     const filtrados = productos.filter(p => 
       p.nombre.toLowerCase().includes(term) || 
       p.sku.toLowerCase().includes(term) || 
@@ -59,18 +82,21 @@ export default function MovimientosInventario({ usuario }) {
   }, [busqueda, productos]);
 
   const agregarProducto = (prod) => {
-    if (!seleccionados.find(s => s.producto.id === prod.id)) {
-      setSeleccionados([...seleccionados, { producto: prod, cantidad: '' }]);
-    }
+    setSeleccionados(prev => {
+      if (!prev.find(s => s.producto.id === prod.id)) {
+        return [...prev, { producto: prod, cantidad: '' }];
+      }
+      return prev;
+    });
     setBusqueda('');
   };
 
   const removerProducto = (id) => {
-    setSeleccionados(seleccionados.filter(s => s.producto.id !== id));
+    setSeleccionados(prev => prev.filter(s => s.producto.id !== id));
   };
 
   const actualizarCantidad = (id, valor) => {
-    setSeleccionados(seleccionados.map(s => s.producto.id === id ? { ...s, cantidad: valor } : s));
+    setSeleccionados(prev => prev.map(s => s.producto.id === id ? { ...s, cantidad: valor } : s));
   };
 
   const guardarMovimiento = async (e) => {
@@ -92,8 +118,18 @@ export default function MovimientosInventario({ usuario }) {
         mostrarNotificacion(`Ingresa una cantidad válida mayor a 0 para ${item.producto.nombre}`, 'error');
         return;
       }
+
+      // NUEVA VALIDACIÓN: Prevenir envío de error 400 por stock insuficiente
+      if (formularioGlobal.tipo === 'RETIRO') {
+        const stockActual = parseFloat(item.producto.stock);
+        if (cantParseada > stockActual) {
+          mostrarNotificacion(`El retiro de ${cantParseada} excede el stock de ${item.producto.nombre} (${stockActual})`, 'error');
+          return;
+        }
+      }
     }
 
+    setProcesando(true);
     try {
       // Enviar peticiones simultáneas por cada producto
       await Promise.all(seleccionados.map(item => {
@@ -113,6 +149,8 @@ export default function MovimientosInventario({ usuario }) {
       setTabActiva('historial');
     } catch (error) {
       mostrarNotificacion(error.response?.data?.error || 'Error al registrar el movimiento', 'error');
+    } finally {
+      setProcesando(false);
     }
   };
 
@@ -221,8 +259,8 @@ export default function MovimientosInventario({ usuario }) {
                  ))}
               </div>
               <div className="p-4 border-t border-gray-200 bg-white/60">
-                 <button onClick={guardarMovimiento} disabled={seleccionados.length === 0} className={`w-full py-3 text-white rounded font-bold transition shadow-md ${formularioGlobal.tipo === 'INGRESO' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} disabled:opacity-50 disabled:cursor-not-allowed`}>
-                    Registrar Movimientos
+                 <button onClick={guardarMovimiento} disabled={seleccionados.length === 0 || procesando} className={`w-full py-3 text-white rounded font-bold transition shadow-md ${formularioGlobal.tipo === 'INGRESO' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} disabled:opacity-50 disabled:cursor-not-allowed`}>
+                    {procesando ? 'Procesando...' : 'Registrar Movimientos'}
                  </button>
               </div>
             </div>
