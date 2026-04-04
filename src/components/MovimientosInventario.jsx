@@ -194,7 +194,7 @@ export default function MovimientosInventario({ usuario }) {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Motivo del Retiro</label>
                       <select required value={formularioGlobal.motivo} onChange={(e) => setFormularioGlobal({...formularioGlobal, motivo: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500 bg-white">
-                      <option value="MERMA">Merma</option><option value="DANADO">Dañado</option><option value="CONSUMO">Consumo interno</option><option value="OTRO">Otro</option>
+                      <option value="MERMA">Merma</option><option value="DANADO">Dañado</option><option value="OTRO">Otro</option>
                       </select>
                     </div>
                     <div>
@@ -216,7 +216,7 @@ export default function MovimientosInventario({ usuario }) {
                   value={busqueda} 
                   onChange={(e) => setBusqueda(e.target.value)} 
                 />
-                <div className="mt-2 flex-1 overflow-y-auto custom-scrollbar border rounded border-gray-100 bg-white">
+                <div className="mt-2 flex-1 overflow-y-auto custom-scrollbar  rounded  ">
                   {resultadosBusqueda.map(prod => (
                      <div key={prod.id} onClick={() => agregarProducto(prod)} className="p-3 border-b hover:bg-gray-50 cursor-pointer transition">
                         <p className="text-sm font-bold text-gray-800 line-clamp-1">{prod.nombre}</p>

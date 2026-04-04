@@ -172,14 +172,14 @@ export default function FormularioProducto({ usuario }) {
   const guardarNuevaCategoria = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post('inventario/categorias/', { nombre: nuevaCat.nombre, codigo: nuevaCat.codigo.toUpperCase() });
+      const res = await api.post('inventario/categorias/', { nombre: nuevaCat.nombre });
       await cargarCategorias();
       setFormulario({ ...formulario, categoria: res.data.id }); // Autoseleccionar la nueva
       setModalCatAbierto(false);
       setNuevaCat({ nombre: '', codigo: '' });
       mostrarNotificacion('Categoría creada con éxito', 'success');
     } catch (error) {
-      mostrarNotificacion('Error: Asegure que el código sea único (3 letras)', 'error');
+      mostrarNotificacion('Error al crear. El nombre de la categoría probablemente ya existe.', 'error');
     }
   };
 
@@ -415,13 +415,9 @@ export default function FormularioProducto({ usuario }) {
           <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
             <h3 className="text-xl font-bold mb-4 border-b pb-2">Nueva Categoría</h3>
             <form onSubmit={guardarNuevaCategoria}>
-              <div className="mb-4">
+              <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
                 <input required autoFocus type="text" value={nuevaCat.nombre} onChange={(e) => setNuevaCat({...nuevaCat, nombre: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
-              </div>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Código (3 letras)</label>
-                <input required type="text" maxLength="3" value={nuevaCat.codigo} onChange={(e) => setNuevaCat({...nuevaCat, codigo: e.target.value})} className="w-full p-2 border rounded uppercase focus:ring-2 focus:ring-blue-500" />
               </div>
               <div className="flex justify-end space-x-2">
                 <button type="button" onClick={() => { setModalCatAbierto(false); setFormulario({...formulario, categoria: ''}); }} className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition">Cancelar</button>

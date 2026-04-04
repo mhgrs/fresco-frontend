@@ -31,16 +31,16 @@ export default function GestorCategorias({ usuario }) {
     try {
       if (formulario.id) {
         // Usamos PATCH en lugar de PUT para modificaciones parciales
-        await api.patch(`inventario/categorias/${formulario.id}/`, { nombre: formulario.nombre, codigo: formulario.codigo.toUpperCase() });
+        await api.patch(`inventario/categorias/${formulario.id}/`, { nombre: formulario.nombre });
         mostrarNotificacion('Categoría actualizada exitosamente', 'success');
       } else {
-        await api.post('inventario/categorias/', { nombre: formulario.nombre, codigo: formulario.codigo.toUpperCase() });
+        await api.post('inventario/categorias/', { nombre: formulario.nombre });
         mostrarNotificacion('Categoría creada exitosamente', 'success');
       }
       setFormulario({ id: null, nombre: '', codigo: '' });
       cargarCategorias();
     } catch (error) {
-      mostrarNotificacion('Error: El código (3 letras) debe ser único.', 'error');
+      mostrarNotificacion('Error al guardar. El nombre de la categoría probablemente ya existe.', 'error');
     }
   };
 
@@ -96,10 +96,6 @@ export default function GestorCategorias({ usuario }) {
           <div>
             <label className="block text-sm font-medium text-gray-700">Nombre</label>
             <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Código (3 Letras)</label>
-            <input required type="text" maxLength="3" name="codigo" value={formulario.codigo} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded uppercase focus:ring-2 focus:ring-blue-500" />
           </div>
           <div className="flex space-x-2 pt-2">
             {formulario.id && (
