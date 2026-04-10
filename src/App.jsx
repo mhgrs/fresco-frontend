@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
-import axios from 'axios';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import PuntoDeVenta from './components/PuntoDeVenta';
@@ -157,51 +156,6 @@ export default function App() {
     localStorage.removeItem('usuario');
     delete api.defaults.headers.common['Authorization'];
   };
-
-  // Interceptor para manejar la expiración del token
-  useEffect(() => {
-    const interceptor = api.interceptors.response.use(
-      response => response,
-      async error => {
-        const originalRequest = error.config;
-        // Si el error es 401 y no es la solicitud de refresh token y no hemos reintentado
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true; // Marcar la solicitud como reintentada
-          try {
-            const refreshToken = localStorage.getItem('refresh_token');
-            if (!refreshToken) {
-              throw new Error("No refresh token available.");
-            }
-
-            // Intentar obtener un nuevo access token usando el refresh token
-            // Usamos axios.post directamente y la baseURL de nuestra instancia 'api'
-            const response = await axios.post(`${api.defaults.baseURL}token/refresh/`, {
-              refresh: refreshToken
-            });
-
-            const newAccessToken = response.data.access;
-            localStorage.setItem('access_token', newAccessToken);
-            api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-            originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-
-            // Reintentar la solicitud original con el nuevo token
-            return api(originalRequest);
-          } catch (refreshError) {
-            console.error("Error al refrescar el token o refresh token inválido:", refreshError);
-            // Si el refresh falla, cerrar sesión
-            manejarCerrarSesion();
-            return Promise.reject(refreshError);
-          }
-        }
-        return Promise.reject(error);
-      }
-    );
-
-    // Función de limpieza para remover el interceptor cuando el componente se desmonte
-    return () => {
-      api.interceptors.response.eject(interceptor);
-    };
-  }, [usuario]); // Dependencia en usuario para asegurar que el interceptor se reconfigure si el usuario cambia
 
   useEffect(() => {
     const sincronizarVentas = async () => {
