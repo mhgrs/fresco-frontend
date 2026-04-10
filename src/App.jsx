@@ -107,6 +107,18 @@ export default function App() {
   const [verificandoSesion, setVerificandoSesion] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [sincronizando, setSincronizando] = useState(false);
+  const [errorServidor, setErrorServidor] = useState(false);
+
+  // Escuchar errores 500 del servidor disparados desde el interceptor de Axios
+  useEffect(() => {
+    const handler = () => {
+      setErrorServidor(true);
+      // El banner desaparece solo después de 5 segundos
+      setTimeout(() => setErrorServidor(false), 5000);
+    };
+    window.addEventListener('errorServidor', handler);
+    return () => window.removeEventListener('errorServidor', handler);
+  }, []);
 
   // Variables globales de tema preparadas para un futuro selector
   useEffect(() => {
@@ -217,6 +229,12 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {/* Banner global de error de servidor — aparece en cualquier pantalla */}
+      {errorServidor && (
+        <div className="fixed top-0 left-0 right-0 z-[9999] bg-red-600 text-white text-center text-sm font-bold py-2 px-4 shadow-lg">
+          El servidor tuvo un problema inesperado. Por favor intenta de nuevo en unos momentos.
+        </div>
+      )}
       {!usuario ? (
         <Routes>
           {/* Ruta secreta para los empleados */}

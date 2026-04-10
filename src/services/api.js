@@ -1,5 +1,13 @@
 import axios from 'axios';
 
+if (!import.meta.env.VITE_API_URL) {
+  console.warn(
+    '[api] La variable VITE_API_URL no está configurada.\n' +
+    'Usando fallback: http://localhost:8000/api/\n' +
+    'Para producción, define VITE_API_URL en tu archivo .env o en el dashboard de Vercel.'
+  );
+}
+
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
 
 const api = axios.create({
@@ -16,6 +24,14 @@ api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
+
+    // Error 500+: fallo interno del servidor.
+    // Disparamos un evento global para que App.jsx pueda mostrar un aviso al usuario.
+    if (error.response?.status >= 500) {
+      window.dispatchEvent(new CustomEvent('errorServidor', {
+        detail: { status: error.response.status }
+      }));
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
