@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useLocation } from 'react-router-dom';
+import { useNotificacion } from '../hooks/useNotificacion';
 
 export default function MovimientosInventario({ usuario }) {
   const location = useLocation();
@@ -9,25 +10,18 @@ export default function MovimientosInventario({ usuario }) {
   const [productos, setProductos] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [notificacion, setNotificacion] = useState({ visible: false, mensaje: '', tipo: '' });
-  
   const [tabActiva, setTabActiva] = useState('registro');
 
-  // Estado del Formulario Global y la Búsqueda
+  const { notificacion, mostrar } = useNotificacion();
+
   const [formularioGlobal, setFormularioGlobal] = useState({ tipo: 'INGRESO', motivo: 'MERMA', descripcion: '' });
   const [busqueda, setBusqueda] = useState('');
   const [resultadosBusqueda, setResultadosBusqueda] = useState([]);
-  
-  // Carrito de Movimientos: Array de { producto, cantidad }
+
   const [seleccionados, setSeleccionados] = useState(
     productoPreseleccionado ? [{ producto: productoPreseleccionado, cantidad: '' }] : []
   );
   const [procesando, setProcesando] = useState(false);
-
-  const mostrarNotificacion = (mensaje, tipo = 'success') => {
-    setNotificacion({ visible: true, mensaje, tipo });
-    setTimeout(() => setNotificacion({ visible: false, mensaje: '', tipo: '' }), 3000);
-  };
 
   const cargarDatos = async () => {
     try {
@@ -39,7 +33,7 @@ export default function MovimientosInventario({ usuario }) {
       setMovimientos(resMov.data);
     } catch (error) {
       console.error(error);
-      mostrarNotificacion('Error al cargar los datos', 'error');
+      mostrar('Error al cargar los datos', 'error');
     } finally {
       setCargando(false);
     }
@@ -102,20 +96,20 @@ export default function MovimientosInventario({ usuario }) {
   const guardarMovimiento = async (e) => {
     e.preventDefault();
     if (seleccionados.length === 0) {
-      mostrarNotificacion('Debes agregar al menos un producto', 'error');
+      mostrar('Debes agregar al menos un producto', 'error');
       return;
     }
     
     // Validación obligatoria de descripción si el motivo es OTRO
     if (formularioGlobal.tipo === 'RETIRO' && formularioGlobal.motivo === 'OTRO' && !formularioGlobal.descripcion.trim()) {
-      mostrarNotificacion('La descripción es obligatoria cuando el motivo de retiro es "Otro".', 'error');
+      mostrar('La descripción es obligatoria cuando el motivo de retiro es "Otro".', 'error');
       return;
     }
 
     for (let item of seleccionados) {
       const cantParseada = parseFloat(String(item.cantidad).replace(',', '.'));
       if (!item.cantidad || isNaN(cantParseada) || cantParseada <= 0) {
-        mostrarNotificacion(`Ingresa una cantidad válida mayor a 0 para ${item.producto.nombre}`, 'error');
+        mostrar(`Ingresa una cantidad válida mayor a 0 para ${item.producto.nombre}`, 'error');
         return;
       }
 
@@ -123,7 +117,7 @@ export default function MovimientosInventario({ usuario }) {
       if (formularioGlobal.tipo === 'RETIRO') {
         const stockActual = parseFloat(item.producto.stock);
         if (cantParseada > stockActual) {
-          mostrarNotificacion(`El retiro de ${cantParseada} excede el stock de ${item.producto.nombre} (${stockActual})`, 'error');
+          mostrar(`El retiro de ${cantParseada} excede el stock de ${item.producto.nombre} (${stockActual})`, 'error');
           return;
         }
       }
@@ -142,13 +136,13 @@ export default function MovimientosInventario({ usuario }) {
         })
       }));
       
-      mostrarNotificacion('Todos los movimientos han sido registrados exitosamente', 'success');
+      mostrar('Todos los movimientos han sido registrados exitosamente', 'success');
       setSeleccionados([]);
       setFormularioGlobal({ ...formularioGlobal, descripcion: '' });
       cargarDatos(); // Recargar historial y listado de productos actualizado
       setTabActiva('historial');
     } catch (error) {
-      mostrarNotificacion(error.response?.data?.error || 'Error al registrar el movimiento', 'error');
+      mostrar(error.response?.data?.error || 'Error al registrar el movimiento', 'error');
     } finally {
       setProcesando(false);
     }

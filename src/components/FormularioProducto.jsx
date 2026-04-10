@@ -2,30 +2,31 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api';
 import EscanerCamara from './EscanerCamara';
+import { useNotificacion } from '../hooks/useNotificacion';
+import { usePermisos } from '../hooks/usePermisos';
 
 export default function FormularioProducto({ usuario }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const esEdicion = Boolean(id);
 
-  const isBodega = usuario?.roles.includes('BODEGA');
-  const isSupervisor = usuario?.roles.includes('SUPERVISOR');
+  const { notificacion, mostrar } = useNotificacion();
+  const { esSupervisor, esBodega } = usePermisos(usuario);
+
+  const isBodega     = esBodega();
+  const isSupervisor = esSupervisor();
 
   const [categorias, setCategorias] = useState([]);
   const [cargando, setCargando] = useState(esEdicion);
-  const [notificacion, setNotificacion] = useState({ visible: false, mensaje: '', tipo: '' });
-  
-  // Estado para creación de categoría in-app
+
   const [modalCatAbierto, setModalCatAbierto] = useState(false);
   const [nuevaCat, setNuevaCat] = useState({ nombre: '', codigo: '' });
   const [escanerAbierto, setEscanerAbierto] = useState(false);
 
-  // Estados para el autocompletado de Marcas
   const [marcasExistentes, setMarcasExistentes] = useState([]);
   const [sugerenciasMarca, setSugerenciasMarca] = useState([]);
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
-  // NUEVO: Estados para autocompletado de Proveedores
   const [proveedoresExistentes, setProveedoresExistentes] = useState([]);
   const [sugerenciasProveedor, setSugerenciasProveedor] = useState([]);
   const [mostrarSugerenciasProveedor, setMostrarSugerenciasProveedor] = useState(false);
@@ -34,11 +35,6 @@ export default function FormularioProducto({ usuario }) {
   const [formulario, setFormulario] = useState({
     nombre: '', marca: '', categoria: '', precio: '', tipo_venta: 'UNIDAD', codigo_barras: '', stock: '', umbral_stock: '5', proveedores: ''
   });
-
-  const mostrarNotificacion = (mensaje, tipo = 'success') => {
-    setNotificacion({ visible: true, mensaje, tipo });
-    setTimeout(() => setNotificacion({ visible: false, mensaje: '', tipo: '' }), 3000);
-  };
 
   const cargarCategorias = async () => {
     const resCat = await api.get('inventario/categorias/');
@@ -83,7 +79,7 @@ export default function FormularioProducto({ usuario }) {
           });
         }
       } catch (error) {
-        mostrarNotificacion('Error al cargar la información', 'error');
+        mostrar('Error al cargar la información', 'error');
         setTimeout(() => navigate('/inventario'), 1500);
       } finally {
         setCargando(false);
@@ -158,14 +154,14 @@ export default function FormularioProducto({ usuario }) {
       if (esEdicion) {
         // Usamos PATCH en lugar de PUT para no sobrescribir datos ocultos como la empresa o esta_activo
         await api.patch(`inventario/productos/${id}/`, payload);
-        mostrarNotificacion('Producto actualizado exitosamente', 'success');
+        mostrar('Producto actualizado exitosamente', 'success');
       } else {
         await api.post('inventario/productos/', payload);
-        mostrarNotificacion('Producto creado exitosamente', 'success');
+        mostrar('Producto creado exitosamente', 'success');
       }
       setTimeout(() => navigate('/inventario'), 1500);
     } catch (error) {
-      mostrarNotificacion('Error al guardar el producto. Verifique los datos.', 'error');
+      mostrar('Error al guardar el producto. Verifique los datos.', 'error');
     }
   };
 
@@ -177,9 +173,9 @@ export default function FormularioProducto({ usuario }) {
       setFormulario({ ...formulario, categoria: res.data.id }); // Autoseleccionar la nueva
       setModalCatAbierto(false);
       setNuevaCat({ nombre: '', codigo: '' });
-      mostrarNotificacion('Categoría creada con éxito', 'success');
+      mostrar('Categoría creada con éxito', 'success');
     } catch (error) {
-      mostrarNotificacion('Error al crear. El nombre de la categoría probablemente ya existe.', 'error');
+      mostrar('Error al crear. El nombre de la categoría probablemente ya existe.', 'error');
     }
   };
 
@@ -195,7 +191,7 @@ export default function FormularioProducto({ usuario }) {
           const shouldUpdateMarca = marca && !prev.marca;
 
           if (shouldUpdateNombre || shouldUpdateMarca) {
-            mostrarNotificacion('¡Sugerencia encontrada en catálogo global!', 'success');
+            mostrar('¡Sugerencia encontrada en catálogo global!', 'success');
             return {
               ...prev,
               nombre: shouldUpdateNombre ? nombre_estandarizado : prev.nombre,
@@ -402,7 +398,7 @@ export default function FormularioProducto({ usuario }) {
             <button type="button" onClick={() => navigate('/inventario')} className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
               Cancelar
             </button>
-            <button type="submit" disabled={usuario?.roles.includes('CAJERO') && esEdicion} className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded  transition disabled:opacity-50">
+            <button type="submit" disabled={!isSupervisor && esEdicion} className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded  transition disabled:opacity-50">
               Guardar Producto
             </button>
           </div>

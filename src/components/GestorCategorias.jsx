@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useNotificacion } from '../hooks/useNotificacion';
+import { usePermisos } from '../hooks/usePermisos';
 
 export default function GestorCategorias({ usuario }) {
   const [categorias, setCategorias] = useState([]);
   const [formulario, setFormulario] = useState({ id: null, nombre: '', codigo: '' });
-  
   const [confirmarEliminar, setConfirmarEliminar] = useState({ visible: false, id: null, nombre: '' });
-  const [notificacion, setNotificacion] = useState({ visible: false, mensaje: '', tipo: '' });
 
-  const mostrarNotificacion = (mensaje, tipo = 'success') => {
-    setNotificacion({ visible: true, mensaje, tipo });
-    setTimeout(() => setNotificacion({ visible: false, mensaje: '', tipo: '' }), 3000);
-  };
+  const { notificacion, mostrar } = useNotificacion();
+  const { esSupervisor } = usePermisos(usuario);
 
   const cargarCategorias = async () => {
     try {
@@ -30,25 +28,24 @@ export default function GestorCategorias({ usuario }) {
     e.preventDefault();
     try {
       if (formulario.id) {
-        // Usamos PATCH en lugar de PUT para modificaciones parciales
         await api.patch(`inventario/categorias/${formulario.id}/`, { nombre: formulario.nombre });
-        mostrarNotificacion('Categoría actualizada exitosamente', 'success');
+        mostrar('Categoría actualizada exitosamente', 'success');
       } else {
         await api.post('inventario/categorias/', { nombre: formulario.nombre });
-        mostrarNotificacion('Categoría creada exitosamente', 'success');
+        mostrar('Categoría creada exitosamente', 'success');
       }
       setFormulario({ id: null, nombre: '', codigo: '' });
       cargarCategorias();
     } catch (error) {
-      mostrarNotificacion('Error al guardar. El nombre de la categoría probablemente ya existe.', 'error');
+      mostrar('Error al guardar. El nombre de la categoría probablemente ya existe.', 'error');
     }
   };
 
   const editar = (cat) => setFormulario({ id: cat.id, nombre: cat.nombre, codigo: cat.codigo });
 
   const intentarEliminar = (cat) => {
-    if (!usuario?.roles.includes('ADMIN') && !usuario?.roles.includes('SUPERVISOR')) {
-      mostrarNotificacion('No tienes los permisos', 'error');
+    if (!esSupervisor()) {
+      mostrar('No tienes los permisos', 'error');
       return;
     }
     setConfirmarEliminar({ visible: true, id: cat.id, nombre: cat.nombre });
@@ -57,11 +54,11 @@ export default function GestorCategorias({ usuario }) {
   const ejecutarEliminacion = async () => {
     try {
       await api.delete(`inventario/categorias/${confirmarEliminar.id}/`);
-      mostrarNotificacion('Categoría eliminada', 'success');
+      mostrar('Categoría eliminada', 'success');
       setConfirmarEliminar({ visible: false, id: null, nombre: '' });
       cargarCategorias();
     } catch (error) {
-      mostrarNotificacion('No se puede eliminar porque tiene productos asociados', 'error');
+      mostrar('No se puede eliminar porque tiene productos asociados', 'error');
       setConfirmarEliminar({ visible: false, id: null, nombre: '' });
     }
   };

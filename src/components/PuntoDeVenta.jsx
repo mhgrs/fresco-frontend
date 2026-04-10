@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
+import { useNotificacion } from '../hooks/useNotificacion';
 
 export default function PuntoDeVenta() {
   const [catalogo, setCatalogo] = useState([]);
@@ -13,15 +14,8 @@ export default function PuntoDeVenta() {
   const [efectivoRecibido, setEfectivoRecibido] = useState('');
   const [procesando, setProcesando] = useState(false);
   
-  // Notificaciones In-App
-  const [notificacion, setNotificacion] = useState({ visible: false, mensaje: '', tipo: '' });
-
   const inputBusquedaRef = useRef(null);
-
-  const mostrarNotificacion = (mensaje, tipo = 'success') => {
-    setNotificacion({ visible: true, mensaje, tipo });
-    setTimeout(() => setNotificacion({ visible: false, mensaje: '', tipo: '' }), 3000);
-  };
+  const { notificacion, mostrar } = useNotificacion();
 
   const cargarProductos = async () => {
     try {
@@ -33,9 +27,9 @@ export default function PuntoDeVenta() {
       const cache = localStorage.getItem('catalogo_offline');
       if (cache) {
         setCatalogo(JSON.parse(cache));
-        mostrarNotificacion('Sin conexión. Usando catálogo local.', 'warning');
+        mostrar('Sin conexión. Usando catálogo local.', 'warning');
       } else {
-        mostrarNotificacion('Error conectando al servidor y no hay caché local', 'error');
+        mostrar('Error conectando al servidor y no hay caché local', 'error');
       }
     }
   };
@@ -190,7 +184,7 @@ export default function PuntoDeVenta() {
       const payloadAEnviar = { ...payloadVenta };
       delete payloadAEnviar.offline_id; // Limpiamos para el backend
       await api.post('inventario/ventas/', payloadAEnviar);
-      mostrarNotificacion('Venta registrada exitosamente', 'success');
+      mostrar('Venta registrada exitosamente', 'success');
       setCarrito([]);
       setUltimoAgregado(null);
       setModalAbierto(false);
@@ -215,7 +209,7 @@ export default function PuntoDeVenta() {
         setCatalogo(nuevoCatalogo);
         localStorage.setItem('catalogo_offline', JSON.stringify(nuevoCatalogo));
 
-        mostrarNotificacion('Sin conexión: Venta guardada para sincronizar luego', 'warning');
+        mostrar('Sin conexión: Venta guardada para sincronizar luego', 'warning');
         setCarrito([]);
         setUltimoAgregado(null);
         setModalAbierto(false);
@@ -234,7 +228,7 @@ export default function PuntoDeVenta() {
              msgError = errorData.error;
           }
         }
-        mostrarNotificacion(msgError, 'error');
+        mostrar(msgError, 'error');
       }
     } finally {
       setProcesando(false);
