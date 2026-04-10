@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../services/api';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { usePermisos } from '../hooks/usePermisos';
+import { productosService } from '../services/productos';
+import { categoriasService } from '../services/categorias';
 
 export default function CatalogoProductos({ usuario }) {
   const [productos, setProductos] = useState([]);
@@ -26,8 +27,8 @@ export default function CatalogoProductos({ usuario }) {
   const cargarDatos = async () => {
     try {
       const [resProd, resCat] = await Promise.all([
-        api.get('inventario/productos/'),
-        api.get('inventario/categorias/')
+        productosService.listar(),
+        categoriasService.listar()
       ]);
       setProductos(resProd.data);
       setCategorias(resCat.data);
@@ -62,7 +63,7 @@ export default function CatalogoProductos({ usuario }) {
       return;
     }
     try {
-      const res = await api.patch(`inventario/productos/${id}/`, { esta_activo: !estadoActual });
+      const res = await productosService.actualizar(id, { esta_activo: !estadoActual });
       mostrar(`Producto ${estadoActual ? 'oculto' : 'visible'}`, 'success');
       setProductos(productos.map(p => p.id === id ? res.data : p));
     } catch (error) {
@@ -72,7 +73,7 @@ export default function CatalogoProductos({ usuario }) {
 
   const ejecutarEliminacion = async () => {
     try {
-      await api.delete(`inventario/productos/${confirmarEliminar.id}/`);
+      await productosService.eliminar(confirmarEliminar.id);
       mostrar('Producto eliminado permanentemente', 'success');
       setProductos(productos.filter(p => p.id !== confirmarEliminar.id));
       setConfirmarEliminar({ visible: false, id: null, nombre: '' });

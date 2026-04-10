@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../services/api';
 import EscanerCamara from './EscanerCamara';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { usePermisos } from '../hooks/usePermisos';
+import { productosService } from '../services/productos';
+import { categoriasService } from '../services/categorias';
 
 export default function FormularioProducto({ usuario }) {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export default function FormularioProducto({ usuario }) {
   });
 
   const cargarCategorias = async () => {
-    const resCat = await api.get('inventario/categorias/');
+    const resCat = await categoriasService.listar();
     setCategorias(resCat.data);
     return resCat.data;
   };
@@ -48,7 +49,7 @@ export default function FormularioProducto({ usuario }) {
         await cargarCategorias();
         
         // Cargar todos los productos para extraer marcas existentes únicas
-        const resTodos = await api.get('inventario/productos/');
+        const resTodos = await productosService.listar();
         const marcasUnicas = [...new Set(resTodos.data.map(p => p.marca).filter(Boolean))];
         setMarcasExistentes(marcasUnicas.sort());
 
@@ -62,7 +63,7 @@ export default function FormularioProducto({ usuario }) {
         setProveedoresExistentes(proveedoresUnicos.sort());
 
         if (esEdicion) {
-          const resProd = await api.get(`inventario/productos/${id}/`);
+          const resProd = await productosService.obtener(id);
           const p = resProd.data;
           const stockInicial = p.tipo_venta === 'UNIDAD' ? Math.round(p.stock) : p.stock;
           const umbralInicial = p.umbral_stock !== undefined ? (p.tipo_venta === 'UNIDAD' ? Math.round(p.umbral_stock) : p.umbral_stock) : '5';
@@ -153,10 +154,10 @@ export default function FormularioProducto({ usuario }) {
     try {
       if (esEdicion) {
         // Usamos PATCH en lugar de PUT para no sobrescribir datos ocultos como la empresa o esta_activo
-        await api.patch(`inventario/productos/${id}/`, payload);
+        await productosService.actualizar(id, payload);
         mostrar('Producto actualizado exitosamente', 'success');
       } else {
-        await api.post('inventario/productos/', payload);
+        await productosService.crear(payload);
         mostrar('Producto creado exitosamente', 'success');
       }
       setTimeout(() => navigate('/inventario'), 1500);
@@ -168,7 +169,7 @@ export default function FormularioProducto({ usuario }) {
   const guardarNuevaCategoria = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post('inventario/categorias/', { nombre: nuevaCat.nombre });
+      const res = await categoriasService.crear({ nombre: nuevaCat.nombre });
       await cargarCategorias();
       setFormulario({ ...formulario, categoria: res.data.id }); // Autoseleccionar la nueva
       setModalCatAbierto(false);
@@ -182,7 +183,7 @@ export default function FormularioProducto({ usuario }) {
   const buscarMaestro = async (codigo) => {
     if (!codigo || codigo.trim() === '') return;
     try {
-      const res = await api.get(`inventario/maestro/${codigo}/`);
+      const res = await productosService.consultarMaestro(codigo);
       if (res.data) {
         const { nombre_estandarizado, marca } = res.data;
         

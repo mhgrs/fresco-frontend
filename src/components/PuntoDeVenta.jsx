@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import api from '../services/api';
 import { useNotificacion } from '../hooks/useNotificacion';
+import { productosService } from '../services/productos';
+import { ventasService } from '../services/ventas';
 
 export default function PuntoDeVenta() {
   const [catalogo, setCatalogo] = useState([]);
@@ -19,7 +20,7 @@ export default function PuntoDeVenta() {
 
   const cargarProductos = async () => {
     try {
-      const respuesta = await api.get('inventario/productos/');
+      const respuesta = await productosService.listar();
       const activos = respuesta.data.filter(producto => producto.esta_activo === true);
       setCatalogo(activos);
       localStorage.setItem('catalogo_offline', JSON.stringify(activos));
@@ -183,7 +184,7 @@ export default function PuntoDeVenta() {
     try {
       const payloadAEnviar = { ...payloadVenta };
       delete payloadAEnviar.offline_id; // Limpiamos para el backend
-      await api.post('inventario/ventas/', payloadAEnviar);
+      await ventasService.crear(payloadAEnviar);
       mostrar('Venta registrada exitosamente', 'success');
       setCarrito([]);
       setUltimoAgregado(null);

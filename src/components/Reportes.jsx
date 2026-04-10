@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { ventasService } from '../services/ventas';
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 function ChartModal({ config, onClose }) {
@@ -88,7 +88,7 @@ export default function Reportes() {
   const [chartConfig, setChartConfig] = useState(null);
 
   useEffect(() => {
-    api.get('inventario/ventas/metricas/')
+    ventasService.metricas()
       .then(res => setMetricas(res.data))
       .catch(err => console.error("Error al obtener métricas:", err))
       .finally(() => setCargando(false));

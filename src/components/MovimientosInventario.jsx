@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
 import { useLocation } from 'react-router-dom';
 import { useNotificacion } from '../hooks/useNotificacion';
+import { productosService } from '../services/productos';
 
 export default function MovimientosInventario({ usuario }) {
   const location = useLocation();
@@ -26,8 +26,8 @@ export default function MovimientosInventario({ usuario }) {
   const cargarDatos = async () => {
     try {
       const [resProd, resMov] = await Promise.all([
-        api.get('inventario/productos/'),
-        api.get('inventario/productos/movimientos/')
+        productosService.listar(),
+        productosService.movimientos()
       ]);
       setProductos(resProd.data.filter(p => p.esta_activo));
       setMovimientos(resMov.data);
@@ -128,7 +128,7 @@ export default function MovimientosInventario({ usuario }) {
       // Enviar peticiones simultáneas por cada producto
       await Promise.all(seleccionados.map(item => {
         const cantParseada = parseFloat(String(item.cantidad).replace(',', '.'));
-        return api.post(`inventario/productos/${item.producto.id}/ajustar_stock/`, {
+        return productosService.ajustarStock(item.producto.id, {
           tipo: formularioGlobal.tipo,
           cantidad: cantParseada,
           motivo: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.motivo : null,

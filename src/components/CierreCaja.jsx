@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { ventasService } from '../services/ventas';
 
 export default function CierreCaja() {
   const [reporte, setReporte] = useState(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    api.get('inventario/ventas/reporte_z/')
+    ventasService.reporteZ()
       .then(res => setReporte(res.data))
       .catch(err => console.error("Error al obtener reporte Z:", err))
       .finally(() => setCargando(false));

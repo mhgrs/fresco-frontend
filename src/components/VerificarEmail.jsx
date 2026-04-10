@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../services/api';
+import { authService } from '../services/auth';
 
 export default function VerificarEmail() {
   const { token } = useParams();
@@ -12,7 +12,7 @@ export default function VerificarEmail() {
     setMensaje('Verificando tu correo electrónico...');
     try {
       // Cambiamos a un método POST para evitar que los clientes de correo "visiten" el link y lo invaliden.
-      const res = await api.post(`inventario/auth/verificar-email/${token}/`);
+      const res = await authService.verificarEmail(token);
       setEstado('exito');
       setMensaje(res.data.mensaje);
     } catch (err) {

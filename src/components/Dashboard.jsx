@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { productosService } from '../services/productos';
 
 export default function Dashboard({ usuario, cerrarSesion }) {
   const [alertas, setAlertas] = useState([]);
@@ -14,7 +14,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
     document.title = "Fresco";
 
     if (usuario.roles?.includes('ADMIN') || usuario.is_superuser) {
-      api.get('inventario/productos/')
+      productosService.listar()
         .then(res => {
           const bajoUmbral = res.data.filter(p => p.esta_activo && parseFloat(p.stock) <= parseFloat(p.umbral_stock));
           setAlertas(bajoUmbral);

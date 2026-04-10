@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { productosService } from '../services/productos';
 import { useNavigate } from 'react-router-dom';
 
 export default function AlertasInventario() {
@@ -8,7 +8,7 @@ export default function AlertasInventario() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.get('inventario/productos/')
+    productosService.listar()
       .then(res => {
         const bajoUmbral = res.data.filter(p => p.esta_activo && parseFloat(p.stock) <= parseFloat(p.umbral_stock));
         setAlertas(bajoUmbral);

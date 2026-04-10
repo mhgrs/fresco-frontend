@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { usuariosService } from '../services/usuarios';
+import { empresasService } from '../services/empresas';
 
 function TabEquipo() {
   const [equipo, setEquipo] = useState([]);
@@ -14,8 +15,8 @@ function TabEquipo() {
     const cargarDatos = async () => {
       try {
         const [resEquipo, resRoles] = await Promise.all([
-          api.get('inventario/usuarios/'),
-          api.get('inventario/roles/')
+          usuariosService.listarEquipo(),
+          usuariosService.listarRoles()
         ]);
         // Filtramos el rol 'ADMIN' para que no se pueda asignar/quitar fácilmente
         // La propiedad de 'ADMIN' se hereda al crear la empresa o debe ser asignada por un superuser.
@@ -36,7 +37,7 @@ function TabEquipo() {
     setEquipo(prev => prev.map(u => u.id === userId ? { ...u, roles: newRoles } : u));
 
     try {
-      await api.patch(`inventario/usuarios/${userId}/`, { roles: newRoles });
+      await usuariosService.actualizarRoles(userId, newRoles);
     } catch (error) {
       console.error("Fallo al actualizar roles:", error);
       setEquipo(equipoOriginal); // Revertir en caso de error
@@ -58,7 +59,7 @@ function TabEquipo() {
   const generarCodigo = async () => {
     setGenerandoCodigo(true);
     try {
-      const res = await api.post('inventario/empresas/generar_codigo/');
+      const res = await empresasService.generarCodigo();
       setCodigoInvitacion(res.data.codigo);
     } catch (error) {
       alert("Error al generar código: " + (error.response?.data?.error || "Error desconocido"));

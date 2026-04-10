@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { usuariosService } from '../services/usuarios';
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -14,12 +15,12 @@ export default function Login({ onLogin }) {
     setError('');
     try {
       // El backend espera 'username', que es el email
-      const response = await api.post('inventario/usuarios/login/', { username: email, password });
+      const response = await usuariosService.login({ username: email, password });
       localStorage.setItem('access_token', response.data.access);
       localStorage.setItem('refresh_token', response.data.refresh);
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
-      
-      const userResponse = await api.get('inventario/usuarios/me/');
+
+      const userResponse = await usuariosService.me();
       onLogin(userResponse.data);
 
     } catch (err) {

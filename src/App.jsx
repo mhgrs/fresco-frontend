@@ -16,6 +16,8 @@ import OnboardingEmpresa from './components/OnboardingEmpresa';
 import GestionEmpresa from './components/GestionEmpresa'; // NUEVO
 import MovimientosInventario from './components/MovimientosInventario'; // NUEVO
 import api from './services/api';
+import { usuariosService } from './services/usuarios';
+import { ventasService } from './services/ventas';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
 function ModuleLayout({ children, isOnline = true, sincronizando = false, usuario }) {
@@ -118,7 +120,7 @@ export default function App() {
       if (token) {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         try {
-          const response = await api.get('inventario/usuarios/me/');
+          const response = await usuariosService.me();
           // Garantizamos que roles siempre sea un array para evitar errores
           const userData = { ...response.data, roles: response.data.roles || [] };
           setUsuario(userData);
@@ -171,7 +173,7 @@ export default function App() {
           const payload = { ...venta };
           delete payload.offline_id;
           
-          await api.post('inventario/ventas/', payload);
+          await ventasService.crear(payload);
           exitosas++;
 
           // Borrar del storage de a una. Así evitamos sobreescribir nuevas ventas hechas mientras sincronizaba

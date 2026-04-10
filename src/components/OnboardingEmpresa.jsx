@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import { empresasService } from '../services/empresas';
 
 export default function OnboardingEmpresa({ onCompletado, cerrarSesion }) {
   const [modo, setModo] = useState('crear'); // 'crear' | 'unirse'
@@ -16,7 +16,7 @@ export default function OnboardingEmpresa({ onCompletado, cerrarSesion }) {
     e.preventDefault();
     setCargando(true); setError('');
     try {
-      await api.post('inventario/empresas/', { nombre: nombreEmpresa });
+      await empresasService.crear({ nombre: nombreEmpresa });
       // Si tiene éxito, llamamos a la función para recargar el perfil del usuario
       onCompletado();
     } catch (err) {
@@ -30,7 +30,7 @@ export default function OnboardingEmpresa({ onCompletado, cerrarSesion }) {
     e.preventDefault();
     setCargando(true); setError('');
     try {
-      await api.post('inventario/empresas/unirse/', { codigo: codigo.toUpperCase() });
+      await empresasService.unirse({ codigo: codigo.toUpperCase() });
       onCompletado();
     } catch (err) {
       setError(err.response?.data?.error || 'El código es inválido o ya fue utilizado.');

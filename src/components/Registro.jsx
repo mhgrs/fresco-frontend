@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
+import { authService } from '../services/auth';
 
 export default function Registro() {
   const [paso, setPaso] = useState(1);
@@ -31,7 +31,7 @@ export default function Registro() {
     setCargando(true);
     setMensaje({ tipo: '', texto: '' });
     try {
-      const res = await api.post('inventario/auth/verificar-correo/', { email: formData.email });
+      const res = await authService.verificarCorreo(formData.email);
       if (res.data.existe) {
         setMensaje({ tipo: 'error', texto: 'Este correo ya tiene una cuenta asociada. Inicia sesión.' });
       } else {
@@ -57,7 +57,7 @@ export default function Registro() {
 
     try {
       const { confirm_password, ...datosEnviar } = formData;
-      const res = await api.post('inventario/auth/registro/', datosEnviar);
+      const res = await authService.registro(datosEnviar);
       setMensaje({ tipo: 'success', texto: res.data.mensaje || 'Registro exitoso. Revisa tu correo electrónico para verificar tu cuenta.' });
       setFormData({
         first_name: '', last_name: '', email: '', password: '', confirm_password: '', telefono: '', nacionalidad: 'Chile', direccion: ''

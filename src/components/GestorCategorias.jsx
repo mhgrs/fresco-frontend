@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { usePermisos } from '../hooks/usePermisos';
+import { categoriasService } from '../services/categorias';
 
 export default function GestorCategorias({ usuario }) {
   const [categorias, setCategorias] = useState([]);
@@ -13,7 +13,7 @@ export default function GestorCategorias({ usuario }) {
 
   const cargarCategorias = async () => {
     try {
-      const res = await api.get('inventario/categorias/');
+      const res = await categoriasService.listar();
       setCategorias(res.data);
     } catch (error) {
       console.error(error);
@@ -28,10 +28,10 @@ export default function GestorCategorias({ usuario }) {
     e.preventDefault();
     try {
       if (formulario.id) {
-        await api.patch(`inventario/categorias/${formulario.id}/`, { nombre: formulario.nombre });
+        await categoriasService.actualizar(formulario.id, { nombre: formulario.nombre });
         mostrar('Categoría actualizada exitosamente', 'success');
       } else {
-        await api.post('inventario/categorias/', { nombre: formulario.nombre });
+        await categoriasService.crear({ nombre: formulario.nombre });
         mostrar('Categoría creada exitosamente', 'success');
       }
       setFormulario({ id: null, nombre: '', codigo: '' });
@@ -53,7 +53,7 @@ export default function GestorCategorias({ usuario }) {
 
   const ejecutarEliminacion = async () => {
     try {
-      await api.delete(`inventario/categorias/${confirmarEliminar.id}/`);
+      await categoriasService.eliminar(confirmarEliminar.id);
       mostrar('Categoría eliminada', 'success');
       setConfirmarEliminar({ visible: false, id: null, nombre: '' });
       cargarCategorias();
