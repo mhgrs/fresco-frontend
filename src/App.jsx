@@ -132,6 +132,11 @@ export default function App() {
   // Verifica si hay sesión activa consultando /me/. El navegador envía la cookie
   // automáticamente; si el access token venció, el interceptor de Axios lo renueva.
   const cargarUsuario = useCallback(async () => {
+    // Eliminar tokens legacy de localStorage (sistema anterior usaba localStorage;
+    // ahora los tokens viven en cookies HttpOnly y JS nunca debe leerlos).
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+
     try {
       const response = await usuariosService.me();
       const userData = { ...response.data, roles: response.data.roles || [] };
@@ -147,7 +152,7 @@ export default function App() {
           setUsuario({ ...parsed, roles: Array.isArray(parsed.roles) ? parsed.roles : [] });
         }
       }
-      // Con conexión y error 401: el interceptor ya intentó renovar; sesión expirada
+      // Con conexión + 401: no hay sesión válida → usuario queda null → router muestra login
     }
     setVerificandoSesion(false);
   }, []);
