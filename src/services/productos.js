@@ -11,6 +11,8 @@ export const productosService = {
 
   // Alias explícito: siempre devuelve todos sin paginar (para alertas, dashboard).
   listarTodos:      ()          => api.get('inventario/productos/', { params: { todos: '1' } }),
+  // Solo los productos activos con stock ≤ umbral (filtrado en backend).
+  listarStockBajo:  ()          => api.get('inventario/productos/', { params: { stock_bajo: '1', todos: '1' } }),
   obtener:          (id)        => api.get(`inventario/productos/${id}/`),
   crear:            (datos)     => api.post('inventario/productos/', datos),
   actualizar:       (id, datos) => api.patch(`inventario/productos/${id}/`, datos),

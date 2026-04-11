@@ -14,11 +14,11 @@ export default function Dashboard({ usuario, cerrarSesion }) {
     document.title = "Fresco";
 
     if (usuario.roles?.includes('ADMIN') || usuario.is_superuser) {
-      productosService.listar()
+      productosService.listarStockBajo()
         .then(res => {
-          const bajoUmbral = res.data.filter(p => p.esta_activo && parseFloat(p.stock) <= parseFloat(p.umbral_stock));
-          setAlertas(bajoUmbral);
-          localStorage.setItem('alertas_offline', JSON.stringify(bajoUmbral));
+          const alertas = Array.isArray(res.data) ? res.data : res.data.results ?? [];
+          setAlertas(alertas);
+          localStorage.setItem('alertas_offline', JSON.stringify(alertas));
         })
         .catch(err => {
           console.error("Error cargando alertas:", err);
