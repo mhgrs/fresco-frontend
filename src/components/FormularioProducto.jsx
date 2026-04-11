@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import EscanerCamara from './EscanerCamara';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { usePermisos } from '../hooks/usePermisos';
-import { useDebounce } from '../hooks/useDebounce';
+import { useSugerencias } from '../hooks/useSugerencias';
+import CodigoBarrasField from './form/CodigoBarrasField';
+import SugerenciasInput from './form/SugerenciasInput';
+import ProveedoresManager from './form/ProveedoresManager';
 import { productosService } from '../services/productos';
 import { categoriasService } from '../services/categorias';
 
@@ -14,32 +16,22 @@ export default function FormularioProducto({ usuario }) {
 
   const { notificacion, mostrar } = useNotificacion();
   const { esSupervisor, esBodega } = usePermisos(usuario);
-
   const isBodega     = esBodega();
   const isSupervisor = esSupervisor();
 
   const [categorias, setCategorias] = useState([]);
   const [cargando, setCargando] = useState(esEdicion);
-
   const [modalCatAbierto, setModalCatAbierto] = useState(false);
   const [nuevaCat, setNuevaCat] = useState({ nombre: '', codigo: '' });
-  const [escanerAbierto, setEscanerAbierto] = useState(false);
-
   const [marcasExistentes, setMarcasExistentes] = useState([]);
-  const [sugerenciasMarca, setSugerenciasMarca] = useState([]);
-  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
-
   const [proveedoresExistentes, setProveedoresExistentes] = useState([]);
-  const [sugerenciasProveedor, setSugerenciasProveedor] = useState([]);
-  const [mostrarSugerenciasProveedor, setMostrarSugerenciasProveedor] = useState(false);
-  const [proveedorInput, setProveedorInput] = useState('');
 
   const [formulario, setFormulario] = useState({
-    nombre: '', marca: '', categoria: '', precio: '', tipo_venta: 'UNIDAD', codigo_barras: '', stock: '', umbral_stock: '5', proveedores: ''
+    nombre: '', marca: '', categoria: '', precio: '', tipo_venta: 'UNIDAD',
+    codigo_barras: '', stock: '', umbral_stock: '5', proveedores: '',
   });
 
-  const debouncedMarca = useDebounce(formulario.marca, 200);
-  const debouncedProveedor = useDebounce(proveedorInput, 200);
+  const sugerenciasMarca = useSugerencias(marcasExistentes, formulario.marca);
 
   const cargarCategorias = async () => {
     const resCat = await categoriasService.listar();
@@ -51,39 +43,31 @@ export default function FormularioProducto({ usuario }) {
     const inicializarDatos = async () => {
       try {
         await cargarCategorias();
-        
-        // Cargar todos los productos para extraer marcas existentes únicas
         const resTodos = await productosService.listar();
+
         const marcasUnicas = [...new Set(resTodos.data.map(p => p.marca).filter(Boolean))];
         setMarcasExistentes(marcasUnicas.sort());
 
-        // NUEVO: Extraer proveedores únicos
         const todosProveedores = resTodos.data
-          .map(p => p.proveedores)
-          .filter(Boolean)
-          .flatMap(p => p.split(',').map(s => s.trim()))
-          .filter(Boolean);
-        const proveedoresUnicos = [...new Set(todosProveedores)];
-        setProveedoresExistentes(proveedoresUnicos.sort());
+          .map(p => p.proveedores).filter(Boolean)
+          .flatMap(p => p.split(',').map(s => s.trim())).filter(Boolean);
+        setProveedoresExistentes([...new Set(todosProveedores)].sort());
 
         if (esEdicion) {
           const resProd = await productosService.obtener(id);
           const p = resProd.data;
-          const stockInicial = p.tipo_venta === 'UNIDAD' ? Math.round(p.stock) : p.stock;
-          const umbralInicial = p.umbral_stock !== undefined ? (p.tipo_venta === 'UNIDAD' ? Math.round(p.umbral_stock) : p.umbral_stock) : '5';
+          const stockInicial  = p.tipo_venta === 'UNIDAD' ? Math.round(p.stock) : p.stock;
+          const umbralInicial = p.umbral_stock !== undefined
+            ? (p.tipo_venta === 'UNIDAD' ? Math.round(p.umbral_stock) : p.umbral_stock)
+            : '5';
           setFormulario({
-            nombre: p.nombre,
-            marca: p.marca || '',
-            categoria: p.categoria,
-            precio: p.precio,
-            tipo_venta: p.tipo_venta,
-            codigo_barras: p.codigo_barras || '',
-            stock: stockInicial,
-            umbral_stock: umbralInicial,
-            proveedores: p.proveedores || ''
+            nombre: p.nombre, marca: p.marca || '', categoria: p.categoria,
+            precio: p.precio, tipo_venta: p.tipo_venta,
+            codigo_barras: p.codigo_barras || '', stock: stockInicial,
+            umbral_stock: umbralInicial, proveedores: p.proveedores || '',
           });
         }
-      } catch (error) {
+      } catch {
         mostrar('Error al cargar la información', 'error');
         setTimeout(() => navigate('/inventario'), 1500);
       } finally {
@@ -93,61 +77,60 @@ export default function FormularioProducto({ usuario }) {
     inicializarDatos();
   }, [id, esEdicion, navigate]);
 
-  useEffect(() => {
-    if (debouncedMarca && mostrarSugerencias) {
-      const termino = debouncedMarca.toLowerCase();
-      setSugerenciasMarca(marcasExistentes.filter(m => m.toLowerCase().includes(termino)));
-    } else {
-      setSugerenciasMarca([]);
-    }
-  }, [debouncedMarca, marcasExistentes, mostrarSugerencias]);
-
-  useEffect(() => {
-    if (debouncedProveedor && mostrarSugerenciasProveedor) {
-      const termino = debouncedProveedor.toLowerCase();
-      setSugerenciasProveedor(proveedoresExistentes.filter(p => p.toLowerCase().includes(termino)));
-    } else {
-      setSugerenciasProveedor([]);
-    }
-  }, [debouncedProveedor, proveedoresExistentes, mostrarSugerenciasProveedor]);
-
   const manejarCambio = (e) => {
     const { name, value } = e.target;
-    // Si se selecciona la opción de crear nueva categoría en el select
     if (name === 'categoria' && value === 'NUEVA_CAT') {
       setModalCatAbierto(true);
       return;
     }
-    setFormulario({ ...formulario, [name]: value });
+    setFormulario(prev => ({ ...prev, [name]: value }));
+  };
+
+  const buscarMaestro = async (codigo) => {
+    if (!codigo?.trim()) return;
+    try {
+      const res = await productosService.consultarMaestro(codigo);
+      if (res.data) {
+        const { nombre_estandarizado, marca } = res.data;
+        setFormulario(prev => {
+          const updNombre = nombre_estandarizado && !prev.nombre;
+          const updMarca  = marca && !prev.marca;
+          if (updNombre || updMarca) {
+            mostrar('¡Sugerencia encontrada en catálogo global!', 'success');
+            return {
+              ...prev,
+              nombre: updNombre ? nombre_estandarizado : prev.nombre,
+              marca:  updMarca  ? marca                : prev.marca,
+            };
+          }
+          return prev;
+        });
+      }
+    } catch { /* 404 → producto nuevo, sin datos globales */ }
   };
 
   const guardarProducto = async (e) => {
     e.preventDefault();
-    
-    // Validación estricta de stock para base de datos
-    let stockFinal = parseFloat(formulario.stock) || 0;
+    let stockFinal  = parseFloat(formulario.stock)        || 0;
     let umbralFinal = parseFloat(formulario.umbral_stock) || 0;
     if (formulario.tipo_venta === 'UNIDAD') {
-        stockFinal = Math.round(stockFinal); // Sin decimales
-        umbralFinal = Math.round(umbralFinal);
+      stockFinal  = Math.round(stockFinal);
+      umbralFinal = Math.round(umbralFinal);
     } else {
-        stockFinal = Math.round(stockFinal * 100) / 100; // 2 decimales para inventario
-        umbralFinal = Math.round(umbralFinal * 100) / 100;
+      stockFinal  = Math.round(stockFinal  * 100) / 100;
+      umbralFinal = Math.round(umbralFinal * 100) / 100;
     }
-
     const payload = {
       ...formulario,
-      precio: parseInt(formulario.precio),
-      stock: stockFinal,
-      umbral_stock: umbralFinal,
+      precio:        parseInt(formulario.precio),
+      stock:         stockFinal,
+      umbral_stock:  umbralFinal,
       codigo_barras: formulario.codigo_barras.trim() || null,
-      marca: formulario.marca.trim() || null,
-      proveedores: formulario.proveedores.trim() || null
+      marca:         formulario.marca.trim()         || null,
+      proveedores:   formulario.proveedores.trim()   || null,
     };
-
     try {
       if (esEdicion) {
-        // Usamos PATCH en lugar de PUT para no sobrescribir datos ocultos como la empresa o esta_activo
         await productosService.actualizar(id, payload);
         mostrar('Producto actualizado exitosamente', 'success');
       } else {
@@ -155,7 +138,7 @@ export default function FormularioProducto({ usuario }) {
         mostrar('Producto creado exitosamente', 'success');
       }
       setTimeout(() => navigate('/inventario'), 1500);
-    } catch (error) {
+    } catch {
       mostrar('Error al guardar el producto. Verifique los datos.', 'error');
     }
   };
@@ -165,69 +148,20 @@ export default function FormularioProducto({ usuario }) {
     try {
       const res = await categoriasService.crear({ nombre: nuevaCat.nombre });
       await cargarCategorias();
-      setFormulario({ ...formulario, categoria: res.data.id }); // Autoseleccionar la nueva
+      setFormulario(prev => ({ ...prev, categoria: res.data.id }));
       setModalCatAbierto(false);
       setNuevaCat({ nombre: '', codigo: '' });
       mostrar('Categoría creada con éxito', 'success');
-    } catch (error) {
+    } catch {
       mostrar('Error al crear. El nombre de la categoría probablemente ya existe.', 'error');
     }
-  };
-
-  const buscarMaestro = async (codigo) => {
-    if (!codigo || codigo.trim() === '') return;
-    try {
-      const res = await productosService.consultarMaestro(codigo);
-      if (res.data) {
-        const { nombre_estandarizado, marca } = res.data;
-        
-        setFormulario(prev => {
-          const shouldUpdateNombre = nombre_estandarizado && !prev.nombre;
-          const shouldUpdateMarca = marca && !prev.marca;
-
-          if (shouldUpdateNombre || shouldUpdateMarca) {
-            mostrar('¡Sugerencia encontrada en catálogo global!', 'success');
-            return {
-              ...prev,
-              nombre: shouldUpdateNombre ? nombre_estandarizado : prev.nombre,
-              marca: shouldUpdateMarca ? marca : prev.marca,
-            };
-          }
-          return prev;
-        });
-      }
-    } catch (error) {
-      // Si arroja 404 no hacemos nada, significa que es la primera vez que vemos este producto
-    }
-  };
-
-  const manejarEscaneo = (codigo) => {
-    setFormulario({ ...formulario, codigo_barras: codigo });
-    setEscanerAbierto(false);
-    buscarMaestro(codigo);
-  };
-
-  const agregarProveedor = (e) => {
-    e.preventDefault();
-    if (proveedorInput.trim()) {
-      const actuales = formulario.proveedores ? formulario.proveedores.split(',').map(p => p.trim()) : [];
-      if (!actuales.includes(proveedorInput.trim())) {
-        actuales.push(proveedorInput.trim());
-        setFormulario({ ...formulario, proveedores: actuales.join(', ') });
-      }
-      setProveedorInput('');
-    }
-  };
-  const quitarProveedor = (provToRemove) => {
-    const actuales = formulario.proveedores.split(',').map(p => p.trim()).filter(p => p !== provToRemove);
-    setFormulario({ ...formulario, proveedores: actuales.join(', ') });
   };
 
   if (cargando) return <div className="p-8 text-center text-gray-500">Cargando datos...</div>;
 
   return (
     <div className="p-6 h-full flex justify-center bg-[var(--color-fondo)] overflow-y-auto relative transition-colors duration-500">
-      
+
       {notificacion.visible && (
         <div className={`absolute top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded shadow-lg text-white font-bold transition-all ${notificacion.tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
           {notificacion.mensaje}
@@ -238,76 +172,61 @@ export default function FormularioProducto({ usuario }) {
         <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">
           {esEdicion ? 'Editar Producto' : 'Crear Nuevo Producto'}
         </h2>
-        
-        <form onSubmit={guardarProducto} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Cód. Barras (Escanea primero para autocompletar)</label>
-            <div className="flex mt-1">
-              <input disabled={isBodega || isSupervisor} type="text" name="codigo_barras" value={formulario.codigo_barras} onChange={manejarCambio} onBlur={(e) => buscarMaestro(e.target.value)} className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" placeholder="Escanear o escribir..." />
-              <button 
-                type="button" 
-                disabled={isBodega || isSupervisor}
-                onClick={() => setEscanerAbierto(true)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-r border border-gray-300 transition-colors disabled:opacity-50 flex items-center justify-center"
-                title="Escanear con cámara"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-              </button>
-            </div>
-          </div>
 
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700">Marca *</label>
-            <input 
-              required 
-              type="text" 
-              name="marca" 
-              value={formulario.marca} 
-              autoComplete="off"
-              onChange={(e) => { manejarCambio(e); setMostrarSugerencias(true); }} 
-              onFocus={() => setMostrarSugerencias(true)}
-              onBlur={() => setTimeout(() => setMostrarSugerencias(false), 200)}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" 
-              placeholder="Ej: Coca-Cola, Soprole..." 
-            />
-            {mostrarSugerencias && sugerenciasMarca.length > 0 && (
-              <ul className="absolute z-10 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-lg max-h-40 overflow-y-auto custom-scrollbar">
-                {sugerenciasMarca.map((marcaItem, idx) => (
-                  <li 
-                    key={idx} 
-                    className="px-4 py-2 hover:bg-[#91cf5b] hover:text-white cursor-pointer transition-colors text-sm text-gray-700"
-                    onClick={() => { setFormulario({ ...formulario, marca: marcaItem }); setMostrarSugerencias(false); }}
-                  >
-                    {marcaItem}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        <form onSubmit={guardarProducto} className="space-y-5">
+          <CodigoBarrasField
+            value={formulario.codigo_barras}
+            onChange={(valor) => setFormulario(prev => ({ ...prev, codigo_barras: valor }))}
+            onBlur={() => buscarMaestro(formulario.codigo_barras)}
+            onScan={(codigo) => {
+              setFormulario(prev => ({ ...prev, codigo_barras: codigo }));
+              buscarMaestro(codigo);
+            }}
+            disabled={isBodega || isSupervisor}
+          />
+
+          <SugerenciasInput
+            label="Marca *"
+            name="marca"
+            value={formulario.marca}
+            onChange={(valor) => setFormulario(prev => ({ ...prev, marca: valor }))}
+            sugerencias={sugerenciasMarca}
+            onSeleccionar={(item) => setFormulario(prev => ({ ...prev, marca: item }))}
+            placeholder="Ej: Coca-Cola, Soprole..."
+            required
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
-            <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+            <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio}
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Categoría *</label>
-            <select required name="categoria" value={formulario.categoria} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 bg-white">
+            <select required name="categoria" value={formulario.categoria} onChange={manejarCambio}
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 bg-white">
               <option value="">Seleccione...</option>
-              {categorias.map(cat => <option key={cat.id} value={cat.id}>{cat.nombre} ({cat.codigo})</option>)}
-              {/* Opción integrada para crear nueva categoría */}
-              <option value="NUEVA_CAT" className="font-bold text-blue-600 bg-blue-50">➕ Crear nueva categoría...</option>
+              {categorias.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.nombre} ({cat.codigo})</option>
+              ))}
+              <option value="NUEVA_CAT" className="font-bold text-blue-600 bg-blue-50">
+                ➕ Crear nueva categoría...
+              </option>
             </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Precio (CLP) *</label>
-              <input disabled={isBodega} required type="number" min="0" name="precio" value={formulario.precio} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+              <input disabled={isBodega} required type="number" min="0" name="precio"
+                value={formulario.precio} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Tipo Venta *</label>
-              <select disabled={isBodega} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio} className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+              <select disabled={isBodega} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
                 <option value="UNIDAD">Unidad</option>
                 <option value="GRANEL">Granel</option>
               </select>
@@ -317,90 +236,45 @@ export default function FormularioProducto({ usuario }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Stock Actual {formulario.tipo_venta === 'UNIDAD' ? '' : '(Kilos, max 2 decimales)'}
-              </label> 
-              <input 
-                disabled={isBodega}
-                type="number" 
-                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} 
-                name="stock" 
-                value={formulario.stock} 
-                onChange={manejarCambio} 
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" 
-              />
+                Stock Actual {formulario.tipo_venta !== 'UNIDAD' && '(Kilos, max 2 decimales)'}
+              </label>
+              <input disabled={isBodega} type="number"
+                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'}
+                name="stock" value={formulario.stock} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Umbral Alerta Mínima
-              </label> 
-              <input 
-                disabled={isBodega}
-                type="number" 
-                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} 
-                min="0" 
-                name="umbral_stock" 
-                value={formulario.umbral_stock} 
-                onChange={manejarCambio} 
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" 
-              />
+              <label className="block text-sm font-medium text-gray-700">Umbral Alerta Mínima</label>
+              <input disabled={isBodega} type="number"
+                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} min="0"
+                name="umbral_stock" value={formulario.umbral_stock} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Proveedores (Opcional)</label>
-            <div className="relative">
-              <div className="flex mt-1">
-                <input 
-                  type="text" 
-                  value={proveedorInput}
-                  autoComplete="off"
-                  onChange={(e) => { setProveedorInput(e.target.value); setMostrarSugerenciasProveedor(true); }}
-                  onFocus={() => setMostrarSugerenciasProveedor(true)}
-                  onBlur={() => setTimeout(() => setMostrarSugerenciasProveedor(false), 200)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); agregarProveedor(e); } }}
-                  className="w-full p-2 border border-r-0 rounded-l focus:ring-2 focus:ring-blue-500" 
-                  placeholder="Ej: Soprole, Coca-Cola..." 
-                />
-                <button type="button" onClick={agregarProveedor} className="bg-gray-200 px-4 rounded-r border border-gray-300 font-bold hover:bg-gray-300 text-gray-700 transition">Agregar</button>
-              </div>
-              {mostrarSugerenciasProveedor && sugerenciasProveedor.length > 0 && (
-                <ul className="absolute z-10 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-lg max-h-40 overflow-y-auto custom-scrollbar">
-                  {sugerenciasProveedor.map((provItem, idx) => (
-                    <li 
-                      key={idx} 
-                      className="px-4 py-2 hover:bg-[#91cf5b] hover:text-white cursor-pointer transition-colors text-sm text-gray-700"
-                      onClick={() => { setProveedorInput(provItem); setMostrarSugerenciasProveedor(false); }}
-                    >
-                      {provItem}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            {formulario.proveedores && (
-              <div className="flex flex-wrap gap-2 mt-3 p-2 bg-gray-50 rounded-lg border border-gray-100 min-h-[40px]">
-                {formulario.proveedores.split(',').map((prov, idx) => (
-                  <span key={idx} className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full flex items-center shadow-sm border border-blue-200">
-                    {prov.trim()}
-                    <button type="button" onClick={() => quitarProveedor(prov.trim())} className="ml-2 text-blue-500 hover:text-red-500 font-bold text-base leading-none focus:outline-none" title="Quitar">&times;</button>
-                  </span>
-                ))}
-              </div>
-            )}
+            <ProveedoresManager
+              proveedores={formulario.proveedores}
+              onChange={(valor) => setFormulario(prev => ({ ...prev, proveedores: valor }))}
+              proveedoresExistentes={proveedoresExistentes}
+            />
           </div>
 
           <div className="flex justify-end space-x-4 pt-4 border-t mt-6">
-            <button type="button" onClick={() => navigate('/inventario')} className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
+            <button type="button" onClick={() => navigate('/inventario')}
+              className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
               Cancelar
             </button>
-            <button type="submit" disabled={!isSupervisor && esEdicion} className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded  transition disabled:opacity-50">
+            <button type="submit" disabled={!isSupervisor && esEdicion}
+              className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded transition disabled:opacity-50">
               Guardar Producto
             </button>
           </div>
         </form>
       </div>
 
-      {/* Modal Creación Rápida Categoría (Totalmente In-App) */}
+      {/* Modal creación rápida de categoría */}
       {modalCatAbierto && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
@@ -408,23 +282,24 @@ export default function FormularioProducto({ usuario }) {
             <form onSubmit={guardarNuevaCategoria}>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                <input required autoFocus type="text" value={nuevaCat.nombre} onChange={(e) => setNuevaCat({...nuevaCat, nombre: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+                <input required autoFocus type="text" value={nuevaCat.nombre}
+                  onChange={(e) => setNuevaCat({ ...nuevaCat, nombre: e.target.value })}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
               </div>
               <div className="flex justify-end space-x-2">
-                <button type="button" onClick={() => { setModalCatAbierto(false); setFormulario({...formulario, categoria: ''}); }} className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 transition">Crear</button>
+                <button type="button"
+                  onClick={() => { setModalCatAbierto(false); setFormulario(prev => ({ ...prev, categoria: '' })); }}
+                  className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition">
+                  Cancelar
+                </button>
+                <button type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 transition">
+                  Crear
+                </button>
               </div>
             </form>
           </div>
         </div>
-      )}
-
-      {/* Modal del Escáner de Cámara */}
-      {escanerAbierto && (
-        <EscanerCamara 
-          onScan={manejarEscaneo} 
-          onClose={() => setEscanerAbierto(false)} 
-        />
       )}
     </div>
   );
