@@ -129,49 +129,41 @@ export default function App() {
     document.documentElement.style.setProperty('--color-tarjeta', 'rgba(250, 250, 250, 0.38)'); // Blanco levemente transparente
   }, []);
 
-  // Lo extraemos a un useCallback para poder pasarlo al Onboarding y recargar al terminar
+  // Verifica si hay sesión activa consultando /me/. El navegador envía la cookie
+  // automáticamente; si el access token venció, el interceptor de Axios lo renueva.
   const cargarUsuario = useCallback(async () => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        try {
-          const response = await usuariosService.me();
-          // Garantizamos que roles siempre sea un array para evitar errores
-          const userData = { ...response.data, roles: response.data.roles || [] };
-          setUsuario(userData);
-          localStorage.setItem('usuario', JSON.stringify(userData));
-        } catch (error) {
-          // Si falla por falta de internet, intentar recuperar perfil desde caché
-          if (!error.response || !navigator.onLine) {
-            console.warn("Sin conexión al verificar sesión. Usando caché.");
-            const cachedUser = localStorage.getItem('usuario'); // Esto podría tener la cadena 'rol' antigua
-            if (cachedUser) {
-              const parsedUser = JSON.parse(cachedUser);
-              // Aseguramos que 'roles' sea un array, convirtiendo la cadena 'rol' antigua si es necesario
-              setUsuario({ ...parsedUser, roles: Array.isArray(parsedUser.roles) ? parsedUser.roles : (parsedUser.rol ? [parsedUser.rol] : []) });
-            }
-          } else {
-            console.error("Sesión expirada o inválida");
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('usuario');
-            delete api.defaults.headers.common['Authorization'];
-          }
+    try {
+      const response = await usuariosService.me();
+      const userData = { ...response.data, roles: response.data.roles || [] };
+      setUsuario(userData);
+      localStorage.setItem('usuario', JSON.stringify(userData));
+    } catch (error) {
+      // Sin conexión: usar caché para modo offline
+      if (!error.response || !navigator.onLine) {
+        console.warn('Sin conexión al verificar sesión. Usando caché.');
+        const cachedUser = localStorage.getItem('usuario');
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          setUsuario({ ...parsed, roles: Array.isArray(parsed.roles) ? parsed.roles : [] });
         }
       }
-      setVerificandoSesion(false);
+      // Con conexión y error 401: el interceptor ya intentó renovar; sesión expirada
+    }
+    setVerificandoSesion(false);
   }, []);
 
   useEffect(() => {
     cargarUsuario();
   }, [cargarUsuario]);
 
-  const manejarCerrarSesion = () => {
+  const manejarCerrarSesion = async () => {
+    try {
+      await usuariosService.logout(); // borra las cookies HttpOnly en el servidor
+    } catch {
+      // Continuar aunque falle (ej: sin conexión)
+    }
     setUsuario(null);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
     localStorage.removeItem('usuario');
-    delete api.defaults.headers.common['Authorization'];
   };
 
   useEffect(() => {

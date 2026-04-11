@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
 import { usuariosService } from '../services/usuarios';
 
 export default function Login({ onLogin }) {
@@ -14,14 +13,10 @@ export default function Login({ onLogin }) {
     setCargando(true);
     setError('');
     try {
-      // El backend espera 'username', que es el email
+      // El backend valida las credenciales y establece las cookies JWT HttpOnly.
+      // Los tokens nunca son visibles para JavaScript.
       const response = await usuariosService.login({ username: email, password });
-      localStorage.setItem('access_token', response.data.access);
-      localStorage.setItem('refresh_token', response.data.refresh);
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
-
-      const userResponse = await usuariosService.me();
-      onLogin(userResponse.data);
+      onLogin(response.data);
 
     } catch (err) {
       setError(err.response?.data?.error || 'Error de conexión. Revisa tus credenciales.');

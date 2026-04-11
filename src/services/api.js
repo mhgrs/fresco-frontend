@@ -11,25 +11,28 @@ if (!import.meta.env.VITE_API_URL) {
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
 
 const api = axios.create({
-  baseURL: baseURL,
+  baseURL,
+  // Imprescindible para que el navegador envíe y reciba las cookies HttpOnly
+  // en peticiones cross-origin (frontend en Vercel → backend en Render).
+  withCredentials: true,
 });
 
-// Interceptor de respuesta: maneja automáticamente la renovación del access token.
-// Cuando el backend responde con 401 (token vencido), este interceptor:
-//   1. Toma el refresh token del localStorage
-//   2. Pide un nuevo access token al backend
-//   3. Reintenta la petición original con el token nuevo
-// Si el refresh también falla, limpia la sesión y redirige al login.
+// ── Interceptor de respuesta ──────────────────────────────────────────────────
+// Cuando el backend responde con 401 (access token vencido), este interceptor:
+//   1. Llama a POST /api/token/refresh/ — el navegador envía la cookie de refresh
+//      automáticamente; el backend responde con una nueva cookie de access.
+//   2. Reintenta la petición original (el navegador ya tiene la nueva cookie).
+//   3. Si el refresh también falla (sesión expirada), redirige al login.
+//
+// Los tokens NUNCA son visibles para JavaScript: viven en cookies HttpOnly.
 api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
 
-    // Error 500+: fallo interno del servidor.
-    // Disparamos un evento global para que App.jsx pueda mostrar un aviso al usuario.
     if (error.response?.status >= 500) {
       window.dispatchEvent(new CustomEvent('errorServidor', {
-        detail: { status: error.response.status }
+        detail: { status: error.response.status },
       }));
     }
 
@@ -37,31 +40,16 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (!refreshToken) throw new Error('No hay refresh token.');
+        // El navegador envía la cookie fresco_refresh automáticamente.
+        // Si el refresh es exitoso, el backend establece una nueva cookie fresco_access.
+        await axios.post(`${baseURL}token/refresh/`, null, { withCredentials: true });
 
-        // Usamos axios directamente (no la instancia 'api') para evitar
-        // que este mismo interceptor intercepte la petición de refresco
-        // y entre en un bucle infinito.
-        const response = await axios.post(`${baseURL}token/refresh/`, {
-          refresh: refreshToken,
-        });
-
-        const newAccessToken = response.data.access;
-        localStorage.setItem('access_token', newAccessToken);
-        api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-
+        // Reintentar la petición original; el navegador ya tiene la nueva cookie.
         return api(originalRequest);
-      } catch (refreshError) {
-        // El refresh token también venció o es inválido: forzar logout
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('usuario');
-        delete api.defaults.headers.common['Authorization'];
-        // Redirigir al login sin usar React Router (estamos fuera de componentes)
+      } catch {
+        // El refresh también falló → sesión completamente expirada.
         window.location.href = '/fresco-login';
-        return Promise.reject(refreshError);
+        return Promise.reject(error);
       }
     }
 
