@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usuariosService } from '../services/usuarios';
 import { empresasService } from '../services/empresas';
+import { ROLES } from '../constants/roles';
 
 function TabEquipo() {
   const [equipo, setEquipo] = useState([]);
@@ -20,7 +21,7 @@ function TabEquipo() {
         ]);
         // Filtramos el rol 'ADMIN' para que no se pueda asignar/quitar fácilmente
         // La propiedad de 'ADMIN' se hereda al crear la empresa o debe ser asignada por un superuser.
-        setRolesDisponibles(resRoles.data.filter(r => r.nombre !== 'ADMIN'));
+        setRolesDisponibles(resRoles.data.filter(r => r.nombre !== ROLES.ADMIN));
         setEquipo(resEquipo.data);
       } catch (err) {
         setError('No se pudo cargar la información del equipo.');
