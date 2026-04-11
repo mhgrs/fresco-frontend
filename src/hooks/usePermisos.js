@@ -15,7 +15,7 @@ import { ROLES } from '../constants/roles';
 export function usePermisos(usuario) {
   // Verifica si el usuario tiene al menos uno de los roles indicados
   const tiene = (...roles) =>
-    roles.some(r => usuario?.roles?.includes(r)) || usuario?.is_superuser;
+    !!(roles.some(r => usuario?.roles?.includes(r)) || usuario?.is_superuser);
 
   const esAdmin      = () => tiene(ROLES.ADMIN);
   const esSupervisor = () => tiene(ROLES.ADMIN, ROLES.SUPERVISOR);

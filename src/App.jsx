@@ -12,12 +12,15 @@ import AlertasInventario from './components/AlertasInventario';
 import LandingPage from './components/LandingPage';
 import Registro from './components/Registro';
 import VerificarEmail from './components/VerificarEmail';
+import RecuperarContrasena from './components/RecuperarContrasena';
+import ResetPassword from './components/ResetPassword';
 import OnboardingEmpresa from './components/OnboardingEmpresa';
 import GestionEmpresa from './components/GestionEmpresa'; // NUEVO
 import MovimientosInventario from './components/MovimientosInventario'; // NUEVO
 import api from './services/api';
 import { usuariosService } from './services/usuarios';
 import { ventasService } from './services/ventas';
+import { sincronizarVentas } from './utils/syncVentas';
 
 // Contenedor que da el efecto "Pantalla Completa" pero permite volver atrás
 function ModuleLayout({ children, isOnline = true, sincronizando = false, usuario }) {
@@ -172,34 +175,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    const sincronizarVentas = async () => {
-      const ventasOffline = JSON.parse(localStorage.getItem('ventas_offline')) || [];
-      if (ventasOffline.length === 0) return;
-
+    const _sincronizar = async () => {
       setSincronizando(true);
-      let exitosas = 0;
-
-      for (const venta of ventasOffline) {
-        try {
-          // Remover el ID temporal antes de mandarlo al backend
-          const payload = { ...venta };
-          delete payload.offline_id;
-          
-          await ventasService.crear(payload);
-          exitosas++;
-
-          // Borrar del storage de a una. Así evitamos sobreescribir nuevas ventas hechas mientras sincronizaba
-          const actuales = JSON.parse(localStorage.getItem('ventas_offline')) || [];
-          const filtradas = actuales.filter(v => v.offline_id !== venta.offline_id);
-          localStorage.setItem('ventas_offline', JSON.stringify(filtradas));
-        } catch (error) {
-          console.error('Error sincronizando venta', error);
-        }
-      }
-
+      const { exitosas } = await sincronizarVentas();
       setSincronizando(false);
-      
-      // Si logramos sincronizar al menos una, notificamos al resto de la app
       if (exitosas > 0) {
         window.dispatchEvent(new Event('ventasSincronizadas'));
       }
@@ -207,15 +186,14 @@ export default function App() {
 
     const handleOnline = () => {
       setIsOnline(true);
-      sincronizarVentas();
+      _sincronizar();
     };
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
-    // Intentar sincronizar cuando cargue la app por primera vez si hay internet
-    if (navigator.onLine && usuario) sincronizarVentas();
+
+    if (navigator.onLine && usuario) _sincronizar();
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -242,6 +220,8 @@ export default function App() {
           {/* Rutas Públicas de SaaS */}
           <Route path="/registro" element={<Registro />} />
           <Route path="/verificar-email/:token" element={<VerificarEmail />} />
+          <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           
           {/* Landing Page pública */}
           <Route path="/" element={<LandingPage usuario={null} />} />

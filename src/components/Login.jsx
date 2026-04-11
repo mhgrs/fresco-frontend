@@ -88,10 +88,9 @@ export default function Login({ onLogin }) {
               </Link>
             </p>
             <p className="text-sm text-gray-600">
-              <span className="text-gray-400 cursor-not-allowed">
+              <Link to="/recuperar-contrasena" className="font-bold text-gray-500 hover:text-[#91cf5b] hover:underline">
                 ¿Olvidaste tu contraseña?
-              </span>
-              <span className="text-xs text-gray-400 ml-1">(Próximamente)</span>
+              </Link>
             </p>
           </div>
 
