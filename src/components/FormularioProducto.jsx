@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import EscanerCamara from './EscanerCamara';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { usePermisos } from '../hooks/usePermisos';
+import { useDebounce } from '../hooks/useDebounce';
 import { productosService } from '../services/productos';
 import { categoriasService } from '../services/categorias';
 
@@ -36,6 +37,9 @@ export default function FormularioProducto({ usuario }) {
   const [formulario, setFormulario] = useState({
     nombre: '', marca: '', categoria: '', precio: '', tipo_venta: 'UNIDAD', codigo_barras: '', stock: '', umbral_stock: '5', proveedores: ''
   });
+
+  const debouncedMarca = useDebounce(formulario.marca, 200);
+  const debouncedProveedor = useDebounce(proveedorInput, 200);
 
   const cargarCategorias = async () => {
     const resCat = await categoriasService.listar();
@@ -89,33 +93,23 @@ export default function FormularioProducto({ usuario }) {
     inicializarDatos();
   }, [id, esEdicion, navigate]);
 
-  // Efecto Debounce de 200ms para filtrar sugerencias de marca
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (formulario.marca && mostrarSugerencias) {
-        const termino = formulario.marca.toLowerCase();
-        const filtradas = marcasExistentes.filter(m => m.toLowerCase().includes(termino));
-        setSugerenciasMarca(filtradas);
-      } else {
-        setSugerenciasMarca([]);
-      }
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [formulario.marca, marcasExistentes, mostrarSugerencias]);
+    if (debouncedMarca && mostrarSugerencias) {
+      const termino = debouncedMarca.toLowerCase();
+      setSugerenciasMarca(marcasExistentes.filter(m => m.toLowerCase().includes(termino)));
+    } else {
+      setSugerenciasMarca([]);
+    }
+  }, [debouncedMarca, marcasExistentes, mostrarSugerencias]);
 
-  // Efecto Debounce de 200ms para filtrar sugerencias de proveedor
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (proveedorInput && mostrarSugerenciasProveedor) {
-        const termino = proveedorInput.toLowerCase();
-        const filtradas = proveedoresExistentes.filter(p => p.toLowerCase().includes(termino));
-        setSugerenciasProveedor(filtradas);
-      } else {
-        setSugerenciasProveedor([]);
-      }
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [proveedorInput, proveedoresExistentes, mostrarSugerenciasProveedor]);
+    if (debouncedProveedor && mostrarSugerenciasProveedor) {
+      const termino = debouncedProveedor.toLowerCase();
+      setSugerenciasProveedor(proveedoresExistentes.filter(p => p.toLowerCase().includes(termino)));
+    } else {
+      setSugerenciasProveedor([]);
+    }
+  }, [debouncedProveedor, proveedoresExistentes, mostrarSugerenciasProveedor]);
 
   const manejarCambio = (e) => {
     const { name, value } = e.target;

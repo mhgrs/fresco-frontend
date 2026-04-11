@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { usePermisos } from '../hooks/usePermisos';
+import { useDebounce } from '../hooks/useDebounce';
 import { productosService } from '../services/productos';
 import { categoriasService } from '../services/categorias';
 
@@ -11,7 +12,6 @@ export default function CatalogoProductos({ usuario }) {
   const [totalCount, setTotalCount] = useState(0);
 
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
-  const [debouncedTermino, setDebouncedTermino] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState('TODOS');
 
   const [confirmarEliminar, setConfirmarEliminar] = useState({ visible: false, id: null, nombre: '' });
@@ -22,6 +22,7 @@ export default function CatalogoProductos({ usuario }) {
 
   const [paginaActual, setPaginaActual] = useState(1);
   const PAGE_SIZE = 50;
+  const debouncedTermino = useDebounce(terminoBusqueda, 300);
 
   const [configOrden, setConfigOrden] = useState({ clave: null, direccion: 'asc' });
 
@@ -51,12 +52,6 @@ export default function CatalogoProductos({ usuario }) {
   useEffect(() => {
     setPaginaActual(1);
   }, [debouncedTermino, categoriaActiva]);
-
-  // Debounce de 300ms para el buscador (evita llamadas al servidor en cada tecla)
-  useEffect(() => {
-    const id = setTimeout(() => setDebouncedTermino(terminoBusqueda), 300);
-    return () => clearTimeout(id);
-  }, [terminoBusqueda]);
 
   const alternarEstado = async (id, estadoActual) => {
     if (!esSupervisor()) { mostrar('No tienes permisos para esta acción.', 'error'); return; }

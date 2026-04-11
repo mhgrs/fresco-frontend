@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { productosService } from '../services/productos';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 export default function Dashboard({ usuario, cerrarSesion }) {
   const [alertas, setAlertas] = useState([]);
@@ -30,27 +31,10 @@ export default function Dashboard({ usuario, cerrarSesion }) {
     }
   }, [usuario.roles, usuario.is_superuser]);
 
-  // Cerrar el menú de notificaciones al hacer clic afuera
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setMostrarNotificaciones(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Cerrar el menú de ajustes al hacer clic afuera
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (ajustesRef.current && !ajustesRef.current.contains(event.target)) {
-        setMostrarAjustes(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const cerrarNotificaciones = useCallback(() => setMostrarNotificaciones(false), []);
+  const cerrarAjustes = useCallback(() => setMostrarAjustes(false), []);
+  useClickOutside(dropdownRef, cerrarNotificaciones);
+  useClickOutside(ajustesRef, cerrarAjustes);
 
 /*  */  // Obtener fecha actual formateada
   const fechaActual = new Date().toLocaleDateString('es-ES', {
