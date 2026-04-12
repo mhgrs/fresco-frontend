@@ -15,9 +15,9 @@ export default function FormularioProducto({ usuario }) {
   const esEdicion = Boolean(id);
 
   const { notificacion, mostrar } = useNotificacion();
-  const { esSupervisor, esBodega } = usePermisos(usuario);
-  const isBodega     = esBodega();
-  const isSupervisor = esSupervisor();
+  const { esAdmin, esSupervisor } = usePermisos(usuario);
+  const puedeEditar    = esSupervisor(); // ADMIN + SUPERVISOR pueden editar campos de precio/stock
+  const puedeEditarTodo = esAdmin();     // Solo ADMIN puede editar código de barras
 
   const [categorias, setCategorias] = useState([]);
   const [cargando, setCargando] = useState(esEdicion);
@@ -182,7 +182,7 @@ export default function FormularioProducto({ usuario }) {
               setFormulario(prev => ({ ...prev, codigo_barras: codigo }));
               buscarMaestro(codigo);
             }}
-            disabled={isBodega || isSupervisor}
+            disabled={!puedeEditarTodo}
           />
 
           <SugerenciasInput
@@ -219,13 +219,13 @@ export default function FormularioProducto({ usuario }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Precio (CLP) *</label>
-              <input disabled={isBodega} required type="number" min="0" name="precio"
+              <input disabled={!puedeEditar} required type="number" min="0" name="precio"
                 value={formulario.precio} onChange={manejarCambio}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Tipo Venta *</label>
-              <select disabled={isBodega} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio}
+              <select disabled={!puedeEditar} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
                 <option value="UNIDAD">Unidad</option>
                 <option value="GRANEL">Granel</option>
@@ -238,14 +238,14 @@ export default function FormularioProducto({ usuario }) {
               <label className="block text-sm font-medium text-gray-700">
                 Stock Actual {formulario.tipo_venta !== 'UNIDAD' && '(Kilos, max 2 decimales)'}
               </label>
-              <input disabled={isBodega} type="number"
+              <input disabled={!puedeEditar} type="number"
                 step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'}
                 name="stock" value={formulario.stock} onChange={manejarCambio}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Umbral Alerta Mínima</label>
-              <input disabled={isBodega} type="number"
+              <input disabled={!puedeEditar} type="number"
                 step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} min="0"
                 name="umbral_stock" value={formulario.umbral_stock} onChange={manejarCambio}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
@@ -266,7 +266,7 @@ export default function FormularioProducto({ usuario }) {
               className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
               Cancelar
             </button>
-            <button type="submit" disabled={!isSupervisor && esEdicion}
+            <button type="submit" disabled={!puedeEditar && esEdicion}
               className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded transition disabled:opacity-50">
               Guardar Producto
             </button>
