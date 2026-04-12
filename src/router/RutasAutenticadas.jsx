@@ -1,0 +1,76 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Dashboard from '../components/Dashboard';
+import PuntoDeVenta from '../components/PuntoDeVenta';
+import CierreCaja from '../components/CierreCaja';
+import Reportes from '../components/Reportes';
+import CatalogoProductos from '../components/CatalogoProductos';
+import FormularioProducto from '../components/FormularioProducto';
+import GestorCategorias from '../components/GestorCategorias';
+import AlertasInventario from '../components/AlertasInventario';
+import LandingPage from '../components/LandingPage';
+import OnboardingEmpresa from '../components/OnboardingEmpresa';
+import GestionEmpresa from '../components/GestionEmpresa';
+import MovimientosInventario from '../components/MovimientosInventario';
+import ModuleLayout from '../components/layout/ModuleLayout';
+import AdminRedirect from '../components/layout/AdminRedirect';
+
+/**
+ * Rutas para usuarios autenticados (con o sin empresa asignada).
+ *
+ * Props:
+ *   usuario
+ *   isOnline
+ *   sincronizando
+ *   cerrarSesion
+ *   cargarUsuario — para que OnboardingEmpresa pueda recargar el perfil
+ */
+export default function RutasAutenticadas({ usuario, isOnline, sincronizando, cerrarSesion, cargarUsuario }) {
+  // Usuario sin empresa: solo puede ir a onboarding
+  if (!usuario.empresa) {
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<OnboardingEmpresa onCompletado={cargarUsuario} cerrarSesion={cerrarSesion} />} />
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+      </Routes>
+    );
+  }
+
+  const roles = usuario.roles || [];
+  const isAdmin      = roles.includes('ADMIN') || usuario.is_superuser;
+  const isSupervisor = isAdmin  || roles.includes('SUPERVISOR');
+  const isCajero     = isSupervisor || roles.includes('CAJERO');
+  const isBodega     = isCajero || roles.includes('BODEGA');
+
+  const wrap = (child) => (
+    <ModuleLayout isOnline={isOnline} sincronizando={sincronizando} usuario={usuario}>
+      {child}
+    </ModuleLayout>
+  );
+
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage usuario={usuario} />} />
+      <Route path="/dashboard" element={<Dashboard usuario={usuario} cerrarSesion={cerrarSesion} />} />
+
+      {/* Redirigir rutas públicas si ya está logueado */}
+      <Route path="/fresco-login" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/registro" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/verificar-email/:token" element={<Navigate to="/dashboard" replace />} />
+
+      <Route path="/fresco-admin/*" element={<AdminRedirect />} />
+
+      {isCajero    && <Route path="/pos"                    element={wrap(<PuntoDeVenta />)} />}
+      {isBodega    && <Route path="/inventario"             element={wrap(<CatalogoProductos usuario={usuario} />)} />}
+      {isBodega    && <Route path="/inventario/nuevo"       element={wrap(<FormularioProducto usuario={usuario} />)} />}
+      {isBodega    && <Route path="/inventario/editar/:id"  element={wrap(<FormularioProducto usuario={usuario} />)} />}
+      {isBodega    && <Route path="/inventario/movimientos" element={wrap(<MovimientosInventario usuario={usuario} />)} />}
+      {isSupervisor && <Route path="/categorias"            element={wrap(<GestorCategorias usuario={usuario} />)} />}
+      {isSupervisor && <Route path="/reportes"              element={wrap(<Reportes />)} />}
+      {isCajero    && <Route path="/cierre-caja"            element={wrap(<CierreCaja />)} />}
+      {isBodega    && <Route path="/alertas"                element={wrap(<AlertasInventario />)} />}
+      {isAdmin     && <Route path="/configuracion"          element={wrap(<GestionEmpresa usuario={usuario} />)} />}
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
