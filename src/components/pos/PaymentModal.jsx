@@ -22,7 +22,10 @@ export default function PaymentModal({ total, onConfirmar, onCerrar, procesando 
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-[var(--color-fondo)] border border-white/50 rounded-2xl sm:rounded-3xl m-5 p-4 sm:p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+      <div
+        className="bg-[var(--color-fondo)] border border-white/50 rounded-2xl sm:rounded-3xl m-5 p-4 sm:p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col"
+        onKeyDown={(e) => e.stopPropagation()}
+      >
         <h2 className="text-xl font-bold mb-4 text-gray-800 flex-none">Procesar Pago</h2>
 
         <div className="text-center mb-4 bg-white/60 p-3 rounded-xl shadow-inner border border-white/60 flex-none">

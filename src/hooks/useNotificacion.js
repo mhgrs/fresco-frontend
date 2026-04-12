@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Hook para manejar notificaciones toast temporales.
@@ -18,13 +18,13 @@ export function useNotificacion(duracionMs = 3000) {
     tipo: 'success',
   });
 
-  const mostrar = (mensaje, tipo = 'success') => {
+  const mostrar = useCallback((mensaje, tipo = 'success') => {
     setNotificacion({ visible: true, mensaje, tipo });
     setTimeout(
       () => setNotificacion({ visible: false, mensaje: '', tipo: 'success' }),
       duracionMs
     );
-  };
+  }, [duracionMs]);
 
   return { notificacion, mostrar };
 }

@@ -44,13 +44,17 @@ export default function PuntoDeVenta() {
     }
   }, [mostrar]);
 
+  // Enfocar el buscador solo al montar el componente
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     cargarProductos();
-    inputRef.current?.focus();
     const onSincronizacion = () => cargarProductos();
     window.addEventListener('ventasSincronizadas', onSincronizacion);
     return () => window.removeEventListener('ventasSincronizadas', onSincronizacion);
-  }, [cargarProductos, inputRef]);
+  }, [cargarProductos]);
 
   // Capturar tipeo global para enfocar automáticamente el buscador
   useEffect(() => {

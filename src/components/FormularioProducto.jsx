@@ -91,16 +91,23 @@ export default function FormularioProducto({ usuario }) {
     try {
       const res = await productosService.consultarMaestro(codigo);
       if (res.data) {
-        const { nombre_estandarizado, marca } = res.data;
+        const { nombre_estandarizado, marca, categoria: catNombre } = res.data;
+        // Intentar mapear la categoría del maestro a una categoría cargada (por nombre)
+        const catEncontrada = catNombre
+          ? categorias.find(c => c.nombre.toLowerCase() === catNombre.toLowerCase())
+          : null;
+
         setFormulario(prev => {
-          const updNombre = nombre_estandarizado && !prev.nombre;
-          const updMarca  = marca && !prev.marca;
-          if (updNombre || updMarca) {
+          const updNombre    = nombre_estandarizado && !prev.nombre;
+          const updMarca     = marca && !prev.marca;
+          const updCategoria = catEncontrada && !prev.categoria;
+          if (updNombre || updMarca || updCategoria) {
             mostrar('¡Sugerencia encontrada en catálogo global!', 'success');
             return {
               ...prev,
-              nombre: updNombre ? nombre_estandarizado : prev.nombre,
-              marca:  updMarca  ? marca                : prev.marca,
+              nombre:    updNombre    ? nombre_estandarizado : prev.nombre,
+              marca:     updMarca     ? marca                : prev.marca,
+              categoria: updCategoria ? catEncontrada.id     : prev.categoria,
             };
           }
           return prev;
