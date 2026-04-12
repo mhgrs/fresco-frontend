@@ -1,6 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
 import { useCarrito } from './useCarrito';
 
+// Limpiar localStorage antes de cada prueba para evitar fugas de estado
+beforeEach(() => {
+  localStorage.clear();
+});
+
 const prod = (id, precio = 100, tipo_venta = 'UNIDAD') => ({
   id,
   nombre: `Producto ${id}`,
@@ -99,4 +104,41 @@ test('totalCarrito calcula precio × cantidad correctamente', () => {
   act(() => result.current.actualizarCantidadBotones(2, 1, 'UNIDAD'));
   // prod1: 1×1000=1000, prod2: 2×500=1000, total=2000
   expect(result.current.totalCarrito).toBe(2000);
+});
+
+test('suspenderVenta guarda el carrito, lo vacía y limita a 3', () => {
+  const { result } = renderHook(() => useCarrito());
+  
+  // Suspender la primera
+  act(() => result.current.agregar(prod(1)));
+  act(() => { result.current.suspenderVenta(); });
+  expect(result.current.carrito).toEqual([]);
+  expect(result.current.ventasSuspendidas).toHaveLength(1);
+
+  // Llenar el límite hasta 3
+  act(() => result.current.agregar(prod(2)));
+  act(() => { result.current.suspenderVenta(); });
+  act(() => result.current.agregar(prod(3)));
+  act(() => { result.current.suspenderVenta(); });
+  expect(result.current.ventasSuspendidas).toHaveLength(3);
+
+  // Intentar una cuarta debe fallar
+  act(() => result.current.agregar(prod(4)));
+  let success;
+  act(() => { success = result.current.suspenderVenta(); });
+  expect(success).toBe(false);
+  expect(result.current.ventasSuspendidas).toHaveLength(3);
+});
+
+test('retomarVenta restaura el carrito y lo quita de la lista', () => {
+  const { result } = renderHook(() => useCarrito());
+  act(() => result.current.agregar(prod(1)));
+  act(() => { result.current.suspenderVenta(); });
+  
+  const id = result.current.ventasSuspendidas[0].id;
+  act(() => { result.current.retomarVenta(id); });
+  
+  expect(result.current.carrito).toHaveLength(1);
+  expect(result.current.carrito[0].id).toBe(1);
+  expect(result.current.ventasSuspendidas).toHaveLength(0);
 });

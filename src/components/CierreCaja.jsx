@@ -4,6 +4,15 @@ import { ventasService } from '../services/ventas';
 export default function CierreCaja() {
   const [reporte, setReporte] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [fondoCaja] = useState(() => {
+    try {
+      const hoy = new Date().toLocaleDateString('es-CL');
+      const fondoGuardado = JSON.parse(localStorage.getItem('pos_fondo_caja'));
+      return fondoGuardado && fondoGuardado.fecha === hoy ? fondoGuardado.monto : 0;
+    } catch {
+      return 0;
+    }
+  });
 
   useEffect(() => {
     ventasService.reporteZ()
@@ -12,7 +21,32 @@ export default function CierreCaja() {
       .finally(() => setCargando(false));
   }, []);
 
-  if (cargando) return <div className="p-10 text-center text-gray-500 font-medium">Generando cuadratura de caja...</div>;
+  if (cargando) {
+    return (
+      <div className="p-4 sm:p-8 max-w-4xl mx-auto min-h-full flex flex-col bg-[var(--color-fondo)]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-2">
+          <div className="w-full sm:w-1/2">
+            <div className="h-10 bg-gray-200 rounded-lg w-2/3 mb-2 animate-pulse"></div>
+            <div className="h-5 bg-gray-100 rounded-lg w-1/2 animate-pulse"></div>
+          </div>
+          <div className="h-12 bg-gray-200 rounded-xl w-full sm:w-40 animate-pulse"></div>
+        </div>
+        <div className="bg-white/40 backdrop-blur-xl border border-white/60 rounded-3xl shadow-xl overflow-hidden flex-1 p-6 sm:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div className="bg-gray-100/50 h-32 rounded-2xl border border-gray-200 animate-pulse" key={i}></div>
+            ))}
+          </div>
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4 animate-pulse"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div className="h-20 bg-gray-100/50 rounded-xl border border-gray-200 animate-pulse" key={i}></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (!reporte) return <div className="p-10 text-center text-red-500">Error al generar el reporte.</div>;
 
   return (
@@ -33,22 +67,29 @@ export default function CierreCaja() {
         <div className="p-6 sm:p-8">
           
           {/* Resumen de Flujos de Dinero */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8">
-            <div className="bg-green-50/80 p-6 rounded-2xl border border-green-100 shadow-inner">
-              <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1 flex items-center gap-2"><span className="text-lg">⬇️</span> Dinero Entrante</p>
-              <p className="text-4xl font-black text-green-900">${reporte.total_ingresos}</p>
-              <p className="text-xs text-green-700 mt-2 font-medium">De {reporte.cantidad_transacciones} ventas realizadas</p>
-            </div>
-            
-            <div className="bg-red-50/80 p-6 rounded-2xl border border-red-100 shadow-inner">
-              <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-1 flex items-center gap-2"><span className="text-lg">⬆️</span> Dinero Saliente</p>
-              <p className="text-4xl font-black text-red-900">${reporte.total_egresos}</p>
-              <p className="text-xs text-red-700 mt-2 font-medium">Gastos y retiros (Próximamente)</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <div className="bg-yellow-50/80 p-5 rounded-2xl border border-yellow-100 shadow-inner flex flex-col justify-between">
+              <div><p className="text-xs font-bold text-yellow-600 uppercase tracking-wider mb-1 flex items-center gap-2"><span className="text-lg">🪙</span> Fondo Inicial</p>
+              <p className="text-3xl lg:text-4xl font-black text-yellow-900">${fondoCaja}</p></div>
+              <p className="text-xs text-yellow-700 mt-2 font-medium">Apertura de turno</p>
             </div>
 
-            <div className="bg-blue-50/80 p-6 rounded-2xl border border-blue-100 shadow-inner">
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Caja Final Calculada</p>
-              <p className="text-4xl font-black text-blue-900">${reporte.total_ingresos - reporte.total_egresos}</p>
+            <div className="bg-green-50/80 p-5 rounded-2xl border border-green-100 shadow-inner flex flex-col justify-between">
+              <div><p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1 flex items-center gap-2"><span className="text-lg">⬇️</span> Ventas</p>
+              <p className="text-3xl lg:text-4xl font-black text-green-900">${reporte.total_ingresos}</p></div>
+              <p className="text-xs text-green-700 mt-2 font-medium">De {reporte.cantidad_transacciones} transacciones</p>
+            </div>
+            
+            <div className="bg-red-50/80 p-5 rounded-2xl border border-red-100 shadow-inner flex flex-col justify-between">
+              <div><p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-1 flex items-center gap-2"><span className="text-lg">⬆️</span> Egresos</p>
+              <p className="text-3xl lg:text-4xl font-black text-red-900">${reporte.total_egresos}</p></div>
+              <p className="text-xs text-red-700 mt-2 font-medium">Retiros de caja</p>
+            </div>
+
+            <div className="bg-blue-50/80 p-5 rounded-2xl border border-blue-100 shadow-inner flex flex-col justify-between">
+              <div><p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Efectivo en Gaveta</p>
+              <p className="text-3xl lg:text-4xl font-black text-blue-900">${fondoCaja + reporte.total_ingresos - reporte.total_egresos}</p></div>
+              <p className="text-xs text-blue-700 mt-2 font-medium">Fondo + Ventas - Egresos</p>
             </div>
           </div>
 

@@ -12,6 +12,7 @@ export default function CatalogoProductos({ usuario }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [cargando, setCargando] = useState(true);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState('TODOS');
   const [confirmarEliminar, setConfirmarEliminar] = useState({ visible: false, id: null, nombre: '' });
@@ -31,12 +32,14 @@ export default function CatalogoProductos({ usuario }) {
   }, []);
 
   useEffect(() => {
+    setCargando(true);
     const params = { page: paginaActual };
     if (debouncedTermino.trim()) params.search = debouncedTermino.trim();
     if (categoriaActiva !== 'TODOS') params.categoria = categoriaActiva;
     productosService.listar(params)
       .then(res => { setProductos(res.data.results); setTotalCount(res.data.count); })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setCargando(false));
   }, [paginaActual, debouncedTermino, categoriaActiva]);
 
   useEffect(() => {
@@ -167,9 +170,6 @@ export default function CatalogoProductos({ usuario }) {
 
       <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
         <div className="flex-1 overflow-y-auto">
-          {productos.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 font-medium">No se encontraron productos.</div>
-          ) : (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-white/60 sticky top-0 z-10 shadow-sm backdrop-blur-md">
                 <tr>
@@ -183,21 +183,44 @@ export default function CatalogoProductos({ usuario }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {productosOrdenados.map(prod => (
-                  <ProductoFila
-                    key={prod.id}
-                    producto={prod}
-                    puedeAcceder={esBodega()}
-                    puedeGestionar={esSupervisor()}
-                    onAjustar={abrirModalAjuste}
-                    onEditar={intentarEditar}
-                    onToggleEstado={alternarEstado}
-                    onEliminar={(id, nombre) => setConfirmarEliminar({ visible: true, id, nombre })}
-                  />
-                ))}
+                {cargando ? (
+                  Array.from({ length: 8 }).map((_, idx) => (
+                    <tr key={idx} className="animate-pulse bg-white/20">
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-300/50 rounded w-16"></div></td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-gray-300/50 rounded w-48 mb-2"></div>
+                        <div className="h-3 bg-gray-200/50 rounded w-24"></div>
+                      </td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-300/50 rounded w-20"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-300/50 rounded w-16 ml-auto"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-300/50 rounded w-12 ml-auto"></div></td>
+                      <td className="px-6 py-4"><div className="h-4 bg-gray-300/50 rounded w-24"></div></td>
+                      <td className="px-6 py-4 flex justify-center space-x-3">
+                        <div className="h-5 w-5 bg-gray-300/50 rounded"></div>
+                        <div className="h-5 w-5 bg-gray-300/50 rounded"></div>
+                      </td>
+                    </tr>
+                  ))
+                ) : productos.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="p-8 text-center text-gray-500 font-medium">No se encontraron productos.</td>
+                  </tr>
+                ) : (
+                  productosOrdenados.map(prod => (
+                    <ProductoFila
+                      key={prod.id}
+                      producto={prod}
+                      puedeAcceder={esBodega()}
+                      puedeGestionar={esSupervisor()}
+                      onAjustar={abrirModalAjuste}
+                      onEditar={intentarEditar}
+                      onToggleEstado={alternarEstado}
+                      onEliminar={(id, nombre) => setConfirmarEliminar({ visible: true, id, nombre })}
+                    />
+                  ))
+                )}
               </tbody>
             </table>
-          )}
         </div>
 
         {totalPaginas > 1 && (

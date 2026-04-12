@@ -17,6 +17,11 @@ export async function sincronizarVentas({ storage = localStorage, crearVenta = (
   const ventasOffline = JSON.parse(storage.getItem('ventas_offline')) || [];
   if (ventasOffline.length === 0) return { exitosas: 0, fallidas: 0 };
 
+  // Emitir evento de inicio de sincronización
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('sync_ventas_start', { detail: { total: ventasOffline.length } }));
+  }
+
   let exitosas = 0;
   let fallidas = 0;
 
@@ -32,9 +37,16 @@ export async function sincronizarVentas({ storage = localStorage, crearVenta = (
       const actuales = JSON.parse(storage.getItem('ventas_offline')) || [];
       const filtradas = actuales.filter(v => v.offline_id !== venta.offline_id);
       storage.setItem('ventas_offline', JSON.stringify(filtradas));
+      // Disparar evento para que el NetworkStatusIndicator se actualice
+      window.dispatchEvent(new Event('ventas_offline_updated'));
     } catch {
       fallidas++;
     }
+  }
+
+  // Emitir evento de fin de sincronización
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('sync_ventas_end', { detail: { exitosas, fallidas } }));
   }
 
   return { exitosas, fallidas };

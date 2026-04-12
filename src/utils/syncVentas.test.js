@@ -89,4 +89,26 @@ describe('sincronizarVentas', () => {
     expect(result).toEqual({ exitosas: 3, fallidas: 0 });
     expect(storage._get('ventas_offline')).toEqual([]);
   });
+
+  it('emite eventos de inicio y fin de sincronización', async () => {
+    const v1 = venta('id-1');
+    const storage = makeStorage({ ventas_offline: JSON.stringify([v1]) });
+    const crearVenta = vi.fn().mockResolvedValue({});
+
+    const startSpy = vi.fn();
+    const endSpy = vi.fn();
+    window.addEventListener('sync_ventas_start', startSpy);
+    window.addEventListener('sync_ventas_end', endSpy);
+
+    await sincronizarVentas({ storage, crearVenta });
+
+    expect(startSpy).toHaveBeenCalledOnce();
+    expect(startSpy.mock.calls[0][0].detail).toEqual({ total: 1 });
+    
+    expect(endSpy).toHaveBeenCalledOnce();
+    expect(endSpy.mock.calls[0][0].detail).toEqual({ exitosas: 1, fallidas: 0 });
+
+    window.removeEventListener('sync_ventas_start', startSpy);
+    window.removeEventListener('sync_ventas_end', endSpy);
+  });
 });

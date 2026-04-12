@@ -4,6 +4,7 @@ import { usuariosService } from './services/usuarios';
 import { sincronizarVentas } from './utils/syncVentas';
 import RutasPublicas from './router/RutasPublicas';
 import RutasAutenticadas from './router/RutasAutenticadas';
+import SyncFeedback from './components/ui/SyncFeedback';
 
 export default function App() {
   const [usuario, setUsuario] = useState(null);
@@ -94,6 +95,10 @@ export default function App() {
           El servidor tuvo un problema inesperado. Por favor intenta de nuevo en unos momentos.
         </div>
       )}
+
+        {/* Componentes UI Globales (Sync) */}
+        <SyncFeedback />
+
       {!usuario ? (
         <RutasPublicas onLogin={handleLogin} />
       ) : (

@@ -16,7 +16,37 @@ export default function Reportes() {
       .finally(() => setCargando(false));
   }, []);
 
-  if (cargando) return <div className="p-10 text-center text-gray-500 font-medium">Calculando inteligencia de negocio...</div>;
+  if (cargando) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 h-full w-full max-w-[1400px] mx-auto flex flex-col bg-[var(--color-fondo)]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <div className="w-full sm:w-1/2">
+            <div className="h-8 sm:h-10 bg-gray-200 rounded-lg w-3/4 mb-3 animate-pulse"></div>
+            <div className="h-4 sm:h-5 bg-gray-100 rounded-lg w-1/2 animate-pulse"></div>
+          </div>
+          <div className="w-full sm:w-auto flex gap-2">
+            <div className="h-10 bg-gray-200 rounded-xl w-32 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded-xl w-32 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white/40 backdrop-blur-sm border border-gray-100 p-6 rounded-3xl h-36 flex flex-col justify-between animate-pulse shadow-sm">
+              <div className="flex justify-between items-start">
+                <div className="h-5 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-10 w-10 bg-gray-200 rounded-xl"></div>
+              </div>
+              <div>
+                <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-100 rounded w-2/3"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 h-64 bg-white/40 backdrop-blur-sm border border-gray-100 rounded-3xl animate-pulse shadow-sm"></div>
+      </div>
+    );
+  }
   if (!metricas)  return <div className="p-10 text-center text-red-500">Error al cargar los datos.</div>;
 
   const formatCurrency = (value) =>

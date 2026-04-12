@@ -1,12 +1,54 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
  * Gestiona el estado del carrito de venta y todas sus operaciones.
- * No tiene dependencias externas — funciona con cualquier lista de productos.
+ * Persiste automáticamente los datos en localStorage.
  */
 export function useCarrito() {
-  const [carrito, setCarrito] = useState([]);
-  const [ultimoAgregado, setUltimoAgregado] = useState(null);
+  // Inicialización lazy leyendo de localStorage
+  const [carrito, setCarrito] = useState(() => {
+    try {
+      const guardado = localStorage.getItem('pos_carrito');
+      return guardado ? JSON.parse(guardado) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [ultimoAgregado, setUltimoAgregado] = useState(() => {
+    try {
+      const guardado = localStorage.getItem('pos_ultimo_agregado');
+      return guardado ? JSON.parse(guardado) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [ventasSuspendidas, setVentasSuspendidas] = useState(() => {
+    try {
+      const guardadas = localStorage.getItem('pos_ventas_suspendidas');
+      return guardadas ? JSON.parse(guardadas) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  // Efectos para sincronizar estado hacia el localStorage
+  useEffect(() => {
+    localStorage.setItem('pos_carrito', JSON.stringify(carrito));
+  }, [carrito]);
+
+  useEffect(() => {
+    if (ultimoAgregado) {
+      localStorage.setItem('pos_ultimo_agregado', JSON.stringify(ultimoAgregado));
+    } else {
+      localStorage.removeItem('pos_ultimo_agregado');
+    }
+  }, [ultimoAgregado]);
+
+  useEffect(() => {
+    localStorage.setItem('pos_ventas_suspendidas', JSON.stringify(ventasSuspendidas));
+  }, [ventasSuspendidas]);
 
   const agregar = (producto) => {
     setCarrito(actual => {
@@ -68,6 +110,37 @@ export function useCarrito() {
     carrito.reduce((acc, item) => acc + item.precio * (Number(item.cantidad) || 0), 0)
   );
 
+  const suspenderVenta = () => {
+    if (carrito.length === 0) return false;
+    if (ventasSuspendidas.length >= 3) return false;
+
+    const nuevaSuspendida = {
+      id: Date.now().toString(),
+      referencia: `Turno ${ventasSuspendidas.length + 1}`,
+      carrito: [...carrito],
+      total: totalCarrito,
+      fecha: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setVentasSuspendidas([...ventasSuspendidas, nuevaSuspendida]);
+    vaciar();
+    return true;
+  };
+
+  const retomarVenta = (id) => {
+    const venta = ventasSuspendidas.find(v => v.id === id);
+    if (!venta) return false;
+
+    setCarrito(venta.carrito);
+    setUltimoAgregado(null);
+    setVentasSuspendidas(ventasSuspendidas.filter(v => v.id !== id));
+    return true;
+  };
+
+  const eliminarSuspendida = (id) => {
+    setVentasSuspendidas(ventasSuspendidas.filter(v => v.id !== id));
+  };
+
   return {
     carrito,
     ultimoAgregado,
@@ -78,5 +151,9 @@ export function useCarrito() {
     quitarItem,
     vaciar,
     totalCarrito,
+    ventasSuspendidas,
+    suspenderVenta,
+    retomarVenta,
+    eliminarSuspendida,
   };
 }
