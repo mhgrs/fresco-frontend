@@ -31,7 +31,8 @@ api.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    if (error.response?.status >= 500) {
+    // Disparar el banner global solo si la request no tiene la bandera de silencio
+    if (error.response?.status >= 500 && !error.config?._silenciarError500) {
       window.dispatchEvent(new CustomEvent('errorServidor', {
         detail: { status: error.response.status },
       }));
