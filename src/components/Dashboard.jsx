@@ -4,6 +4,7 @@ import { productosService } from '../services/productos';
 import { useClickOutside } from '../hooks/useClickOutside';
 import ModuleCard from './dashboard/ModuleCard';
 import AlertasDropdown from './dashboard/AlertasDropdown';
+import OnboardingChecklist from './dashboard/OnboardingChecklist';
 
 const MODULOS_VALIDOS = ['caja', 'inventario', 'administracion'];
 
@@ -170,11 +171,14 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
         {/* Grid principal */}
         {!submenuActivo ? (
+          <>
+          {isAdmin && <OnboardingChecklist />}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
             {isCajero    && <ModuleCard onClick={() => abrirSubmenu('caja')} titulo="Caja" descripcion="Punto de venta y cierre de turno." icono={IconoCaja} />}
             {isBodega    && <ModuleCard onClick={() => abrirSubmenu('inventario')} titulo="Inventario" descripcion="Catálogo de productos y stock." icono={IconoInventario} />}
             {(isSupervisor || isAdmin) && <ModuleCard onClick={() => abrirSubmenu('administracion')} titulo="Administración" descripcion="Reportes y gestión de equipo." icono={IconoAdmin} />}
           </div>
+          </>
 
         ) : submenuActivo === 'caja' ? (
           <div className="animate-fade-in ">
