@@ -328,34 +328,12 @@ function KPICard({ label, valor, color, sub }) {
   );
 }
 
-// ── Turno abierto ─────────────────────────────────────────────────────────────
-function TurnoAbierto({ turno, reporte, onRecargar, onSolicitarCierre }) {
-  const [modalMovimiento, setModalMovimiento] = useState(null); // 'ingreso' | 'retiro' | null
-  const [eliminando, setEliminando]           = useState(null);
-
-  const handleMovimientoOk = () => {
-    setModalMovimiento(null);
-    onRecargar();
-  };
-
-  const handleEliminar = async (id) => {
-    setEliminando(id);
-    try {
-      await ventasService.eliminarMovimiento(id);
-      onRecargar();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Error al eliminar.');
-    } finally {
-      setEliminando(null);
-    }
-  };
-
-  const movimientos = reporte?.movimientos ?? [];
-
+// ── Tab: Turno (KPIs + desglose + cerrar) ─────────────────────────────────────
+function TabTurno({ turno, reporte, onSolicitarCierre }) {
   return (
-    <>
+    <div id="reporte-imprimible" className="space-y-6">
       {/* Encabezado del turno */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-black bg-green-100 text-green-700 px-2.5 py-1 rounded-full uppercase tracking-wide">Turno abierto</span>
@@ -367,16 +345,6 @@ function TurnoAbierto({ turno, reporte, onRecargar, onSolicitarCierre }) {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setModalMovimiento('ingreso')}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-full transition-all active:scale-95">
-            + Ingreso
-          </button>
-          <button
-            onClick={() => setModalMovimiento('retiro')}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-full transition-all active:scale-95">
-            − Retiro
-          </button>
           <button
             onClick={() => window.print()}
             className="px-4 py-2 bg-white border border-gray-200 text-gray-600 text-xs font-bold rounded-full hover:bg-gray-50 transition-all flex items-center gap-1.5">
@@ -395,101 +363,195 @@ function TurnoAbierto({ turno, reporte, onRecargar, onSolicitarCierre }) {
       </div>
 
       {/* KPIs */}
-      <div id="reporte-imprimible" className="space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard color="yellow" label="Fondo apertura"    valor={clp(reporte?.fondo_apertura)}    sub="Efectivo inicial" />
-          <KPICard color="green"  label="Ventas totales"    valor={clp(reporte?.total_ventas)}       sub={`${reporte?.cantidad_transacciones ?? 0} transacciones`} />
-          <KPICard color="green"  label="Efectivo ventas"   valor={clp(reporte?.efectivo_ventas)}    sub="Solo pagos en efectivo" />
-          <KPICard color="blue"   label="Efectivo esperado" valor={clp(reporte?.efectivo_esperado)}  sub="Fondo + efectivo + movimientos" />
-        </div>
-
-        {(reporte?.total_ingresos_mov > 0 || reporte?.total_retiros_mov > 0) && (
-          <div className="grid grid-cols-2 gap-4">
-            <KPICard color="green"  label="Ingresos manuales" valor={clp(reporte?.total_ingresos_mov)} sub="Entradas no relacionadas a ventas" />
-            <KPICard color="red"    label="Retiros"            valor={clp(reporte?.total_retiros_mov)}  sub="Salidas de efectivo del turno" />
-          </div>
-        )}
-
-        {/* Desglose por método de pago */}
-        {reporte?.desglose?.length > 0 && (
-          <div>
-            <h3 className="text-base font-black text-gray-800 mb-3">Desglose por método de pago</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {reporte.desglose.map(item => (
-                <div key={item.metodo_pago}
-                  className="flex justify-between items-center p-4 bg-white/70 rounded-xl border border-white/80 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{METODO_ICONS[item.metodo_pago] ?? '💰'}</span>
-                    <span className="font-bold text-gray-700 text-sm capitalize">
-                      {item.metodo_pago.toLowerCase()}
-                    </span>
-                  </div>
-                  <span className="text-xl font-black text-gray-900">{clp(item.total_metodo)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {reporte?.desglose?.length === 0 && (
-          <div className="bg-gray-50 p-5 rounded-xl text-center text-gray-400 font-medium text-sm">
-            No hay ventas registradas en este turno todavía.
-          </div>
-        )}
-
-        {/* Movimientos del turno */}
-        {movimientos.length > 0 && (
-          <div>
-            <h3 className="text-base font-black text-gray-800 mb-3">Movimientos del turno</h3>
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-4 py-3 text-left">Hora</th>
-                    <th className="px-4 py-3 text-left">Tipo</th>
-                    <th className="px-4 py-3 text-left">Concepto</th>
-                    <th className="px-4 py-3 text-right">Monto</th>
-                    <th className="px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {movimientos.map(m => (
-                    <tr key={m.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-gray-400 tabular-nums">{m.hora}</td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs font-black px-2 py-0.5 rounded-full ${
-                          m.tipo === 'ingreso' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}>
-                          {m.tipo === 'ingreso' ? '↓ Ingreso' : '↑ Retiro'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {m.concepto}
-                        {m.descripcion && <span className="text-gray-400 ml-1 text-xs">— {m.descripcion}</span>}
-                      </td>
-                      <td className={`px-4 py-3 text-right font-black tabular-nums ${
-                        m.tipo === 'ingreso' ? 'text-green-700' : 'text-red-600'
-                      }`}>
-                        {m.tipo === 'ingreso' ? '+' : '−'}{clp(m.monto)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleEliminar(m.id)}
-                          disabled={eliminando === m.id}
-                          className="text-gray-300 hover:text-red-500 transition-colors text-xs disabled:opacity-40"
-                          title="Eliminar (requiere supervisor)"
-                        >
-                          ✕
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard color="yellow" label="Fondo apertura"    valor={clp(reporte?.fondo_apertura)}    sub="Efectivo inicial" />
+        <KPICard color="green"  label="Ventas totales"    valor={clp(reporte?.total_ventas)}       sub={`${reporte?.cantidad_transacciones ?? 0} transacciones`} />
+        <KPICard color="green"  label="Efectivo ventas"   valor={clp(reporte?.efectivo_ventas)}    sub="Solo pagos en efectivo" />
+        <KPICard color="blue"   label="Efectivo esperado" valor={clp(reporte?.efectivo_esperado)}  sub="Fondo + efectivo + movimientos" />
       </div>
+
+      {(reporte?.total_ingresos_mov > 0 || reporte?.total_retiros_mov > 0) && (
+        <div className="grid grid-cols-2 gap-4">
+          <KPICard color="green"  label="Ingresos manuales" valor={clp(reporte?.total_ingresos_mov)} sub="Entradas no relacionadas a ventas" />
+          <KPICard color="red"    label="Retiros"            valor={clp(reporte?.total_retiros_mov)}  sub="Salidas de efectivo del turno" />
+        </div>
+      )}
+
+      {/* Desglose por método de pago */}
+      {reporte?.desglose?.length > 0 && (
+        <div>
+          <h3 className="text-base font-black text-gray-800 mb-3">Desglose por método de pago</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {reporte.desglose.map(item => (
+              <div key={item.metodo_pago}
+                className="flex justify-between items-center p-4 bg-white/70 rounded-xl border border-white/80 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{METODO_ICONS[item.metodo_pago] ?? '💰'}</span>
+                  <span className="font-bold text-gray-700 text-sm capitalize">
+                    {item.metodo_pago.toLowerCase()}
+                  </span>
+                </div>
+                <span className="text-xl font-black text-gray-900">{clp(item.total_metodo)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {reporte?.desglose?.length === 0 && (
+        <div className="bg-gray-50 p-5 rounded-xl text-center text-gray-400 font-medium text-sm">
+          No hay ventas registradas en este turno todavía.
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Tab: Movimientos de Caja ──────────────────────────────────────────────────
+function TabMovimientos({ reporte, onRecargar }) {
+  const [modalMovimiento, setModalMovimiento] = useState(null); // 'ingreso' | 'retiro' | null
+  const [eliminando, setEliminando]           = useState(null);
+
+  const movimientos = reporte?.movimientos ?? [];
+  const totalIngresos = reporte?.total_ingresos_mov ?? 0;
+  const totalRetiros  = reporte?.total_retiros_mov  ?? 0;
+  const balance       = totalIngresos - totalRetiros;
+
+  const handleMovimientoOk = () => {
+    setModalMovimiento(null);
+    onRecargar();
+  };
+
+  const handleEliminar = async (id) => {
+    setEliminando(id);
+    try {
+      await ventasService.eliminarMovimiento(id);
+      onRecargar();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al eliminar.');
+    } finally {
+      setEliminando(null);
+    }
+  };
+
+  return (
+    <>
+      {/* Acciones principales */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <button
+          onClick={() => setModalMovimiento('ingreso')}
+          className="flex items-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full transition-all active:scale-95 shadow-sm">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+          </svg>
+          Registrar Ingreso
+        </button>
+        <button
+          onClick={() => setModalMovimiento('retiro')}
+          className="flex items-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full transition-all active:scale-95 shadow-sm">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 12H4" />
+          </svg>
+          Registrar Retiro
+        </button>
+      </div>
+
+      {/* Resumen de movimientos */}
+      {(totalIngresos > 0 || totalRetiros > 0) && (
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-green-50 border border-green-100 rounded-2xl p-4 text-center">
+            <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Total ingresos</p>
+            <p className="text-2xl font-black text-green-700">{clp(totalIngresos)}</p>
+          </div>
+          <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-center">
+            <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-1">Total retiros</p>
+            <p className="text-2xl font-black text-red-600">{clp(totalRetiros)}</p>
+          </div>
+          <div className={`rounded-2xl p-4 text-center border ${
+            balance >= 0
+              ? 'bg-blue-50 border-blue-100'
+              : 'bg-orange-50 border-orange-100'
+          }`}>
+            <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+              Balance
+            </p>
+            <p className={`text-2xl font-black ${balance >= 0 ? 'text-blue-700' : 'text-orange-600'}`}>
+              {balance >= 0 ? '+' : ''}{clp(balance)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Lista de movimientos */}
+      {movimientos.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+            <svg className="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-gray-400 font-semibold text-sm">No hay movimientos en este turno</p>
+          <p className="text-gray-300 text-xs mt-1">Usa los botones de arriba para registrar ingresos o retiros.</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              {movimientos.length} movimiento{movimientos.length !== 1 ? 's' : ''} en este turno
+            </p>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {movimientos.map(m => (
+              <div key={m.id} className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors">
+                {/* Ícono tipo */}
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  m.tipo === 'ingreso' ? 'bg-green-100' : 'bg-red-100'
+                }`}>
+                  <span className={`text-sm font-black ${m.tipo === 'ingreso' ? 'text-green-700' : 'text-red-600'}`}>
+                    {m.tipo === 'ingreso' ? '↓' : '↑'}
+                  </span>
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-full ${
+                      m.tipo === 'ingreso' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {m.tipo === 'ingreso' ? 'Ingreso' : 'Retiro'}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-700">{m.concepto}</span>
+                  </div>
+                  {m.descripcion && (
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{m.descripcion}</p>
+                  )}
+                  <p className="text-xs text-gray-300 mt-0.5">{m.hora}</p>
+                </div>
+
+                {/* Monto */}
+                <span className={`text-lg font-black tabular-nums ${
+                  m.tipo === 'ingreso' ? 'text-green-700' : 'text-red-600'
+                }`}>
+                  {m.tipo === 'ingreso' ? '+' : '−'}{clp(m.monto)}
+                </span>
+
+                {/* Eliminar */}
+                <button
+                  onClick={() => handleEliminar(m.id)}
+                  disabled={eliminando === m.id}
+                  className="p-1.5 text-gray-200 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 disabled:opacity-40 flex-shrink-0"
+                  title="Eliminar (requiere supervisor)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Modal movimiento */}
       {modalMovimiento && (
@@ -504,7 +566,7 @@ function TurnoAbierto({ turno, reporte, onRecargar, onSolicitarCierre }) {
 }
 
 // ── Historial de cierres ──────────────────────────────────────────────────────
-function Historial({ onVolver }) {
+function TabHistorial() {
   const [turnos, setTurnos]     = useState([]);
   const [cargando, setCargando] = useState(true);
 
@@ -517,75 +579,77 @@ function Historial({ onVolver }) {
 
   if (cargando) return <div className="p-8 text-center text-gray-400">Cargando historial...</div>;
 
-  return (
-    <div>
-      <div className="flex items-center gap-3 mb-5">
-        <button onClick={onVolver}
-          className="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+  if (turnos.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+          <svg className="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-        </button>
-        <h2 className="text-lg font-black text-gray-900">Historial de cierres</h2>
+        </div>
+        <p className="text-gray-400 font-semibold text-sm">No hay cierres registrados aún.</p>
       </div>
+    );
+  }
 
-      {turnos.length === 0 ? (
-        <div className="bg-gray-50 p-8 rounded-2xl text-center text-gray-400 font-medium">
-          No hay cierres registrados aún.
-        </div>
-      ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">
-              <tr>
-                <th className="px-4 py-3 text-left">Folio</th>
-                <th className="px-4 py-3 text-left">Cajero</th>
-                <th className="px-4 py-3 text-left">Apertura</th>
-                <th className="px-4 py-3 text-left">Cierre</th>
-                <th className="px-4 py-3 text-right">Fondo apertura</th>
-                <th className="px-4 py-3 text-right">Fondo cierre</th>
+  return (
+    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+      <table className="w-full text-sm">
+        <thead className="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">
+          <tr>
+            <th className="px-4 py-3 text-left">Folio</th>
+            <th className="px-4 py-3 text-left">Cajero</th>
+            <th className="px-4 py-3 text-left">Apertura</th>
+            <th className="px-4 py-3 text-left">Cierre</th>
+            <th className="px-4 py-3 text-right">Fondo apertura</th>
+            <th className="px-4 py-3 text-right">Fondo cierre</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-50">
+          {turnos.map(t => {
+            const diferencia = t.fondo_cierre != null
+              ? parseInt(t.fondo_cierre) - parseInt(t.fondo_apertura)
+              : null;
+            return (
+              <tr key={t.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-4 py-3 font-black text-gray-700">#{t.folio}</td>
+                <td className="px-4 py-3 text-gray-600">{t.cajero_nombre ?? '—'}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_apertura)}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_cierre)}</td>
+                <td className="px-4 py-3 text-right font-semibold">{clp(t.fondo_apertura)}</td>
+                <td className="px-4 py-3 text-right">
+                  {t.fondo_cierre != null ? (
+                    <span className={`font-black ${diferencia === 0 ? 'text-green-600' : Math.abs(diferencia) <= 500 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      {clp(t.fondo_cierre)}
+                    </span>
+                  ) : <span className="text-gray-300">—</span>}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {turnos.map(t => {
-                const diferencia = t.fondo_cierre != null
-                  ? parseInt(t.fondo_cierre) - parseInt(t.fondo_apertura)
-                  : null;
-                return (
-                  <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-black text-gray-700">#{t.folio}</td>
-                    <td className="px-4 py-3 text-gray-600">{t.cajero_nombre ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_apertura)}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_cierre)}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{clp(t.fondo_apertura)}</td>
-                    <td className="px-4 py-3 text-right">
-                      {t.fondo_cierre != null ? (
-                        <span className={`font-black ${diferencia === 0 ? 'text-green-600' : Math.abs(diferencia) <= 500 ? 'text-yellow-600' : 'text-red-600'}`}>
-                          {clp(t.fondo_cierre)}
-                        </span>
-                      ) : <span className="text-gray-300">—</span>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
+const TABS = [
+  { id: 'turno',       label: 'Turno' },
+  { id: 'movimientos', label: 'Movimientos' },
+  { id: 'historial',   label: 'Historial' },
+];
+
 export default function CierreCaja() {
-  // 'cargando' | 'sin_turno' | 'turno_abierto' | 'historial'
-  const [fase, setFase]         = useState('cargando');
-  const [turno, setTurno]       = useState(null);
-  const [reporte, setReporte]   = useState(null);
+  const [cargando, setCargando]       = useState(true);
+  const [turno, setTurno]             = useState(null);
+  const [reporte, setReporte]         = useState(null);
+  const [tabActiva, setTabActiva]     = useState('turno');
   const [modalCierre, setModalCierre] = useState(false);
 
   const cargarEstado = useCallback(async () => {
-    setFase('cargando');
+    setCargando(true);
     try {
       const [resTurno, resReporte] = await Promise.all([
         ventasService.turnoActivo(),
@@ -593,26 +657,26 @@ export default function CierreCaja() {
       ]);
       setTurno(resTurno.data);
       setReporte(resReporte.data);
-      setFase('turno_abierto');
     } catch (err) {
       if (err.response?.status === 404) {
-        // No hay turno activo → mostrar pantalla de apertura
+        setTurno(null);
         try {
           const resReporte = await ventasService.reporteZ();
           setReporte(resReporte.data);
         } catch { /* sin reporte previo, ok */ }
-        setFase('sin_turno');
       } else {
-        setFase('sin_turno');
+        setTurno(null);
       }
+    } finally {
+      setCargando(false);
     }
   }, []);
 
   useEffect(() => { cargarEstado(); }, [cargarEstado]);
 
-  const handleTurnoAbierto = (nuevoTurno) => {
-    setTurno(nuevoTurno);
+  const handleTurnoAbierto = () => {
     cargarEstado();
+    setTabActiva('turno');
   };
 
   const handleCierreConfirmado = () => {
@@ -620,13 +684,15 @@ export default function CierreCaja() {
     setTurno(null);
     setReporte(null);
     cargarEstado();
+    setTabActiva('turno');
   };
 
   // ── Skeleton ─────────────────────────────────────────────────────────────
-  if (fase === 'cargando') {
+  if (cargando) {
     return (
       <div className="p-6 max-w-4xl mx-auto space-y-6">
-        <div className="h-8 bg-gray-200 rounded-lg w-48 animate-pulse" />
+        <div className="h-8 bg-gray-200 rounded-lg w-64 animate-pulse" />
+        <div className="h-10 bg-gray-100 rounded-2xl w-72 animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1,2,3,4].map(i => (
             <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
@@ -637,54 +703,66 @@ export default function CierreCaja() {
     );
   }
 
-  // ── Historial ─────────────────────────────────────────────────────────────
-  if (fase === 'historial') {
-    return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <Historial onVolver={() => setFase(turno ? 'turno_abierto' : 'sin_turno')} />
-      </div>
-    );
-  }
+  const hayTurno = !!turno;
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto min-h-full bg-[var(--color-fondo)] transition-colors duration-500">
 
-      {/* Título y navegación */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-800 tracking-tight">Cierre de Caja</h1>
-          {reporte?.fecha && (
-            <p className="text-gray-400 text-sm font-medium mt-0.5">
-              {reporte.fecha}{reporte.cajero ? ` · ${reporte.cajero}` : ''}
-            </p>
-          )}
-        </div>
-        <button
-          onClick={() => setFase('historial')}
-          className="text-xs font-bold text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1.5">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Historial de cierres
-        </button>
-      </div>
-
-      {/* Contenido según fase */}
-      <div className="bg-[var(--color-tarjeta)] backdrop-blur-xl border border-white/60 rounded-3xl shadow-xl p-5 sm:p-7">
-        {fase === 'sin_turno' && (
-          <SinTurno onTurnoAbierto={handleTurnoAbierto} />
-        )}
-
-        {fase === 'turno_abierto' && turno && (
-          <TurnoAbierto
-            turno={turno}
-            reporte={reporte}
-            onRecargar={cargarEstado}
-            onSolicitarCierre={() => setModalCierre(true)}
-          />
+      {/* Título */}
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-800 tracking-tight">Apertura y Cierre de Caja</h1>
+        {reporte?.fecha && (
+          <p className="text-gray-400 text-sm font-medium mt-0.5">
+            {reporte.fecha}{reporte.cajero ? ` · ${reporte.cajero}` : ''}
+          </p>
         )}
       </div>
+
+      {/* Sin turno activo: mostrar pantalla de apertura directamente */}
+      {!hayTurno ? (
+        <SinTurno onTurnoAbierto={handleTurnoAbierto} />
+      ) : (
+        <>
+          {/* Tabs */}
+          <div className="flex gap-1 bg-gray-100 rounded-2xl p-1 mb-6 w-fit">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setTabActiva(tab.id)}
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                  tabActiva === tab.id
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Contenido del tab */}
+          <div className="bg-[var(--color-tarjeta)] backdrop-blur-xl border border-white/60 rounded-3xl shadow-xl p-5 sm:p-7">
+            {tabActiva === 'turno' && (
+              <TabTurno
+                turno={turno}
+                reporte={reporte}
+                onSolicitarCierre={() => setModalCierre(true)}
+              />
+            )}
+
+            {tabActiva === 'movimientos' && (
+              <TabMovimientos
+                reporte={reporte}
+                onRecargar={cargarEstado}
+              />
+            )}
+
+            {tabActiva === 'historial' && (
+              <TabHistorial />
+            )}
+          </div>
+        </>
+      )}
 
       {/* Modal cierre */}
       {modalCierre && turno && (

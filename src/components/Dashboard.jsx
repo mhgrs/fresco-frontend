@@ -186,7 +186,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
               {isCajero && <ModuleCard to="/pos"         titulo="Punto de Venta" descripcion="Registrar y procesar ventas rápidas."     icono={IconoPOS} />}
-              {isCajero && <ModuleCard to="/cierre-caja" titulo="Cierre de Caja" descripcion="Cuadratura y reporte de turno (Z)."        icono={IconoCierre} />}
+              {isCajero && <ModuleCard to="/cierre-caja" titulo="Apertura y Cierre de Caja" descripcion="Gestión de turno, movimientos y cuadratura Z." icono={IconoCierre} />}
             </div>
           </div>
 

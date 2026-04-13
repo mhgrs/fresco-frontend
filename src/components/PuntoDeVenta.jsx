@@ -528,7 +528,7 @@ export default function PuntoDeVenta() {
                 </div>
                 <h2 className="text-2xl font-black text-gray-900 mb-2">Caja cerrada</h2>
                 <p className="text-gray-500 text-sm mb-6 font-medium">
-                  No hay un turno abierto. Abre un turno en Cierre de Caja para comenzar a vender.
+                  No hay un turno abierto. Abre un turno en Apertura y Cierre de Caja para comenzar a vender.
                 </p>
                 <button
                   onClick={() => navigate('/cierre-caja')}
