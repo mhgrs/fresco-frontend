@@ -9,11 +9,10 @@ import GestorCategorias from '../components/GestorCategorias';
 import AlertasInventario from '../components/AlertasInventario';
 import LandingPage from '../components/LandingPage';
 import OnboardingEmpresa from '../components/OnboardingEmpresa';
-import GestionEmpresa from '../components/GestionEmpresa';
+import Configuracion from '../components/Configuracion';
 import MovimientosInventario from '../components/MovimientosInventario';
 import ModuleLayout from '../components/layout/ModuleLayout';
 import AdminRedirect from '../components/layout/AdminRedirect';
-import PortalSuscripcion from '../components/suscripcion/PortalSuscripcion';
 
 /**
  * Rutas para usuarios autenticados (con o sin empresa asignada).
@@ -72,12 +71,14 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
       {isBodega && <Route path="/alertas"                element={wrap(<AlertasInventario />, '/dashboard')} />}
 
       {/* Administración */}
-      {isSupervisor && <Route path="/categorias"   element={wrap(<GestorCategorias usuario={usuario} />, '/inventario')} />}
-      {isSupervisor && <Route path="/reportes"     element={wrap(<Reportes />, '/dashboard?module=administracion')} />}
-      {isAdmin      && <Route path="/configuracion" element={wrap(<GestionEmpresa usuario={usuario} />, '/dashboard?module=administracion')} />}
+      {isSupervisor && <Route path="/categorias" element={wrap(<GestorCategorias usuario={usuario} />, '/inventario')} />}
+      {isSupervisor && <Route path="/reportes"   element={wrap(<Reportes />, '/dashboard?module=administracion')} />}
 
-      {/* Suscripción — accesible para cualquier usuario autenticado */}
-      <Route path="/suscripcion" element={wrap(<PortalSuscripcion />, '/dashboard')} />
+      {/* Configuración — accesible para todos los usuarios autenticados */}
+      <Route path="/configuracion" element={wrap(<Configuracion usuario={usuario} />, '/dashboard')} />
+
+      {/* Suscripción — redirige a /configuracion?tab=pagos */}
+      <Route path="/suscripcion" element={wrap(<Configuracion usuario={usuario} />, '/dashboard')} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
