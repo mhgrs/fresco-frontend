@@ -17,6 +17,15 @@ import MovimientosCaja from '../components/MovimientosCaja';
 
 
 /**
+ * Guarda de plan: si el flag del plan es false redirige al portal de pagos.
+ * Uso: <PlanGuard permite={usuario.plan?.tiene_reportes}><Reportes /></PlanGuard>
+ */
+function PlanGuard({ permite, children }) {
+  if (!permite) return <Navigate to="/configuracion?tab=pagos" replace />;
+  return children;
+}
+
+/**
  * Rutas para usuarios autenticados (con o sin empresa asignada).
  *
  * Props:
@@ -63,9 +72,15 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
       <Route path="/fresco-admin/*" element={<AdminRedirect />} />
 
       {/* Caja */}
-      {isCajero && <Route path="/pos"        element={wrap(<PuntoDeVenta />,  '/dashboard?module=caja')} />}
-      {isCajero && <Route path="/cierre-caja" element={wrap(<CierreCaja />,   '/dashboard?module=caja')} />}
-      {isCajero && <Route path="/movimientos-caja" element={wrap(<MovimientosCaja />, '/dashboard?module=caja')} />}
+      {isCajero && <Route path="/pos" element={wrap(<PuntoDeVenta />, '/dashboard?module=caja')} />}
+      {isCajero && <Route path="/cierre-caja" element={wrap(
+        <PlanGuard permite={usuario.plan?.tiene_cierre_caja}>
+          <CierreCaja />
+        </PlanGuard>, '/dashboard?module=caja')} />}
+      {isCajero && <Route path="/movimientos-caja" element={wrap(
+        <PlanGuard permite={usuario.plan?.tiene_cierre_caja}>
+          <MovimientosCaja />
+        </PlanGuard>, '/dashboard?module=caja')} />}
 
       {/* Inventario */}
       {isBodega && <Route path="/inventario"             element={wrap(<CatalogoProductos usuario={usuario} />, '/dashboard?module=inventario')} />}
@@ -76,7 +91,10 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
 
       {/* Administración */}
       {isSupervisor && <Route path="/categorias" element={wrap(<GestorCategorias usuario={usuario} />, '/inventario')} />}
-      {isSupervisor && <Route path="/reportes"   element={wrap(<Reportes />, '/dashboard?module=administracion')} />}
+      {isSupervisor && <Route path="/reportes" element={wrap(
+        <PlanGuard permite={usuario.plan?.tiene_reportes}>
+          <Reportes />
+        </PlanGuard>, '/dashboard?module=administracion')} />}
 
       {/* Configuración — accesible para todos los usuarios autenticados */}
       <Route path="/configuracion" element={wrap(<Configuracion usuario={usuario} />, '/dashboard')} />

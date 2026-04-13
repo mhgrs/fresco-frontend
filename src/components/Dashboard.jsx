@@ -186,9 +186,15 @@ export default function Dashboard({ usuario, cerrarSesion }) {
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-              {isCajero && <ModuleCard to="/pos"         titulo="Punto de Venta" descripcion="Registrar y procesar ventas rápidas."     icono={IconoPOS} />}
-              {isCajero && <ModuleCard to="/cierre-caja" titulo="Apertura y Cierre de Caja" descripcion="Gestión de turno, movimientos y cuadratura Z." icono={IconoCierre} />}
-              {isCajero && <ModuleCard to="/movimientos-caja" titulo="Movimientos de Caja" descripcion="Registrar ingresos y retiros de efectivo." icono={IconoMovCaja} />}
+              {isCajero && <ModuleCard to="/pos" titulo="Punto de Venta" descripcion="Registrar y procesar ventas rápidas." icono={IconoPOS} />}
+              {isCajero && (usuario.plan?.tiene_cierre_caja
+                ? <ModuleCard to="/cierre-caja" titulo="Apertura y Cierre de Caja" descripcion="Gestión de turno, movimientos y cuadratura Z." icono={IconoCierre} />
+                : <ModuleCard to="/configuracion?tab=pagos" titulo="Apertura y Cierre de Caja" descripcion="Disponible desde el plan Básico." icono={IconoCierre} bloqueado />
+              )}
+              {isCajero && (usuario.plan?.tiene_cierre_caja
+                ? <ModuleCard to="/movimientos-caja" titulo="Movimientos de Caja" descripcion="Registrar ingresos y retiros de efectivo." icono={IconoMovCaja} />
+                : <ModuleCard to="/configuracion?tab=pagos" titulo="Movimientos de Caja" descripcion="Disponible desde el plan Básico." icono={IconoMovCaja} bloqueado />
+              )}
             </div>
           </div>
 
@@ -217,8 +223,11 @@ export default function Dashboard({ usuario, cerrarSesion }) {
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-              {isSupervisor && <ModuleCard to="/reportes"      titulo="Reportes del Negocio" descripcion="Estadísticas, ventas e inventario." icono={IconoReportes} />}
-              {isAdmin      && <ModuleCard to="/configuracion?tab=equipo" titulo="Gestión de Equipo" descripcion="Gestiona usuarios y roles." icono={IconoEquipo} />}
+              {isSupervisor && (usuario.plan?.tiene_reportes
+                ? <ModuleCard to="/reportes" titulo="Reportes del Negocio" descripcion="Estadísticas, ventas e inventario." icono={IconoReportes} />
+                : <ModuleCard to="/configuracion?tab=pagos" titulo="Reportes del Negocio" descripcion="Disponible desde el plan Básico." icono={IconoReportes} bloqueado />
+              )}
+              {isAdmin && <ModuleCard to="/configuracion?tab=equipo" titulo="Gestión de Equipo" descripcion="Gestiona usuarios y roles." icono={IconoEquipo} />}
             </div>
           </div>
         ) : null}
