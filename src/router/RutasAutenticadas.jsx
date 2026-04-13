@@ -13,6 +13,7 @@ import GestionEmpresa from '../components/GestionEmpresa';
 import MovimientosInventario from '../components/MovimientosInventario';
 import ModuleLayout from '../components/layout/ModuleLayout';
 import AdminRedirect from '../components/layout/AdminRedirect';
+import PortalSuscripcion from '../components/suscripcion/PortalSuscripcion';
 
 /**
  * Rutas para usuarios autenticados (con o sin empresa asignada).
@@ -41,8 +42,8 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
   const isCajero     = isSupervisor || roles.includes('CAJERO');
   const isBodega     = isCajero || roles.includes('BODEGA');
 
-  const wrap = (child) => (
-    <ModuleLayout isOnline={isOnline} sincronizando={sincronizando} usuario={usuario}>
+  const wrap = (child, fallback = '/dashboard') => (
+    <ModuleLayout isOnline={isOnline} sincronizando={sincronizando} usuario={usuario} fallback={fallback}>
       {child}
     </ModuleLayout>
   );
@@ -59,16 +60,24 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
 
       <Route path="/fresco-admin/*" element={<AdminRedirect />} />
 
-      {isCajero    && <Route path="/pos"                    element={wrap(<PuntoDeVenta />)} />}
-      {isBodega    && <Route path="/inventario"             element={wrap(<CatalogoProductos usuario={usuario} />)} />}
-      {isBodega    && <Route path="/inventario/nuevo"       element={wrap(<FormularioProducto usuario={usuario} />)} />}
-      {isBodega    && <Route path="/inventario/editar/:id"  element={wrap(<FormularioProducto usuario={usuario} />)} />}
-      {isBodega    && <Route path="/inventario/movimientos" element={wrap(<MovimientosInventario usuario={usuario} />)} />}
-      {isSupervisor && <Route path="/categorias"            element={wrap(<GestorCategorias usuario={usuario} />)} />}
-      {isSupervisor && <Route path="/reportes"              element={wrap(<Reportes />)} />}
-      {isCajero    && <Route path="/cierre-caja"            element={wrap(<CierreCaja />)} />}
-      {isBodega    && <Route path="/alertas"                element={wrap(<AlertasInventario />)} />}
-      {isAdmin     && <Route path="/configuracion"          element={wrap(<GestionEmpresa usuario={usuario} />)} />}
+      {/* Caja */}
+      {isCajero && <Route path="/pos"        element={wrap(<PuntoDeVenta />,  '/dashboard?module=caja')} />}
+      {isCajero && <Route path="/cierre-caja" element={wrap(<CierreCaja />,   '/dashboard?module=caja')} />}
+
+      {/* Inventario */}
+      {isBodega && <Route path="/inventario"             element={wrap(<CatalogoProductos usuario={usuario} />, '/dashboard?module=inventario')} />}
+      {isBodega && <Route path="/inventario/nuevo"       element={wrap(<FormularioProducto usuario={usuario} />, '/inventario')} />}
+      {isBodega && <Route path="/inventario/editar/:id"  element={wrap(<FormularioProducto usuario={usuario} />, '/inventario')} />}
+      {isBodega && <Route path="/inventario/movimientos" element={wrap(<MovimientosInventario usuario={usuario} />, '/dashboard?module=inventario')} />}
+      {isBodega && <Route path="/alertas"                element={wrap(<AlertasInventario />, '/dashboard')} />}
+
+      {/* Administración */}
+      {isSupervisor && <Route path="/categorias"   element={wrap(<GestorCategorias usuario={usuario} />, '/inventario')} />}
+      {isSupervisor && <Route path="/reportes"     element={wrap(<Reportes />, '/dashboard?module=administracion')} />}
+      {isAdmin      && <Route path="/configuracion" element={wrap(<GestionEmpresa usuario={usuario} />, '/dashboard?module=administracion')} />}
+
+      {/* Suscripción — accesible para cualquier usuario autenticado */}
+      <Route path="/suscripcion" element={wrap(<PortalSuscripcion />, '/dashboard')} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

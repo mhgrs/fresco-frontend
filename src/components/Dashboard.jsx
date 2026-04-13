@@ -1,15 +1,26 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { productosService } from '../services/productos';
 import { useClickOutside } from '../hooks/useClickOutside';
 import ModuleCard from './dashboard/ModuleCard';
 import AlertasDropdown from './dashboard/AlertasDropdown';
 
+const MODULOS_VALIDOS = ['caja', 'inventario', 'administracion'];
+
 export default function Dashboard({ usuario, cerrarSesion }) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [alertas, setAlertas] = useState([]);
   const [mostrarAjustes, setMostrarAjustes] = useState(false);
   const ajustesRef = useRef(null);
-  const [submenuActivo, setSubmenuActivo] = useState(null);
+
+  // El submenu activo se sincroniza con el parámetro ?module= de la URL.
+  // Esto permite que navigate(-1) desde cualquier módulo restaure el submenu correcto.
+  const moduloParam = searchParams.get('module');
+  const submenuActivo = MODULOS_VALIDOS.includes(moduloParam) ? moduloParam : null;
+
+  const abrirSubmenu = (modulo) => navigate(`/dashboard?module=${modulo}`);
+  const cerrarSubmenu = () => navigate('/dashboard');
 
   useEffect(() => {
     document.title = "Fresco";
@@ -55,7 +66,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   const botonVolver = (
     <div className="flex items-center mb-6 gap-4 relative z-20">
       <button
-        onClick={() => setSubmenuActivo(null)}
+        onClick={cerrarSubmenu}
         className="p-3 bg-white/80 hover:bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 transition-all flex items-center justify-center active:scale-95"
         title="Volver al inicio"
       >
@@ -105,6 +116,16 @@ export default function Dashboard({ usuario, cerrarSesion }) {
               {mostrarAjustes && (
                 <div className="absolute right-0 mt-3 w-48 sm:w-56 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform origin-top-right transition-all z-50">
                   <div className="p-2">
+                    <Link
+                      to="/suscripcion"
+                      onClick={() => setMostrarAjustes(false)}
+                      className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      Mi Suscripción
+                    </Link>
                     <button
                       onClick={cerrarSesion}
                       className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center gap-3 transition-colors"
@@ -141,9 +162,9 @@ export default function Dashboard({ usuario, cerrarSesion }) {
         {/* Grid principal */}
         {!submenuActivo ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-            {isCajero    && <ModuleCard onClick={() => setSubmenuActivo('caja')} titulo="Caja" descripcion="Punto de venta y cierre de turno." icono={IconoCaja} />}
-            {isBodega    && <ModuleCard onClick={() => setSubmenuActivo('inventario')} titulo="Inventario" descripcion="Catálogo de productos y stock." icono={IconoInventario} />}
-            {(isSupervisor || isAdmin) && <ModuleCard onClick={() => setSubmenuActivo('administracion')} titulo="Administración" descripcion="Reportes y gestión de equipo." icono={IconoAdmin} />}
+            {isCajero    && <ModuleCard onClick={() => abrirSubmenu('caja')} titulo="Caja" descripcion="Punto de venta y cierre de turno." icono={IconoCaja} />}
+            {isBodega    && <ModuleCard onClick={() => abrirSubmenu('inventario')} titulo="Inventario" descripcion="Catálogo de productos y stock." icono={IconoInventario} />}
+            {(isSupervisor || isAdmin) && <ModuleCard onClick={() => abrirSubmenu('administracion')} titulo="Administración" descripcion="Reportes y gestión de equipo." icono={IconoAdmin} />}
           </div>
 
         ) : submenuActivo === 'caja' ? (

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import BotonVolver from './BotonVolver';
 
 /**
  * Layout de módulo: header con nombre de empresa + botón volver al dashboard.
@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
  *   isOnline     — boolean (default true)
  *   sincronizando — boolean (default false)
  */
-export default function ModuleLayout({ children, isOnline = true, sincronizando = false, usuario }) {
+export default function ModuleLayout({ children, isOnline = true, sincronizando = false, usuario, fallback = '/dashboard' }) {
   useEffect(() => {
     document.title = "Fresco";
   }, []);
@@ -45,15 +45,7 @@ export default function ModuleLayout({ children, isOnline = true, sincronizando 
             <div className="hidden sm:flex items-center bg-[var(--color-tarjeta)] backdrop-blur-md px-5 py-2.5 rounded-full shadow-sm border border-white/60">
               <span className="text-sm font-bold text-gray-700">{usuario?.empresa_nombre || 'Mi Empresa'}</span>
             </div>
-            <Link
-              to="/dashboard"
-              className="p-3 rounded-full backdrop-blur-md border shadow-sm transition-all bg-[var(--color-tarjeta)] border-white/60 text-gray-600 hover:bg-white hover:text-gray-800 flex items-center justify-center active:scale-95"
-              title="Volver al Dashboard"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </Link>
+            <BotonVolver title="Volver" fallback={fallback} />
           </div>
         </div>
       </header>

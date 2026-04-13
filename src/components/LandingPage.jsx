@@ -1,44 +1,133 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+const PLANES = [
+  {
+    nombre: 'Gratis',
+    precio_mensual: 0,
+    precio_anual: 0,
+    descripcion: 'Para conocer Fresco sin compromisos.',
+    productos: 10,
+    usuarios: 1,
+    caracteristicas: [
+      'Punto de venta básico',
+      'Hasta 10 productos activos',
+      '1 usuario',
+      'Control de stock',
+    ],
+    bloqueadas: ['Reportes', 'Cierre de Caja', 'Alertas de stock'],
+    cta: 'Comenzar gratis',
+    ctaLink: '/registro',
+    destacado: false,
+  },
+  {
+    nombre: 'Básico',
+    precio_mensual: 12000,
+    precio_anual: 132480,
+    descripcion: 'Ideal para almacenes y minimarkets pequeños.',
+    productos: 800,
+    usuarios: 4,
+    caracteristicas: [
+      'Todo lo del plan Gratis',
+      'Hasta 800 productos',
+      '4 usuarios',
+      'Reportes del negocio',
+      'Cierre de Caja (turno Z)',
+      'Alertas de stock bajo',
+    ],
+    bloqueadas: [],
+    cta: 'Empezar ahora',
+    ctaLink: '/registro',
+    destacado: false,
+  },
+  {
+    nombre: 'Pro',
+    precio_mensual: 15000,
+    precio_anual: 165600,
+    descripcion: 'Para negocios en crecimiento con más equipo.',
+    productos: 1200,
+    usuarios: 6,
+    caracteristicas: [
+      'Todo lo del plan Básico',
+      'Hasta 1.200 productos',
+      '6 usuarios',
+      'Catálogo maestro global',
+      'Movimientos de inventario',
+      'Soporte prioritario',
+    ],
+    bloqueadas: [],
+    cta: 'Empezar ahora',
+    ctaLink: '/registro',
+    destacado: true,
+  },
+  {
+    nombre: 'Empresa',
+    precio_mensual: 23000,
+    precio_anual: 253920,
+    descripcion: 'Para equipos grandes y operaciones multi-área.',
+    productos: 2000,
+    usuarios: 10,
+    caracteristicas: [
+      'Todo lo del plan Pro',
+      'Hasta 2.000 productos',
+      '10 usuarios',
+      'Roles avanzados (ADMIN, SUPERVISOR, CAJERO, BODEGA)',
+      'Acceso a API',
+      'Soporte dedicado',
+    ],
+    bloqueadas: [],
+    cta: 'Contactar ventas',
+    ctaLink: '/registro',
+    destacado: false,
+  },
+];
+
+function formatPrecio(n) {
+  return n === 0 ? 'Gratis' : `$${n.toLocaleString('es-CL')}`;
+}
+
 export default function LandingPage({ usuario }) {
+  const [anual, setAnual] = useState(false);
+
   useEffect(() => {
-    document.title = "Fresco - Sistema de Ventas Moderno";
+    document.title = 'Fresco — Sistema POS para tu negocio';
   }, []);
 
   return (
     <div className="min-h-screen bg-[var(--color-fondo)] text-gray-800 font-sans selection:bg-[#91cf5b] selection:text-white flex flex-col transition-colors duration-500">
-      
-      {/* Header / Barra Superior */}
+
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-[var(--color-fondo)]/80 backdrop-blur-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          
-          {/* Izquierda: Logo */}
-          <div className="text-3xl font-black text-[#91cf5b] tracking-tighter">
-            Fresco
-          </div>
-          
-          {/* Centro: Links de Navegación */}
+          <div className="text-3xl font-black text-[#91cf5b] tracking-tighter">Fresco</div>
+
           <nav className="hidden md:flex space-x-8 text-sm font-bold text-gray-600">
-            <a href="#productos" className="hover:text-[#91cf5b] transition-colors">Productos</a>
-            <a href="#clientes" className="hover:text-[#91cf5b] transition-colors">Clientes</a>
-            <a href="#documentacion" className="hover:text-[#91cf5b] transition-colors">Documentación</a>
-            <a href="#nosotros" className="hover:text-[#91cf5b] transition-colors">Nosotros</a>
+            <a href="#caracteristicas" className="hover:text-[#91cf5b] transition-colors">Características</a>
+            <a href="#precios"         className="hover:text-[#91cf5b] transition-colors">Precios</a>
+            <a href="#faq"             className="hover:text-[#91cf5b] transition-colors">FAQ</a>
           </nav>
 
-          {/* Derecha: Botón de Acción Dinámico */}
           <div>
             {usuario ? (
               <div className="flex items-center gap-4">
-                <span className="text-sm font-bold text-gray-600 hidden sm:block">Hola, {usuario.nombre || usuario.username}</span>
-                <Link to="/dashboard" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-6 py-2 rounded-full font-bold shadow-md transition-all active:scale-95 inline-block">
+                <span className="text-sm font-bold text-gray-600 hidden sm:block">
+                  Hola, {usuario.nombre || usuario.username}
+                </span>
+                <Link to="/dashboard"
+                  className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-6 py-2 rounded-full font-bold shadow-md transition-all active:scale-95">
                   Ir al Dashboard
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-3 sm:gap-4">
-                <Link to="/fresco-login" className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">Iniciar Sesión</Link>
-                <Link to="/registro" className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95 inline-block">Crear Cuenta</Link>
+              <div className="flex items-center gap-3">
+                <Link to="/fresco-login"
+                  className="text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                  Iniciar Sesión
+                </Link>
+                <Link to="/registro"
+                  className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-5 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95">
+                  Comenzar gratis
+                </Link>
               </div>
             )}
           </div>
@@ -46,134 +135,341 @@ export default function LandingPage({ usuario }) {
       </header>
 
       <main className="flex-1">
-        
-        {/* Hero Section - Énfasis en la compañía */}
+
+        {/* ── Hero ───────────────────────────────────────────────────────── */}
         <section className="py-24 px-6 text-center max-w-5xl mx-auto">
+          <span className="inline-block bg-[#91cf5b]/15 text-[#5a9e2f] text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
+            Sistema POS para comercios chilenos
+          </span>
           <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight leading-tight mb-6">
-            El sistema de ventas <br className="hidden md:block" /> 
-            <span className="text-[#91cf5b]">Fresco</span> y moderno.
+            Vende más,<br className="hidden md:block" />
+            <span className="text-[#91cf5b]"> gestiona menos.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-500 font-medium max-w-3xl mx-auto mb-10">
-            Lleva la gestión de tu inventario y punto de venta al siguiente nivel. Diseñado para ser rápido, minimalista y completamente seguro.
+            Punto de venta, inventario y reportes en una sola aplicación. Sin instalaciones, desde cualquier dispositivo. Empieza gratis hoy.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Link to={usuario ? "/dashboard" : "/registro"} className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all active:scale-95">
-              Comenzar a vender
+            <Link to={usuario ? '/dashboard' : '/registro'}
+              className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all active:scale-95">
+              Empezar gratis — sin tarjeta
             </Link>
-            <a href="#caracteristicas" className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg shadow-sm transition-all active:scale-95">
-              Conoce más
+            <a href="#precios"
+              className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg shadow-sm transition-all active:scale-95">
+              Ver planes
             </a>
           </div>
+          <p className="mt-5 text-xs text-gray-400 font-medium">
+            Plan Gratis permanente · Sin compromisos · Actualiza cuando quieras
+          </p>
         </section>
 
-        {/* Clientes Section */}
-        <section id="clientes" className="py-16 bg-white/60 border-y border-gray-200">
+        {/* ── Clientes ───────────────────────────────────────────────────── */}
+        <section className="py-12 bg-white/60 border-y border-gray-200">
           <div className="max-w-5xl mx-auto px-6 text-center">
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-8">Empresas que confían en nosotros</p>
-            <div className="flex justify-center items-center opacity-70 hover:opacity-100 transition-opacity duration-300">
-              <span className="text-3xl font-black text-gray-800 tracking-tighter">Raíces de Numpay</span>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">
+              Negocios que confían en Fresco
+            </p>
+            <div className="flex justify-center items-center gap-12 flex-wrap opacity-60">
+              <span className="text-2xl font-black text-gray-700 tracking-tighter">Raíces de Numpay</span>
             </div>
           </div>
         </section>
 
-        {/* Características PWA */}
+        {/* ── Características ────────────────────────────────────────────── */}
         <section id="caracteristicas" className="py-24 px-6 max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
-            <div className="md:w-1/2">
-              <h2 className="text-3xl md:text-5xl font-black text-gray-900 leading-tight mb-6">
-                Lleva tu negocio en el bolsillo.
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
+              Todo lo que tu negocio necesita
+            </h2>
+            <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+              Sin módulos de pago extra. Sin letra chica. Todo incluido según tu plan.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icono: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                ),
+                titulo: 'Punto de Venta',
+                texto: 'Cobra con efectivo, tarjeta o transferencia. Escanea barcodes, aplica descuentos y emite el comprobante en segundos.',
+              },
+              {
+                icono: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                ),
+                titulo: 'Control de Inventario',
+                texto: 'Conoce tu stock en tiempo real. Alertas automáticas cuando un producto llega al mínimo. Ingresos y retiros con trazabilidad completa.',
+              },
+              {
+                icono: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                ),
+                titulo: 'Reportes y Cierre de Caja',
+                texto: 'Ventas por período, productos más vendidos y cuadratura de turno (Z). Toma decisiones con datos reales de tu negocio.',
+              },
+              {
+                icono: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                ),
+                titulo: 'Funciona en cualquier dispositivo',
+                texto: 'Aplicación Web Progresiva (PWA): instálala en tu celular, tablet o PC sin pasar por la App Store. Actualizaciones automáticas.',
+              },
+              {
+                icono: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                ),
+                titulo: 'Multi-usuario con roles',
+                texto: 'Asigna roles de ADMIN, SUPERVISOR, CAJERO o BODEGA. Cada persona accede solo a lo que necesita para operar.',
+              },
+              {
+                icono: (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                  </svg>
+                ),
+                titulo: 'Modo Offline',
+                texto: 'Sin internet? Sin problema. Fresco sigue operando y sincroniza las ventas automáticamente cuando recuperas la conexión.',
+              },
+            ].map((f) => (
+              <div key={f.titulo}
+                className="bg-[var(--color-tarjeta)] backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 bg-[#91cf5b]/15 text-[#5a9e2f] rounded-xl flex items-center justify-center mb-4">
+                  {f.icono}
+                </div>
+                <h3 className="font-black text-gray-900 text-lg mb-2">{f.titulo}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{f.texto}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Precios ────────────────────────────────────────────────────── */}
+        <section id="precios" className="py-24 px-6 bg-white/50 border-y border-gray-200">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
+                Planes simples y transparentes
               </h2>
-              <p className="text-lg text-gray-600 mb-6">
-                Fresco no es solo una página web, es una <strong>Aplicación Web Progresiva (PWA)</strong>. Esto significa que se adapta perfectamente a cualquier dispositivo, ofreciendo una experiencia nativa sin instalaciones complicadas.
+              <p className="text-lg text-gray-500 mb-8">
+                Precios en CLP. Sin costos ocultos. Cancela cuando quieras.
               </p>
-              <ul className="space-y-5 mt-8">
-                <li className="flex items-start">
-                  <div className="flex-shrink-0 bg-[#91cf5b]/20 text-[#7ab848] p-2 rounded-full mr-4">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900">Adaptabilidad Total</h4>
-                    <p className="text-sm text-gray-500 mt-1">Úsalo en tu computadora, tablet o teléfono móvil. Se ajusta a cualquier tamaño de pantalla de manera natural.</p>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <div className="flex-shrink-0 bg-[#91cf5b]/20 text-[#7ab848] p-2 rounded-full mr-4">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900">Offline First</h4>
-                    <p className="text-sm text-gray-500 mt-1">Sigue registrando ventas y agregando productos incluso si pierdes tu conexión a internet temporalmente.</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-            
-            {/* Decoración Visual Abstracta */}
-            <div className="md:w-1/2 w-full">
-              <div className="bg-[var(--color-tarjeta)] backdrop-blur-sm border border-gray-200 p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#91cf5b]/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -ml-10 -mb-10"></div>
-                
-                <div className="relative bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex items-center justify-between">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg"></div>
-                  <div className="w-32 h-3 bg-gray-200 rounded-full"></div>
-                  <div className="w-16 h-6 bg-[#91cf5b] rounded-full"></div>
-                </div>
-                <div className="relative bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center justify-between">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg"></div>
-                  <div className="w-24 h-3 bg-gray-200 rounded-full"></div>
-                  <div className="w-16 h-6 bg-gray-200 rounded-full"></div>
-                </div>
+
+              {/* Toggle mensual / anual */}
+              <div className="inline-flex items-center gap-3 bg-gray-100 rounded-full p-1">
+                <button
+                  onClick={() => setAnual(false)}
+                  className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${!anual ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+                  Mensual
+                </button>
+                <button
+                  onClick={() => setAnual(true)}
+                  className={`px-5 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${anual ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
+                  Anual
+                  <span className="bg-[#91cf5b] text-white text-[10px] font-black px-2 py-0.5 rounded-full">−8%</span>
+                </button>
               </div>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {PLANES.map((plan) => (
+                <div key={plan.nombre}
+                  className={`relative rounded-2xl p-6 flex flex-col border transition-all ${
+                    plan.destacado
+                      ? 'bg-gray-900 text-white border-gray-900 shadow-2xl scale-105'
+                      : 'bg-[var(--color-tarjeta)] border-white/60 shadow-sm'
+                  }`}>
+
+                  {plan.destacado && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="bg-[#91cf5b] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow">
+                        Más popular
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="mb-4">
+                    <h3 className={`font-black text-xl mb-1 ${plan.destacado ? 'text-white' : 'text-gray-900'}`}>
+                      {plan.nombre}
+                    </h3>
+                    <p className={`text-xs leading-relaxed ${plan.destacado ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {plan.descripcion}
+                    </p>
+                  </div>
+
+                  <div className="mb-6">
+                    <div className={`text-4xl font-black ${plan.destacado ? 'text-white' : 'text-gray-900'}`}>
+                      {plan.precio_mensual === 0
+                        ? 'Gratis'
+                        : formatPrecio(anual
+                          ? Math.round(plan.precio_anual / 12)
+                          : plan.precio_mensual)
+                      }
+                    </div>
+                    {plan.precio_mensual > 0 && (
+                      <div className={`text-xs mt-1 ${plan.destacado ? 'text-gray-400' : 'text-gray-400'}`}>
+                        {anual
+                          ? `${formatPrecio(plan.precio_anual)}/año · 2 meses gratis`
+                          : 'por mes · ajuste anual por IPC'}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={`text-xs font-bold uppercase tracking-wider mb-3 ${plan.destacado ? 'text-gray-400' : 'text-gray-400'}`}>
+                    {plan.productos.toLocaleString('es-CL')} productos · {plan.usuarios} usuario{plan.usuarios > 1 ? 's' : ''}
+                  </div>
+
+                  <ul className="space-y-2 mb-6 flex-1">
+                    {plan.caracteristicas.map((c) => (
+                      <li key={c} className="flex items-start gap-2 text-sm">
+                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#91cf5b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className={plan.destacado ? 'text-gray-300' : 'text-gray-600'}>{c}</span>
+                      </li>
+                    ))}
+                    {plan.bloqueadas.map((c) => (
+                      <li key={c} className="flex items-start gap-2 text-sm opacity-40">
+                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span className={plan.destacado ? 'text-gray-400' : 'text-gray-400'}>{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link to={plan.ctaLink}
+                    className={`text-center py-3 rounded-full font-bold text-sm transition-all active:scale-95 ${
+                      plan.destacado
+                        ? 'bg-[#91cf5b] hover:bg-[#7ab848] text-white'
+                        : 'bg-gray-900 hover:bg-gray-800 text-white'
+                    }`}>
+                    {plan.cta}
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-center text-xs text-gray-400 mt-8">
+              Los precios son en CLP e incluyen IVA. El precio mensual puede ajustarse anualmente según el IPC, con aviso previo de 30 días.
+            </p>
           </div>
+        </section>
+
+        {/* ── FAQ ────────────────────────────────────────────────────────── */}
+        <section id="faq" className="py-24 px-6 max-w-3xl mx-auto">
+          <h2 className="text-4xl font-black text-gray-900 tracking-tight text-center mb-12">
+            Preguntas frecuentes
+          </h2>
+          <div className="space-y-6">
+            {[
+              {
+                q: '¿El plan Gratis tiene límite de tiempo?',
+                a: 'No. El plan Gratis es permanente. Puedes usarlo con hasta 10 productos sin fecha de vencimiento. Cuando tu negocio crezca, puedes actualizar a un plan de pago en cualquier momento.',
+              },
+              {
+                q: '¿Qué pasa si llego al límite de productos?',
+                a: 'Fresco te avisa cuando te acercas al límite. Al alcanzarlo, no podrás agregar nuevos productos pero las ventas de los productos existentes siguen funcionando con normalidad. El negocio nunca se detiene.',
+              },
+              {
+                q: '¿Puedo cambiar de plan en cualquier momento?',
+                a: 'Sí. Puedes subir o bajar de plan cuando quieras desde la configuración de tu cuenta. Si pagas anual y cambias antes, se aplica un crédito proporcional.',
+              },
+              {
+                q: '¿Qué métodos de pago aceptan?',
+                a: 'Aceptamos tarjetas de débito y crédito, y transferencia bancaria. Todos los cobros son en CLP.',
+              },
+              {
+                q: '¿Mis datos están seguros?',
+                a: 'Sí. Toda la información se transmite cifrada (HTTPS), los datos se almacenan en servidores seguros y Fresco cumple con la Ley 19.628 de protección de datos personales de Chile. Nunca vendemos tu información a terceros.',
+              },
+              {
+                q: '¿Funciona sin internet?',
+                a: 'Fresco es una PWA con modo offline. Puedes seguir registrando ventas sin conexión y los datos se sincronizan automáticamente cuando se restablece internet.',
+              },
+            ].map(({ q, a }) => (
+              <details key={q} className="group bg-[var(--color-tarjeta)] border border-white/60 rounded-2xl p-6 shadow-sm cursor-pointer">
+                <summary className="font-black text-gray-900 list-none flex justify-between items-center gap-4">
+                  {q}
+                  <svg className="w-5 h-5 flex-shrink-0 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <p className="mt-4 text-sm text-gray-500 leading-relaxed">{a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        {/* ── CTA final ──────────────────────────────────────────────────── */}
+        <section className="py-24 px-6 bg-gray-900 text-white text-center">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">
+            Empieza hoy, gratis.
+          </h2>
+          <p className="text-gray-400 text-lg mb-8 max-w-xl mx-auto">
+            Crea tu cuenta en menos de 2 minutos y lleva el control de tu negocio desde el primer día.
+          </p>
+          <Link to={usuario ? '/dashboard' : '/registro'}
+            className="inline-block bg-[#91cf5b] hover:bg-[#7ab848] text-white px-10 py-4 rounded-full font-black text-lg shadow-lg transition-all active:scale-95">
+            Crear cuenta gratis
+          </Link>
+          <p className="mt-4 text-xs text-gray-600">Sin tarjeta de crédito · Sin contratos</p>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white pt-16 pb-8 px-6">
+      {/* ── Footer ─────────────────────────────────────────────────────── */}
+      <footer className="bg-gray-900 text-white pt-16 pb-8 px-6 border-t border-gray-800">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 border-b border-gray-800 pb-12">
           <div className="col-span-2 md:col-span-1">
-            <h3 className="text-2xl font-black text-[#91cf5b] mb-4">Fresco</h3>
+            <h3 className="text-2xl font-black text-[#91cf5b] mb-3">Fresco</h3>
             <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
-              El sistema de punto de venta que se adapta a tu ritmo, pensado para que la operación de tu negocio sea fluida y segura.
+              Sistema POS en la nube para comercios chilenos. Rápido, simple y sin instalaciones.
             </p>
           </div>
-          
+          <div>
+            <h4 className="font-bold mb-4 text-gray-100">Producto</h4>
+            <ul className="space-y-3 text-sm text-gray-400">
+              <li><a href="#caracteristicas" className="hover:text-white transition-colors">Características</a></li>
+              <li><a href="#precios"         className="hover:text-white transition-colors">Precios</a></li>
+              <li><a href="#faq"             className="hover:text-white transition-colors">FAQ</a></li>
+            </ul>
+          </div>
           <div>
             <h4 className="font-bold mb-4 text-gray-100">Empresa</h4>
             <ul className="space-y-3 text-sm text-gray-400">
-              <li><a href="#nosotros" className="hover:text-white transition-colors">Nosotros</a></li>
-              <li><a href="#clientes" className="hover:text-white transition-colors">Clientes</a></li>
-              <li><a href="#contacto" className="hover:text-white transition-colors">Contacto</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Nosotros</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Contacto</a></li>
             </ul>
           </div>
-          
           <div>
-            <h4 className="font-bold mb-4 text-gray-100">Servicios</h4>
+            <h4 className="font-bold mb-4 text-gray-100">Legal</h4>
             <ul className="space-y-3 text-sm text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Punto de Venta</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Inventario Inteligente</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">App Móvil (PWA)</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-bold mb-4 text-gray-100">Recursos</h4>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li><a href="#documentacion" className="hover:text-white transition-colors">Documentación</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Centro de Ayuda</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Acerca de</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Términos de Servicio</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Política de Privacidad</a></li>
             </ul>
           </div>
         </div>
-        
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-gray-600">
           <p>&copy; {new Date().getFullYear()} Fresco. Todos los derechos reservados.</p>
-          <div className="flex space-x-4 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">Términos de servicio</a>
-            <a href="#" className="hover:text-white transition-colors">Privacidad</a>
-          </div>
+          <p className="mt-2 md:mt-0">Hecho en Chile 🇨🇱</p>
         </div>
       </footer>
     </div>
