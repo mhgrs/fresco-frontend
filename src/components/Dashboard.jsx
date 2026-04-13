@@ -56,6 +56,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   const IconoPOS        = <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
   const IconoCierre     = <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
   const IconoEquipo     = <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>;
+  const IconoMovCaja    = <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>;
 
   const roles = usuario.roles || [];
   const isCajero     = roles.includes('ADMIN') || roles.includes('SUPERVISOR') || roles.includes('CAJERO');
@@ -64,17 +65,15 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   const isAdmin      = roles.includes('ADMIN') || usuario.is_superuser;
 
   const botonVolver = (
-    <div className="flex items-center mb-6 gap-4 relative z-20">
-      <button
-        onClick={cerrarSubmenu}
-        className="p-3 bg-white/80 hover:bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 transition-all flex items-center justify-center active:scale-95"
-        title="Volver al inicio"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-      </button>
-    </div>
+    <button
+      onClick={cerrarSubmenu}
+      className="p-3 bg-white/80 hover:bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 transition-all flex items-center justify-center active:scale-95 flex-shrink-0"
+      title="Volver al inicio"
+    >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+    </button>
   );
 
   return (
@@ -178,24 +177,29 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           </div>
 
         ) : submenuActivo === 'caja' ? (
-          <div className="animate-fade-in">
-            {botonVolver}
-            <div>
-              <h2 className="text-2xl font-black text-gray-800 tracking-tight mb-1">Módulo de Caja</h2>
-              <p className="text-sm text-gray-500 font-medium mb-6">Selecciona una operación para continuar.</p>
+          <div className="animate-fade-in ">
+            <div className="flex items-center gap-4 mb-6 relative z-20">
+              {botonVolver}
+              <div>
+                <h2 className="text-2xl font-black text-gray-800 tracking-tight mb-1">Módulo de Caja</h2>
+                <p className="text-sm text-gray-500 font-medium">Selecciona una operación para continuar.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
               {isCajero && <ModuleCard to="/pos"         titulo="Punto de Venta" descripcion="Registrar y procesar ventas rápidas."     icono={IconoPOS} />}
               {isCajero && <ModuleCard to="/cierre-caja" titulo="Apertura y Cierre de Caja" descripcion="Gestión de turno, movimientos y cuadratura Z." icono={IconoCierre} />}
+              {isCajero && <ModuleCard to="/movimientos-caja" titulo="Movimientos de Caja" descripcion="Registrar ingresos y retiros de efectivo." icono={IconoMovCaja} />}
             </div>
           </div>
 
         ) : submenuActivo === 'inventario' ? (
           <div className="animate-fade-in">
-            {botonVolver}
-            <div>
-              <h2 className="text-2xl font-black text-gray-800 tracking-tight mb-1">Módulo de Inventario</h2>
-              <p className="text-sm text-gray-500 font-medium mb-6">Gestiona tu catálogo de productos y controla el stock.</p>
+            <div className="flex items-center gap-4 mb-6 relative z-20">
+              {botonVolver}
+              <div>
+                <h2 className="text-2xl font-black text-gray-800 tracking-tight mb-1">Módulo de Inventario</h2>
+                <p className="text-sm text-gray-500 font-medium">Gestiona tu catálogo de productos y controla el stock.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
               {isBodega && <ModuleCard to="/inventario" titulo="Catálogo de Productos" descripcion="Agrega productos, precios y categorías." icono={IconoCatalogo} />}
@@ -205,10 +209,12 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
         ) : submenuActivo === 'administracion' ? (
           <div className="animate-fade-in">
-            {botonVolver}
-            <div>
-              <h2 className="text-2xl font-black text-gray-800 tracking-tight mb-1">Módulo de Administración</h2>
-              <p className="text-sm text-gray-500 font-medium mb-6">Gestiona reportes y el equipo de trabajo.</p>
+            <div className="flex items-center gap-4 mb-6 relative z-20">
+              {botonVolver}
+              <div>
+                <h2 className="text-2xl font-black text-gray-800 tracking-tight mb-1">Módulo de Administración</h2>
+                <p className="text-sm text-gray-500 font-medium">Gestiona reportes y el equipo de trabajo.</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
               {isSupervisor && <ModuleCard to="/reportes"      titulo="Reportes del Negocio" descripcion="Estadísticas, ventas e inventario." icono={IconoReportes} />}

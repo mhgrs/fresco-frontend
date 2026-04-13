@@ -273,11 +273,11 @@ export default function PuntoDeVenta() {
 
   return (
     <>
-    <div className="flex h-full w-full max-w-[1500px] mx-auto bg-[var(--color-fondo)] font-sans relative overflow-hidden transition-colors duration-500 p-2 sm:p-4 gap-2 sm:gap-4 flex-row">
+    <div className="flex h-full w-full max-w-[1400px] mx-auto bg-[var(--color-fondo)] font-sans relative overflow-hidden transition-colors duration-500 p-2 sm:p-4 gap-2 sm:gap-4 flex-row">
 
       {/* Notificación Toast */}
       {notificacion.visible && (
-        <div className={`absolute top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-50 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl shadow-2xl font-bold transition-all flex items-center gap-2 sm:gap-3 ${notificacion.tipo === 'success' ? 'bg-green-600 text-white' : notificacion.tipo === 'warning' ? 'bg-yellow-500 text-gray-900' : 'bg-red-600 text-white'}`}>
+        <div className={`fixed top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-[100] px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm rounded-lg sm:rounded-xl shadow-2xl font-bold transition-all flex items-center gap-2 sm:gap-3 ${notificacion.tipo === 'success' ? 'bg-green-600 text-white' : notificacion.tipo === 'warning' ? 'bg-yellow-500 text-gray-900' : 'bg-red-600 text-white'}`}>
           {notificacion.tipo === 'success' && <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>}
           {notificacion.tipo === 'warning' && <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>}
           {notificacion.tipo === 'error' && <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" /></svg>}
@@ -292,20 +292,29 @@ export default function PuntoDeVenta() {
             <NetworkStatusIndicator />
           </div>
           <div className="flex gap-2 items-center">
-            {(ventasSuspendidas.length > 0 || carrito.length > 0) && (
-              <button 
-                onClick={() => ventasSuspendidas.length === 0 ? handleSuspender() : setModalSuspendidasAbierto(true)} 
-                title={ventasSuspendidas.length === 0 ? "Pausar venta actual" : "Ventas en espera"} 
-                className="flex items-center bg-white/90 hover:bg-white transition backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 gap-1.5 cursor-pointer"
-              >
-                <span className="text-base leading-none">⏱️</span>
-                <span className="text-sm font-bold text-gray-700 hidden sm:block">{ventasSuspendidas.length === 0 ? 'Pausar' : 'En Espera'}</span>
-                {ventasSuspendidas.length > 0 && <span className="bg-orange-100 text-orange-800 text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-md">{ventasSuspendidas.length}</span>}
-              </button>
-            )}
+            <button 
+              onClick={() => ventasSuspendidas.length === 0 ? handleSuspender() : setModalSuspendidasAbierto(true)} 
+              disabled={ventasSuspendidas.length === 0 && carrito.length === 0}
+              title={ventasSuspendidas.length === 0 ? "Pausar venta actual" : "Ventas en espera"} 
+              className={`flex items-center transition backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 gap-1.5 ${
+                ventasSuspendidas.length === 0 && carrito.length === 0 
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  : 'bg-white/90 hover:bg-white cursor-pointer text-gray-700'
+              }`}
+            >
+              <span className={`text-base leading-none ${ventasSuspendidas.length === 0 && carrito.length === 0 ? 'opacity-50' : ''}`}>⏱️</span>
+              <span className="text-sm font-bold hidden sm:block">{ventasSuspendidas.length === 0 ? 'Pausar' : 'En Espera'}</span>
+              {ventasSuspendidas.length > 0 && <span className="bg-orange-100 text-orange-800 text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-md">{ventasSuspendidas.length}</span>}
+            </button>
             <Link to="/inventario" title="Ir al Catálogo" className="flex items-center bg-white/90 hover:bg-white transition backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 gap-1.5">
               <span className="text-base leading-none">🏷️</span>
               <span className="text-sm font-bold text-gray-700 hidden sm:block">Catálogo</span>
+            </Link>
+            <Link to="/movimientos-caja" title="Ir a Movimientos de Caja" className="flex items-center justify-center bg-white/90 hover:bg-white transition backdrop-blur-md p-1.5 sm:p-2 rounded-lg shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 flex-shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+            </Link>
+            <Link to="/cierre-caja" title="Ir a Cierre de Caja" className="flex items-center justify-center bg-white/90 hover:bg-white transition backdrop-blur-md p-1.5 sm:p-2 rounded-lg shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 flex-shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </Link>
           </div>
         </div>

@@ -53,7 +53,7 @@ const PLANES = [
       '6 usuarios',
       'Catálogo maestro global',
       'Movimientos de inventario',
-      'Soporte prioritario',
+      'Roles avanzados (ADMIN, SUPERVISOR, CAJERO, BODEGA)',
     ],
     bloqueadas: [],
     cta: 'Empezar ahora',
@@ -72,8 +72,6 @@ const PLANES = [
       'Hasta 2.000 productos',
       '10 usuarios',
       'Roles avanzados (ADMIN, SUPERVISOR, CAJERO, BODEGA)',
-      'Acceso a API',
-      'Soporte dedicado',
     ],
     bloqueadas: [],
     cta: 'Contactar ventas',
@@ -138,9 +136,6 @@ export default function LandingPage({ usuario }) {
 
         {/* ── Hero ───────────────────────────────────────────────────────── */}
         <section className="py-24 px-6 text-center max-w-5xl mx-auto">
-          <span className="inline-block bg-[#91cf5b]/15 text-[#5a9e2f] text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
-            Sistema POS para comercios chilenos
-          </span>
           <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight leading-tight mb-6">
             Vende más,<br className="hidden md:block" />
             <span className="text-[#91cf5b]"> gestiona menos.</span>

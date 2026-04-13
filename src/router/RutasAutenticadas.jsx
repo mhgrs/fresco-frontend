@@ -13,6 +13,8 @@ import Configuracion from '../components/Configuracion';
 import MovimientosInventario from '../components/MovimientosInventario';
 import ModuleLayout from '../components/layout/ModuleLayout';
 import AdminRedirect from '../components/layout/AdminRedirect';
+import MovimientosCaja from '../components/MovimientosCaja';
+
 
 /**
  * Rutas para usuarios autenticados (con o sin empresa asignada).
@@ -31,6 +33,7 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
       <Routes>
         <Route path="/onboarding" element={<OnboardingEmpresa onCompletado={cargarUsuario} cerrarSesion={cerrarSesion} />} />
         <Route path="*" element={<Navigate to="/onboarding" replace />} />
+        
       </Routes>
     );
   }
@@ -62,6 +65,7 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
       {/* Caja */}
       {isCajero && <Route path="/pos"        element={wrap(<PuntoDeVenta />,  '/dashboard?module=caja')} />}
       {isCajero && <Route path="/cierre-caja" element={wrap(<CierreCaja />,   '/dashboard?module=caja')} />}
+      {isCajero && <Route path="/movimientos-caja" element={wrap(<MovimientosCaja />, '/dashboard?module=caja')} />}
 
       {/* Inventario */}
       {isBodega && <Route path="/inventario"             element={wrap(<CatalogoProductos usuario={usuario} />, '/dashboard?module=inventario')} />}
