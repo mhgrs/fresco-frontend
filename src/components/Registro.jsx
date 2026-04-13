@@ -12,7 +12,8 @@ export default function Registro() {
     confirm_password: '',
     telefono: '',
     nacionalidad: 'Chile',
-    direccion: ''
+    direccion: '',
+    acepta_terminos: false,
   });
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState({ tipo: '', texto: '' });
@@ -22,7 +23,8 @@ export default function Registro() {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
   const verificarCorreo = async (e) => {
@@ -60,7 +62,8 @@ export default function Registro() {
       const res = await authService.registro(datosEnviar);
       setMensaje({ tipo: 'success', texto: res.data.mensaje || 'Registro exitoso. Revisa tu correo electrónico para verificar tu cuenta.' });
       setFormData({
-        first_name: '', last_name: '', email: '', password: '', confirm_password: '', telefono: '', nacionalidad: 'Chile', direccion: ''
+        first_name: '', last_name: '', email: '', password: '', confirm_password: '',
+        telefono: '', nacionalidad: 'Chile', direccion: '', acepta_terminos: false,
       });
       setPaso(1);
     } catch (error) {
@@ -133,7 +136,33 @@ export default function Registro() {
             </div>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label><input type="text" name="direccion" value={formData.direccion} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
 
-            <button type="submit" disabled={cargando} className="w-full bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 mt-4">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                name="acepta_terminos"
+                required
+                checked={formData.acepta_terminos}
+                onChange={handleChange}
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#91cf5b] focus:ring-[#91cf5b] flex-shrink-0"
+              />
+              <span className="text-sm text-gray-600">
+                He leído y acepto los{' '}
+                <Link to="/terminos" target="_blank" className="text-[#91cf5b] hover:underline font-semibold">
+                  Términos y Condiciones
+                </Link>{' '}
+                y la{' '}
+                <Link to="/privacidad" target="_blank" className="text-[#91cf5b] hover:underline font-semibold">
+                  Política de Privacidad
+                </Link>
+                .
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              disabled={cargando || !formData.acepta_terminos}
+              className="w-full bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 mt-4"
+            >
               {cargando ? 'Registrando...' : 'Registrarme'}
             </button>
           </form>

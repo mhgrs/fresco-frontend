@@ -14,6 +14,8 @@ import MovimientosInventario from '../components/MovimientosInventario';
 import ModuleLayout from '../components/layout/ModuleLayout';
 import AdminRedirect from '../components/layout/AdminRedirect';
 import MovimientosCaja from '../components/MovimientosCaja';
+import TerminosCondiciones from '../components/TerminosCondiciones';
+import PoliticaPrivacidad from '../components/PoliticaPrivacidad';
 
 
 /**
@@ -101,6 +103,10 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
 
       {/* Suscripción — redirige a /configuracion?tab=pagos */}
       <Route path="/suscripcion" element={wrap(<Configuracion usuario={usuario} />, '/dashboard')} />
+
+      {/* Páginas legales — accesibles con sesión iniciada */}
+      <Route path="/terminos"   element={<TerminosCondiciones />} />
+      <Route path="/privacidad" element={<PoliticaPrivacidad />} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
