@@ -1,0 +1,6 @@
+# Proxy al backend de Django (admin y static)
+/fresco-admin/*  https://pos-system-wfog.onrender.com/fresco-admin/:splat  200
+/static/*        https://pos-system-wfog.onrender.com/static/:splat        200
+
+# SPA fallback — todas las rutas van a index.html
+/*               /index.html                                                200
