@@ -1,4 +1,6 @@
-# Admin y archivos estáticos de Django — redirige al backend en Render (301)
-# Cloudflare Pages no admite proxy (200) a URLs externas.
+# Admin y archivos estáticos de Django — redirige al backend en Render
 /fresco-admin/*  https://pos-system-wfog.onrender.com/fresco-admin/:splat  301
 /static/*        https://pos-system-wfog.onrender.com/static/:splat        301
+
+# SPA fallback — React Router maneja todas las rutas
+/*  /index.html  200
