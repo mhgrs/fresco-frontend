@@ -74,7 +74,7 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
       <Route path="/fresco-admin/*" element={<AdminRedirect />} />
 
       {/* Caja */}
-      {isCajero && <Route path="/pos" element={wrap(<PuntoDeVenta />, '/dashboard?module=caja')} />}
+      {isCajero && <Route path="/pos" element={wrap(<PuntoDeVenta usuario={usuario} />, '/dashboard?module=caja')} />}
       {isCajero && <Route path="/cierre-caja" element={wrap(
         <PlanGuard permite={usuario.plan?.tiene_cierre_caja}>
           <CierreCaja />

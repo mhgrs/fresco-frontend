@@ -10,7 +10,7 @@ import { ventasService } from '../services/ventas';
 import TicketImpresion from './pos/TicketImpresion';
 import NetworkStatusIndicator from './ui/NetworkStatusIndicator';
 
-export default function PuntoDeVenta() {
+export default function PuntoDeVenta({ usuario }) {
   const navigate = useNavigate();
   const [catalogo, setCatalogo] = useState([]);
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -56,11 +56,18 @@ export default function PuntoDeVenta() {
     }
   }, [mostrar]);
 
+  const tieneCierreCaja = usuario?.plan?.tiene_cierre_caja;
+
   useEffect(() => {
+    // Plan Gratis: no requiere turno abierto, el POS funciona directamente
+    if (!tieneCierreCaja) {
+      setEstadoCaja('abierto');
+      return;
+    }
     ventasService.turnoActivo()
       .then(() => setEstadoCaja('abierto'))
       .catch(() => setEstadoCaja('cerrado'));
-  }, []);
+  }, [tieneCierreCaja]);
 
   // Enfocar el buscador solo al montar el componente
   useEffect(() => {
@@ -310,12 +317,16 @@ export default function PuntoDeVenta() {
               <span className="text-base leading-none">🏷️</span>
               <span className="text-sm font-bold text-gray-700 hidden sm:block">Catálogo</span>
             </Link>
-            <Link to="/movimientos-caja" title="Ir a Movimientos de Caja" className="flex items-center justify-center bg-white/90 hover:bg-white transition backdrop-blur-md p-1.5 sm:p-2 rounded-lg shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 flex-shrink-0">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-            </Link>
-            <Link to="/cierre-caja" title="Ir a Cierre de Caja" className="flex items-center justify-center bg-white/90 hover:bg-white transition backdrop-blur-md p-1.5 sm:p-2 rounded-lg shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 flex-shrink-0">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            </Link>
+            {tieneCierreCaja && (
+              <Link to="/movimientos-caja" title="Ir a Movimientos de Caja" className="flex items-center justify-center bg-white/90 hover:bg-white transition backdrop-blur-md p-1.5 sm:p-2 rounded-lg shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+              </Link>
+            )}
+            {tieneCierreCaja && (
+              <Link to="/cierre-caja" title="Ir a Cierre de Caja" className="flex items-center justify-center bg-white/90 hover:bg-white transition backdrop-blur-md p-1.5 sm:p-2 rounded-lg shadow-sm border border-gray-200 text-gray-600 hover:text-gray-900 flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              </Link>
+            )}
           </div>
         </div>
 
