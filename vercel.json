@@ -1,6 +1,4 @@
 {
-  "_comment": "IMPORTANTE: Si el backend cambia de URL (Render), actualizar BACKEND_URL aquí y en las variables de entorno de Vercel.",
-  "_backend_url": "https://pos-system-wfog.onrender.com",
   "rewrites": [
     {
       "source": "/fresco-admin/:path*",
