@@ -1,9 +1,69 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { authService } from '../services/auth';
+import TerminosContenido from './legal/TerminosContenido';
+import PrivacidadContenido from './legal/PrivacidadContenido';
+
+function ModalLegal({ titulo, subtitulo, children, onCerrar }) {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => { if (e.key === 'Escape') onCerrar(); };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [onCerrar]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.5)' }}
+      onClick={onCerrar}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header fijo */}
+        <div className="flex items-start justify-between p-6 border-b border-gray-100 flex-shrink-0">
+          <div>
+            <h2 className="text-xl font-black text-gray-900">{titulo}</h2>
+            {subtitulo && <p className="text-xs text-gray-400 mt-0.5">{subtitulo}</p>}
+          </div>
+          <button
+            onClick={onCerrar}
+            className="ml-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition flex-shrink-0"
+            aria-label="Cerrar"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {/* Contenido desplazable */}
+        <div className="overflow-y-auto p-6 flex-1">
+          {children}
+        </div>
+        {/* Footer fijo */}
+        <div className="p-4 border-t border-gray-100 flex-shrink-0">
+          <button
+            onClick={onCerrar}
+            className="w-full bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2.5 px-4 rounded-xl transition active:scale-95"
+          >
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Registro() {
   const [paso, setPaso] = useState(1);
+  const [modalLegal, setModalLegal] = useState(null); // 'terminos' | 'privacidad' | null
+  const cerrarModal = useCallback(() => setModalLegal(null), []);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -147,13 +207,21 @@ export default function Registro() {
               />
               <span className="text-sm text-gray-600">
                 He leído y acepto los{' '}
-                <Link to="/terminos" target="_blank" className="text-[#91cf5b] hover:underline font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setModalLegal('terminos')}
+                  className="text-[#91cf5b] hover:underline font-semibold"
+                >
                   Términos y Condiciones
-                </Link>{' '}
+                </button>{' '}
                 y la{' '}
-                <Link to="/privacidad" target="_blank" className="text-[#91cf5b] hover:underline font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setModalLegal('privacidad')}
+                  className="text-[#91cf5b] hover:underline font-semibold"
+                >
                   Política de Privacidad
-                </Link>
+                </button>
                 .
               </span>
             </label>
@@ -174,6 +242,26 @@ export default function Registro() {
           </p>
         </div>
       </div>
+
+      {modalLegal === 'terminos' && (
+        <ModalLegal
+          titulo="Términos y Condiciones"
+          subtitulo="Última actualización: abril de 2025"
+          onCerrar={cerrarModal}
+        >
+          <TerminosContenido />
+        </ModalLegal>
+      )}
+
+      {modalLegal === 'privacidad' && (
+        <ModalLegal
+          titulo="Política de Privacidad"
+          subtitulo="Última actualización: abril de 2025 · Conforme a la Ley 19.628 (Chile)"
+          onCerrar={cerrarModal}
+        >
+          <PrivacidadContenido />
+        </ModalLegal>
+      )}
     </div>
   );
 }
