@@ -48,17 +48,29 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Limpieza de cachés antiguos al actualizar la app
+// Limpieza de cachés antiguos al actualizar la app + recarga forzada de clientes
 self.addEventListener('activate', event => {
-  // Tomar el control de los clientes de inmediato
-  event.waitUntil(clients.claim());
-
   const cacheWhitelist = [CACHE_NAME];
+
   event.waitUntil(
-    caches.keys().then(cacheNames => Promise.all(
-      cacheNames.map(cacheName => {
-        if (cacheWhitelist.indexOf(cacheName) === -1) return caches.delete(cacheName);
+    caches.keys()
+      .then(cacheNames => {
+        const hayVersionAntigua = cacheNames.some(n => !cacheWhitelist.includes(n));
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (!cacheWhitelist.includes(cacheName)) return caches.delete(cacheName);
+          })
+        ).then(() => hayVersionAntigua);
       })
-    ))
+      .then(hayVersionAntigua => clients.claim().then(() => hayVersionAntigua))
+      .then(hayVersionAntigua => {
+        if (!hayVersionAntigua) return;
+        // Si se eliminaron cachés viejos, recargar todas las pestañas abiertas
+        // para que carguen el JS nuevo en lugar del build cacheado.
+        return clients.matchAll({ type: 'window', includeUncontrolled: true })
+          .then(clientList => {
+            clientList.forEach(client => client.navigate(client.url));
+          });
+      })
   );
 });
