@@ -22,7 +22,7 @@ export default function ModuleLayout({ children, isOnline = true, sincronizando 
   const fechaCapitalizada = fechaActual.charAt(0).toUpperCase() + fechaActual.slice(1);
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--color-fondo)] transition-colors duration-500 font-sans">
+    <div className="flex flex-col  h-screen bg-[var(--color-fondo)] transition-colors duration-500 font-sans">
       <header className="px-4 sm:px-6 py-4 lg:px-8 flex-none z-20">
         <div className="max-w-[1400px] mx-auto flex flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
