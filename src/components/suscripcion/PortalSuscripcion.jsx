@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { suscripcionService } from '../../services/suscripcion';
 
@@ -24,8 +24,14 @@ function formatFecha(iso) {
   return new Date(iso).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+const TOAST_CONFIG = {
+  ok:       { tipo: 'success', icono: '✓', texto: 'Pago recibido. Tu plan ha sido actualizado.' },
+  error:    { tipo: 'error',   icono: '✗', texto: 'El pago no pudo procesarse. Intenta nuevamente.' },
+  pendiente:{ tipo: 'warning', icono: '⏳', texto: 'El pago está siendo procesado. Te notificaremos por email.' },
+};
+
 export default function PortalSuscripcion() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const resultadoPago = searchParams.get('pago'); // 'ok' | 'error' | 'pendiente' | null
 
   const [estado, setEstado]       = useState(null);
@@ -35,12 +41,24 @@ export default function PortalSuscripcion() {
   const [procesando, setProcesando] = useState(false);
   const [modalidad, setModalidad] = useState('mensual');
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
-  const [mensaje, setMensaje]     = useState(
-    resultadoPago === 'ok'       ? { tipo: 'success', texto: 'Pago recibido. Tu plan ha sido actualizado.' }
-  : resultadoPago === 'error'    ? { tipo: 'error',   texto: 'El pago no pudo procesarse. Intenta nuevamente.' }
-  : resultadoPago === 'pendiente'? { tipo: 'warning', texto: 'El pago está siendo procesado. Te notificaremos pronto.' }
-  : null
-  );
+  const [toast, setToast]         = useState(resultadoPago ? TOAST_CONFIG[resultadoPago] ?? null : null);
+  const [mensaje, setMensaje]     = useState(null);
+  const historialRef              = useRef(null);
+
+  // Limpiar ?pago= de la URL y auto-scroll al historial
+  useEffect(() => {
+    if (!resultadoPago) return;
+    // Borrar param de la URL para que no reaparezca en refresh
+    setSearchParams(prev => { prev.delete('pago'); return prev; }, { replace: true });
+    // Auto-scroll al historial después de que cargue
+    const timer = setTimeout(() => {
+      historialRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 800);
+    // Auto-dismiss toast a los 7 segundos
+    const dismiss = setTimeout(() => setToast(null), 7000);
+    return () => { clearTimeout(timer); clearTimeout(dismiss); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const cargar = async () => {
     try {
@@ -99,7 +117,20 @@ export default function PortalSuscripcion() {
 
       <h1 className="text-2xl font-black text-gray-900">Mi Suscripción</h1>
 
-      {/* Banner resultado pago */}
+      {/* Toast flotante resultado del pago */}
+      {toast && (
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl font-semibold text-sm max-w-sm w-full transition-all animate-in slide-in-from-bottom-4 ${
+          toast.tipo === 'success' ? 'bg-green-600 text-white' :
+          toast.tipo === 'warning' ? 'bg-yellow-500 text-white' :
+          'bg-red-600 text-white'
+        }`}>
+          <span className="text-xl">{toast.icono}</span>
+          <span className="flex-1">{toast.texto}</span>
+          <button onClick={() => setToast(null)} className="opacity-70 hover:opacity-100 text-lg leading-none">✕</button>
+        </div>
+      )}
+
+      {/* Banner de acciones internas (cancelar, errores de carga) */}
       {mensaje && (
         <div className={`px-5 py-4 rounded-xl font-semibold text-sm flex items-center gap-3 ${
           mensaje.tipo === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
@@ -234,7 +265,7 @@ export default function PortalSuscripcion() {
 
       {/* Historial de pagos */}
       {historial.length > 0 && (
-        <div>
+        <div ref={historialRef}>
           <h2 className="text-lg font-black text-gray-900 mb-4">Historial de pagos</h2>
           <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
             <table className="w-full text-sm">

@@ -283,9 +283,10 @@ export default function Configuracion({ usuario }) {
     ...(isAdmin ? [{ id: 'equipo', label: 'Equipo' }] : []),
   ];
 
-  const tabParam = searchParams.get('tab');
-  const tabActiva = TABS.find(t => t.id === tabParam) ? tabParam : 'perfil';
-  const setTab = (id) => setSearchParams({ tab: id }, { replace: true });
+  const tabParam   = searchParams.get('tab');
+  const hasPago    = searchParams.get('pago') !== null;
+  const tabActiva  = TABS.find(t => t.id === tabParam) ? tabParam : (hasPago ? 'pagos' : 'perfil');
+  const setTab     = (id) => setSearchParams({ tab: id }, { replace: true });
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
