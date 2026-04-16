@@ -279,7 +279,7 @@ export default function Configuracion({ usuario }) {
 
   const TABS = [
     { id: 'perfil', label: 'Perfil' },
-    { id: 'pagos',  label: 'Pagos'  },
+    { id: 'pagos',  label: 'Suscripción'  },
     ...(isAdmin ? [{ id: 'equipo', label: 'Equipo' }] : []),
   ];
 

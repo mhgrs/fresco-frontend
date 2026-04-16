@@ -52,8 +52,8 @@ export default function CartItem({
           </button>
         </div>
 
-        <div className="text-right w-16 sm:w-20 flex items-center justify-end gap-1 sm:gap-2">
-          <div className="font-black text-gray-800 text-xs sm:text-base truncate">
+        <div className="text-right flex items-center justify-end gap-1 sm:gap-2">
+          <div className="font-black text-gray-800 text-xs sm:text-base whitespace-nowrap">
             ${Math.round(item.precio * (Number(item.cantidad) || 0))}
           </div>
           <button

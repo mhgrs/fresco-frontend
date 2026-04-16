@@ -188,7 +188,9 @@ export default function MovimientosInventario({ usuario }) {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Motivo del Retiro</label>
                       <select required value={formularioGlobal.motivo} onChange={(e) => setFormularioGlobal({...formularioGlobal, motivo: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500 bg-white">
-                      <option value="MERMA">Merma</option><option value="DANADO">Dañado</option><option value="OTRO">Otro</option>
+                      <option value="MERMA">Merma</option><option value="DANADO">Dañado</option>
+                      <option value="CFECHA">Cambio por caducado</option>
+                      <option value="OTRO">Otro</option>
                       </select>
                     </div>
                     <div>

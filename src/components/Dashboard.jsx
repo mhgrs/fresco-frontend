@@ -5,6 +5,7 @@ import { useClickOutside } from '../hooks/useClickOutside';
 import ModuleCard from './dashboard/ModuleCard';
 import AlertasDropdown from './dashboard/AlertasDropdown';
 import OnboardingChecklist from './dashboard/OnboardingChecklist';
+import UpgradeBanner from './dashboard/UpgradeBanner';
 
 const MODULOS_VALIDOS = ['caja', 'inventario', 'administracion'];
 
@@ -78,9 +79,16 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--color-fondo)] py-6 lg:py-6 px-6 lg:px-16 xl:px-24 transition-colors duration-500 font-sans">
-      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.animate-fade-in{animation:fadeIn 0.3s ease-out forwards}`}</style>
-      <div className="max-w-6xl mx-auto relative">
+    <div className="min-h-screen bg-[var(--color-fondo)] transition-colors duration-500 font-sans flex flex-col">
+      <style>{`
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .animate-fade-in{animation:fadeIn 0.3s ease-out forwards}
+        @keyframes pulse-grow {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+      `}</style>
+      <div className="max-w-6xl w-full mx-auto relative flex-1 flex flex-col p-6 lg:p-8">
 
         {/* Encabezado */}
         <div className="flex flex-row justify-between items-start md:items-center mb-10 md:mb-12 gap-4 relative z-20">
@@ -152,7 +160,8 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           </div>
         </div>
 
-        {/* Aviso sin roles */}
+        {/* Contenedor de contenido que crece para empujar el banner hacia abajo */}
+        <div className="flex-1">
         {(!roles || roles.length === 0) && (
           <div className="mb-8 bg-white/60 backdrop-blur border border-yellow-200 p-5 rounded-2xl shadow-sm">
             <div className="flex">
@@ -235,6 +244,10 @@ export default function Dashboard({ usuario, cerrarSesion }) {
             </div>
           </div>
         ) : null}
+        </div>
+        <div className="px-6">
+          <UpgradeBanner usuario={usuario} />
+        </div>
       </div>
     </div>
   );
