@@ -1,0 +1,152 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { usuariosService } from '../services/usuarios';
+import { empresasService } from '../services/empresas';
+import { ROLES } from '../constants/roles';
+import { useNotificacion } from '../hooks/useNotificacion';
+
+export default function GestionEquipo() {
+  const [equipo, setEquipo]               = useState([]);
+  const [rolesDisponibles, setRolesDisp]  = useState([]);
+  const [cargando, setCargando]           = useState(true);
+  const [error, setError]                 = useState('');
+  const [codigoInvitacion, setCodigo]     = useState('');
+  const [generandoCodigo, setGenerando]   = useState(false);
+  const { notificacion, mostrar }         = useNotificacion();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [resEquipo, resRoles] = await Promise.all([
+          usuariosService.listarEquipo(),
+          usuariosService.listarRoles(),
+        ]);
+        setRolesDisp(resRoles.data.filter(r => r.nombre !== ROLES.ADMIN));
+        setEquipo(resEquipo.data);
+      } catch {
+        setError('No se pudo cargar la información del equipo.');
+      } finally {
+        setCargando(false);
+      }
+    })();
+  }, []);
+
+  const handleCheckbox = (userId, roleName, checked) => {
+    const usuario = equipo.find(u => u.id === userId);
+    if (!usuario) return;
+    const newRoles = checked
+      ? [...usuario.roles, roleName]
+      : usuario.roles.filter(r => r !== roleName);
+    setEquipo(prev => prev.map(u => u.id === userId ? { ...u, roles: newRoles } : u));
+    usuariosService.actualizarRoles(userId, newRoles).catch(() => {
+      setEquipo(prev => prev.map(u => u.id === userId ? { ...u, roles: usuario.roles } : u));
+    });
+  };
+
+  const generarCodigo = async () => {
+    setGenerando(true);
+    try {
+      const res = await empresasService.generarCodigo();
+      setCodigo(res.data.codigo);
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || 'Error desconocido';
+      if (errorMsg.toLowerCase().includes('límite') || errorMsg.toLowerCase().includes('limit')) {
+        mostrar(
+          <span>
+            Alcanzaste el límite de usuarios de tu plan. Actualiza tu plan en{' '}
+            <Link to="/configuracion?tab=pagos" className="underline font-bold">
+              suscripción
+            </Link>{' '}
+            para poder invitar a más colaboradores.
+          </span>,
+          'error'
+        );
+      } else {
+        mostrar(errorMsg, 'error');
+      }
+    } finally {
+      setGenerando(false);
+    }
+  };
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      {notificacion.visible && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] px-6 py-3 rounded shadow-lg text-white font-bold transition-all ${notificacion.tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {notificacion.mensaje}
+        </div>
+      )}
+
+      <h1 className="text-2xl font-black text-gray-900 mb-6">Gestión de Equipo</h1>
+
+      {cargando ? <div className="text-center p-8 text-gray-400">Cargando equipo...</div>
+       : error ? <div className="text-center p-8 text-red-500">{error}</div>
+       : (
+        <div className="space-y-8">
+          {/* Invitaciones */}
+          <div className="bg-white/60 p-6 rounded-2xl shadow-sm border border-gray-200">
+            <h3 className="text-base font-bold text-gray-800 mb-3">Invitar colaborador</h3>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <p className="text-sm text-gray-500 max-w-md">
+                Genera un código de un solo uso para que un nuevo empleado se una a tu empresa.
+                El empleado debe registrarse primero y luego usar este código.
+              </p>
+              {codigoInvitacion ? (
+                <div className="bg-gray-100 border border-gray-300 px-6 py-2 rounded-xl text-2xl font-black tracking-widest text-gray-800 shadow-inner select-all">
+                  {codigoInvitacion}
+                </div>
+              ) : (
+                <button
+                  onClick={generarCodigo}
+                  disabled={generandoCodigo}
+                  className="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
+                >
+                  {generandoCodigo ? 'Generando...' : 'Generar código'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Gestión de roles */}
+          <div className="bg-white/60 p-6 rounded-2xl shadow-sm border border-gray-200">
+            <h3 className="text-base font-bold text-gray-800 mb-4">Gestionar roles</h3>
+            {equipo.length === 0 ? (
+              <p className="text-sm text-gray-400">No hay otros usuarios en tu empresa todavía.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-100">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Usuario</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Roles</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {equipo.map(user => (
+                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-semibold text-gray-900">{user.first_name} {user.last_name}</div>
+                          <div className="text-xs text-gray-400">{user.email}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-4">
+                            {rolesDisponibles.map(rol => (
+                              <label key={rol.nombre} className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+                                <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-[#91cf5b] focus:ring-[#7ab848] cursor-pointer" checked={user.roles.includes(rol.nombre)} onChange={e => handleCheckbox(user.id, rol.nombre, e.target.checked)} />
+                                {rol.nombre}
+                              </label>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

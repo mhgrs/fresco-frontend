@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { usePermisos } from '../hooks/usePermisos';
 import { useSugerencias } from '../hooks/useSugerencias';
@@ -145,8 +145,23 @@ export default function FormularioProducto({ usuario }) {
         mostrar('Producto creado exitosamente', 'success');
       }
       setTimeout(() => navigate('/inventario'), 1500);
-    } catch {
-      mostrar('Error al guardar el producto. Verifique los datos.', 'error');
+    } catch (error) {
+      const errorMsg = error.response?.data?.error || error.response?.data?.detail || '';
+      
+      if (errorMsg.toLowerCase().includes('límite') || errorMsg.toLowerCase().includes('limit')) {
+        mostrar(
+          <span>
+            Alcanzaste el límite de productos activos del plan "gratis". Actualiza tu plan en{' '}
+            <Link to="/configuracion?tab=pagos" className="underline font-bold">
+              suscripción
+            </Link>{' '}
+            para poder agregar más.
+          </span>,
+          'error'
+        );
+      } else {
+        mostrar(errorMsg || 'Error al guardar el producto. Verifique los datos.', 'error');
+      }
     }
   };
 

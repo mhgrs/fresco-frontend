@@ -12,11 +12,19 @@
  */
 export default function ProductoFila({ producto: prod, puedeAcceder, puedeGestionar, onAjustar, onEditar, onToggleEstado, onEliminar }) {
   return (
-    <tr className={`hover:bg-white/40 transition-colors ${!prod.esta_activo ? 'opacity-60 bg-gray-200/50' : ''}`}>
+    <tr className={`hover:bg-white/40 transition-colors ${!prod.esta_activo ? 'opacity-60 bg-gray-50' : ''}`}>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">{prod.sku}</td>
-      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-        {prod.nombre}
-        {!prod.esta_activo && <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded ml-2">Inactivo</span>}
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-bold ${!prod.esta_activo ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+            {prod.nombre}
+          </span>
+          {!prod.esta_activo && (
+            <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
+              Oculto
+            </span>
+          )}
+        </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">{prod.marca}</td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 font-medium">${prod.precio}</td>

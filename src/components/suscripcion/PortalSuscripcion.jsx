@@ -113,9 +113,7 @@ export default function PortalSuscripcion() {
   const esGratis = planActual?.nombre === 'gratis';
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-
-      <h1 className="text-2xl font-black text-gray-900">Mi Suscripción</h1>
+    <div className="space-y-6 pb-6">
 
       {/* Toast flotante resultado del pago */}
       {toast && (

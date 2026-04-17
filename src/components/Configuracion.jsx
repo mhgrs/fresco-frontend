@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usuariosService } from '../services/usuarios';
-import { empresasService } from '../services/empresas';
-import { ROLES } from '../constants/roles';
 import PortalSuscripcion from './suscripcion/PortalSuscripcion';
 
 // ── Tab Perfil ─────────────────────────────────────────────────────────────────
@@ -141,135 +139,6 @@ function TabPerfil({ usuario }) {
   );
 }
 
-// ── Tab Equipo (solo ADMIN) ────────────────────────────────────────────────────
-
-function TabEquipo() {
-  const [equipo, setEquipo]               = useState([]);
-  const [rolesDisponibles, setRolesDisp]  = useState([]);
-  const [cargando, setCargando]           = useState(true);
-  const [error, setError]                 = useState('');
-  const [codigoInvitacion, setCodigo]     = useState('');
-  const [generandoCodigo, setGenerando]   = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const [resEquipo, resRoles] = await Promise.all([
-          usuariosService.listarEquipo(),
-          usuariosService.listarRoles(),
-        ]);
-        setRolesDisp(resRoles.data.filter(r => r.nombre !== ROLES.ADMIN));
-        setEquipo(resEquipo.data);
-      } catch {
-        setError('No se pudo cargar la información del equipo.');
-      } finally {
-        setCargando(false);
-      }
-    })();
-  }, []);
-
-  const handleCheckbox = (userId, roleName, checked) => {
-    const usuario = equipo.find(u => u.id === userId);
-    if (!usuario) return;
-    const newRoles = checked
-      ? [...usuario.roles, roleName]
-      : usuario.roles.filter(r => r !== roleName);
-    setEquipo(prev => prev.map(u => u.id === userId ? { ...u, roles: newRoles } : u));
-    usuariosService.actualizarRoles(userId, newRoles).catch(() => {
-      setEquipo(prev => prev.map(u => u.id === userId ? { ...u, roles: usuario.roles } : u));
-    });
-  };
-
-  const generarCodigo = async () => {
-    setGenerando(true);
-    try {
-      const res = await empresasService.generarCodigo();
-      setCodigo(res.data.codigo);
-    } catch (err) {
-      alert('Error al generar código: ' + (err.response?.data?.error || 'Error desconocido'));
-    } finally {
-      setGenerando(false);
-    }
-  };
-
-  if (cargando) return <div className="text-center p-8 text-gray-400">Cargando equipo...</div>;
-  if (error)    return <div className="text-center p-8 text-red-500">{error}</div>;
-
-  return (
-    <div className="space-y-8">
-      {/* Invitaciones */}
-      <div className="bg-white/60 p-6 rounded-2xl shadow-sm border border-gray-200">
-        <h3 className="text-base font-bold text-gray-800 mb-3">Invitar colaborador</h3>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <p className="text-sm text-gray-500 max-w-md">
-            Genera un código de un solo uso para que un nuevo empleado se una a tu empresa.
-            El empleado debe registrarse primero y luego usar este código.
-          </p>
-          {codigoInvitacion ? (
-            <div className="bg-gray-100 border border-gray-300 px-6 py-2 rounded-xl text-2xl font-black tracking-widest text-gray-800 shadow-inner select-all">
-              {codigoInvitacion}
-            </div>
-          ) : (
-            <button
-              onClick={generarCodigo}
-              disabled={generandoCodigo}
-              className="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
-            >
-              {generandoCodigo ? 'Generando...' : 'Generar código'}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Gestión de roles */}
-      <div className="bg-white/60 p-6 rounded-2xl shadow-sm border border-gray-200">
-        <h3 className="text-base font-bold text-gray-800 mb-4">Gestionar roles</h3>
-        {equipo.length === 0 ? (
-          <p className="text-sm text-gray-400">No hay otros usuarios en tu empresa todavía.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead>
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Usuario</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Roles</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {equipo.map(user => (
-                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-semibold text-gray-900">
-                        {user.first_name} {user.last_name}
-                      </div>
-                      <div className="text-xs text-gray-400">{user.email}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-4">
-                        {rolesDisponibles.map(rol => (
-                          <label key={rol.nombre} className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-[#91cf5b] focus:ring-[#7ab848] cursor-pointer"
-                              checked={user.roles.includes(rol.nombre)}
-                              onChange={e => handleCheckbox(user.id, rol.nombre, e.target.checked)}
-                            />
-                            {rol.nombre}
-                          </label>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ── Componente principal ───────────────────────────────────────────────────────
 
 export default function Configuracion({ usuario }) {
@@ -280,7 +149,6 @@ export default function Configuracion({ usuario }) {
   const TABS = [
     { id: 'perfil', label: 'Perfil' },
     { id: 'pagos',  label: 'Suscripción'  },
-    ...(isAdmin ? [{ id: 'equipo', label: 'Equipo' }] : []),
   ];
 
   const tabParam   = searchParams.get('tab');
@@ -289,7 +157,7 @@ export default function Configuracion({ usuario }) {
   const setTab     = (id) => setSearchParams({ tab: id }, { replace: true });
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto h-full flex flex-col">
       <h1 className="text-2xl font-black text-gray-900 mb-6">Configuración</h1>
 
       {/* Pestañas */}
@@ -313,9 +181,10 @@ export default function Configuracion({ usuario }) {
       </div>
 
       {/* Contenido */}
-      {tabActiva === 'perfil' && <TabPerfil usuario={usuario} />}
-      {tabActiva === 'pagos'  && <PortalSuscripcion />}
-      {tabActiva === 'equipo' && isAdmin && <TabEquipo />}
+      <div className="flex-1 overflow-y-auto -mx-6 px-6 custom-scrollbar">
+        {tabActiva === 'perfil' && <TabPerfil usuario={usuario} />}
+        {tabActiva === 'pagos'  && <PortalSuscripcion />}
+      </div>
     </div>
   );
 }

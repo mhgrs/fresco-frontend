@@ -52,8 +52,23 @@ export default function CatalogoProductos({ usuario }) {
       const res = await productosService.actualizar(id, { esta_activo: !estadoActual });
       mostrar(`Producto ${estadoActual ? 'oculto' : 'visible'}`, 'success');
       setProductos(productos.map(p => p.id === id ? res.data : p));
-    } catch {
-      mostrar('Error al actualizar el estado', 'error');
+    } catch (error) {
+      const errorMsg = error.response?.data?.error || error.response?.data?.detail || '';
+      
+      if (errorMsg.toLowerCase().includes('límite') || errorMsg.toLowerCase().includes('limit')) {
+        mostrar(
+          <span>
+            Alcanzaste el límite de productos activos del plan "gratis". Actualiza tu plan en{' '}
+            <Link to="/configuracion?tab=pagos" className="underline font-bold">
+              suscripción
+            </Link>{' '}
+            para poder agregar más.
+          </span>,
+          'error'
+        );
+      } else {
+        mostrar(errorMsg || 'Error al actualizar el estado', 'error');
+      }
     }
   };
 
@@ -71,7 +86,14 @@ export default function CatalogoProductos({ usuario }) {
   };
 
   const abrirModalAjuste = (producto) => {
-    if (!esBodega()) { mostrar('No tienes los permisos', 'error'); return; }
+    if (!esBodega()) { 
+      mostrar('No tienes los permisos para esta acción.', 'error'); 
+      return; 
+    }
+    if (!usuario.plan?.tiene_movimientos_inventario) {
+      mostrar(<span>Esta función requiere el plan <b>Pro</b>. <Link to="/configuracion?tab=pagos" className="underline">Ver planes</Link>.</span>, 'error');
+      return;
+    }
     navigate('/inventario/movimientos', { state: { productoPreseleccionado: producto } });
   };
 

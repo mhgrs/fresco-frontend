@@ -23,7 +23,8 @@ export default function CartItem({
           {item.nombre}
         </h3>
         <p className="text-[9px] sm:text-xs text-gray-500 font-medium mt-0.5">
-          ${item.precio} {item.tipo_venta === 'GRANEL' ? '/ Kg' : 'c/u'}
+          <span>${item.precio} {item.tipo_venta === 'GRANEL' ? '/ Kg' : 'c/u'}</span>
+          {item.marca && <span className="font-semibold text-gray-600"> · {item.marca}</span>}
         </p>
       </div>
 
@@ -52,8 +53,8 @@ export default function CartItem({
           </button>
         </div>
 
-        <div className="text-right flex items-center justify-end gap-1 sm:gap-2">
-          <div className="font-black text-gray-800 text-xs sm:text-base whitespace-nowrap">
+        <div className="text-right w-16 sm:w-20 flex items-center justify-end gap-1 sm:gap-2">
+          <div className="font-black text-gray-800 text-xs sm:text-base truncate">
             ${Math.round(item.precio * (Number(item.cantidad) || 0))}
           </div>
           <button

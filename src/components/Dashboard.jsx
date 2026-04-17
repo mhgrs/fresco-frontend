@@ -222,7 +222,10 @@ export default function Dashboard({ usuario, cerrarSesion }) {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
               {isBodega && <ModuleCard to="/inventario" titulo="Catálogo de Productos" descripcion="Agrega productos, precios y categorías." icono={IconoCatalogo} />}
-              {isBodega && <ModuleCard to="/inventario/movimientos" titulo="Movimientos" descripcion="Ingresos y retiros de inventario." icono={IconoMovimientos} />}
+              {isBodega && (usuario.plan?.tiene_movimientos_inventario
+                ? <ModuleCard to="/inventario/movimientos" titulo="Movimientos" descripcion="Ingresos y retiros de inventario." icono={IconoMovimientos} />
+                : <ModuleCard to="/configuracion?tab=pagos" titulo="Movimientos" descripcion="Disponible desde el plan Pro." icono={IconoMovimientos} bloqueado />
+              )}
             </div>
           </div>
 
@@ -240,7 +243,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
                 ? <ModuleCard to="/reportes" titulo="Reportes del Negocio" descripcion="Estadísticas, ventas e inventario." icono={IconoReportes} />
                 : <ModuleCard to="/configuracion?tab=pagos" titulo="Reportes del Negocio" descripcion="Disponible desde el plan Básico." icono={IconoReportes} bloqueado />
               )}
-              {isAdmin && <ModuleCard to="/configuracion?tab=equipo" titulo="Gestión de Equipo" descripcion="Gestiona usuarios y roles." icono={IconoEquipo} />}
+              {isAdmin && <ModuleCard to="/equipo" titulo="Gestión de Equipo" descripcion="Gestiona usuarios y roles." icono={IconoEquipo} />}
             </div>
           </div>
         ) : null}

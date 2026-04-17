@@ -15,6 +15,7 @@ import ModuleLayout from '../components/layout/ModuleLayout';
 import AdminRedirect from '../components/layout/AdminRedirect';
 import MovimientosCaja from '../components/MovimientosCaja';
 import TerminosCondiciones from '../components/TerminosCondiciones';
+import GestionEquipo from '../components/GestionEquipo';
 import PoliticaPrivacidad from '../components/PoliticaPrivacidad';
 
 
@@ -88,7 +89,10 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
       {isBodega && <Route path="/inventario"             element={wrap(<CatalogoProductos usuario={usuario} />, '/dashboard?module=inventario')} />}
       {isBodega && <Route path="/inventario/nuevo"       element={wrap(<FormularioProducto usuario={usuario} />, '/inventario')} />}
       {isBodega && <Route path="/inventario/editar/:id"  element={wrap(<FormularioProducto usuario={usuario} />, '/inventario')} />}
-      {isBodega && <Route path="/inventario/movimientos" element={wrap(<MovimientosInventario usuario={usuario} />, '/dashboard?module=inventario')} />}
+      {isBodega && <Route path="/inventario/movimientos" element={wrap(
+        <PlanGuard permite={usuario.plan?.tiene_movimientos_inventario}>
+          <MovimientosInventario usuario={usuario} />
+        </PlanGuard>, '/dashboard?module=inventario')} />}
       {isBodega && <Route path="/alertas"                element={wrap(<AlertasInventario />, '/dashboard')} />}
 
       {/* Administración */}
@@ -97,6 +101,8 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
         <PlanGuard permite={usuario.plan?.tiene_reportes}>
           <Reportes />
         </PlanGuard>, '/dashboard?module=administracion')} />}
+      
+      {isAdmin && <Route path="/equipo" element={wrap(<GestionEquipo />, '/dashboard?module=administracion')} />}
 
       {/* Configuración — accesible para todos los usuarios autenticados */}
       <Route path="/configuracion" element={wrap(<Configuracion usuario={usuario} />, '/dashboard')} />

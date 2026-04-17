@@ -387,12 +387,12 @@ export default function PuntoDeVenta({ usuario }) {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                   <div className="text-left">
-                    <p className="text-[10px] sm:text-xs text-green-600 font-bold uppercase tracking-wider">Agregado</p>
-                    <h3 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight mt-0.5 sm:mt-1 line-clamp-2">{ultimoAgregado.nombre}</h3>
-                    <p className="text-xs sm:text-sm text-gray-400 mt-1 font-mono">{ultimoAgregado.sku}</p>
+                    <p className="text-[8px] sm:text-xs text-green-600 font-bold uppercase tracking-wider">Agregado</p>
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight mt-0.5 sm:mt-1 line-clamp-2">{ultimoAgregado.nombre}</h3>
+                    <p className="text-xs sm:text-xs text-gray-400 mt-1 font-mono">{ultimoAgregado.sku}</p>
                   </div>
                   <div className="text-left sm:text-right">
-                    <span className="text-3xl sm:text-5xl font-black text-[#91cf5b]">${ultimoAgregado.precio}</span>
+                    <span className="text-2xl sm:text-5xl font-black text-[#91cf5b]">${ultimoAgregado.precio}</span>
                   </div>
                 </div>
               </div>
