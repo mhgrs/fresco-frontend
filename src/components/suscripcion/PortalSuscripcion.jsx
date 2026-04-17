@@ -206,7 +206,7 @@ export default function PortalSuscripcion() {
               onClick={() => setModalidad('anual')}
               className={`px-4 py-1.5 rounded-full font-bold transition-all flex items-center gap-1.5 ${modalidad === 'anual' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}>
               Anual
-              <span className="bg-[#91cf5b] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">−8%</span>
+              <span className="bg-[#91cf5b] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">−2%</span>
             </button>
           </div>
         </div>
@@ -214,7 +214,7 @@ export default function PortalSuscripcion() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {planes.map(plan => {
             const esPlanActual = planActual?.nombre === plan.nombre;
-            const precio = modalidad === 'anual'
+            const precio = modalidad === 'anual' && plan.precio_anual !== null
               ? Math.round(plan.precio_anual / 12)
               : plan.precio_mensual;
 
@@ -233,11 +233,14 @@ export default function PortalSuscripcion() {
                     )}
                   </div>
                   <div className="text-2xl font-black text-gray-900">
-                    {formatCLP(precio)}
-                    {precio > 0 && <span className="text-xs font-medium text-gray-400">/mes</span>}
+                    {plan.precio_mensual === null ? 'A convenir' : formatCLP(precio)}
+                    {plan.precio_mensual !== null && precio > 0 && <span className="text-xs font-medium text-gray-400">/mes</span>}
                   </div>
-                  {modalidad === 'anual' && (
+                  {modalidad === 'anual' && plan.precio_anual !== null && (
                     <p className="text-xs text-gray-400">{formatCLP(plan.precio_anual)}/año</p>
+                  )}
+                  {plan.precio_mensual === null && (
+                    <p className="text-xs text-gray-400 mt-1">Precio personalizado según acuerdo</p>
                   )}
                 </div>
                 <ul className="text-xs text-gray-600 space-y-1 flex-1">

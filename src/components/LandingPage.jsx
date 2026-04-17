@@ -200,7 +200,7 @@ export default function LandingPage({ usuario }) {
                   onClick={() => setAnual(true)}
                   className={`px-5 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${anual ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
                   Anual
-                  <span className="bg-[#91cf5b] text-white text-[10px] font-black px-2 py-0.5 rounded-full">−8%</span>
+                  <span className="bg-[#91cf5b] text-white text-[10px] font-black px-2 py-0.5 rounded-full">−2%</span>
                 </button>
               </div>
             </div>
@@ -233,18 +233,25 @@ export default function LandingPage({ usuario }) {
 
                   <div className="mb-6">
                     <div className={`text-4xl font-black ${plan.destacado ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.precio_mensual === 0
-                        ? 'Gratis'
-                        : formatPrecio(anual
-                          ? Math.round(plan.precio_anual / 12)
-                          : plan.precio_mensual)
+                      {plan.precio_mensual === null 
+                        ? 'A convenir'
+                        : plan.precio_mensual === 0
+                          ? 'Gratis'
+                          : formatPrecio(anual
+                            ? Math.round(plan.precio_anual / 12)
+                            : plan.precio_mensual)
                       }
                     </div>
-                    {plan.precio_mensual > 0 && (
+                    {plan.precio_mensual !== null && plan.precio_mensual > 0 && (
                       <div className={`text-xs mt-1 ${plan.destacado ? 'text-gray-400' : 'text-gray-400'}`}>
                         {anual
-                          ? `${formatPrecio(plan.precio_anual)}/año · 2 meses gratis`
+                          ? `${formatPrecio(plan.precio_anual)}/año · Ahorra 2%`
                           : 'por mes · ajuste anual por IPC'}
+                      </div>
+                    )}
+                    {plan.precio_mensual === null && (
+                      <div className={`text-xs mt-1 ${plan.destacado ? 'text-gray-400' : 'text-gray-400'}`}>
+                        Precio personalizado según acuerdo
                       </div>
                     )}
                   </div>

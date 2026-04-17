@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PLANES } from '../../constants/planes';
 
-const planesDePago = PLANES.filter(p => p.precio_mensual > 0);
+const planesDePago = PLANES.filter(p => p.nombre !== 'Gratis');
 
 function getPlanFeature(plan) {
   switch(plan.nombre) {
