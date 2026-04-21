@@ -8,6 +8,28 @@ function formatPrecio(n) {
 
 export default function LandingPage({ usuario }) {
   const [anual, setAnual] = useState(false);
+  const [contactoAbierto, setContactoAbierto] = useState(false);
+  const [formContacto, setFormContacto] = useState({ nombre: '', email: '', empresa: '', mensaje: '' });
+  const [enviando, setEnviando] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+
+  const handleContacto = async (e) => {
+    e.preventDefault();
+    setEnviando(true);
+    try {
+      await fetch('/api/inventario/usuarios/contacto/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formContacto),
+      });
+      setEnviado(true);
+      setTimeout(() => { setContactoAbierto(false); setEnviado(false); setFormContacto({ nombre: '', email: '', empresa: '', mensaje: '' }); }, 3000);
+    } catch {
+      // silencioso — el email igual se intenta
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   useEffect(() => {
     document.title = 'Fresco — Sistema POS para tu negocio';
@@ -257,7 +279,7 @@ export default function LandingPage({ usuario }) {
                   </div>
 
                   <div className={`text-xs font-bold uppercase tracking-wider mb-3 ${plan.destacado ? 'text-gray-400' : 'text-gray-400'}`}>
-                    {plan.productos.toLocaleString('es-CL')} productos · {plan.usuarios} usuario{plan.usuarios > 1 ? 's' : ''}
+                    {plan.productos === null ? 'Ilimitados' : plan.productos.toLocaleString('es-CL')} productos · {plan.usuarios} {plan.usuarios === 1 ? 'usuario' : 'usuarios'}
                   </div>
 
                   <ul className="space-y-2 mb-6 flex-1">
@@ -279,14 +301,22 @@ export default function LandingPage({ usuario }) {
                     ))}
                   </ul>
 
-                  <Link to={plan.ctaLink}
-                    className={`text-center py-3 rounded-full font-bold text-sm transition-all active:scale-95 ${
-                      plan.destacado
-                        ? 'bg-[#91cf5b] hover:bg-[#7ab848] text-white'
-                        : 'bg-gray-900 hover:bg-gray-800 text-white'
-                    }`}>
-                    {plan.cta}
-                  </Link>
+                  {plan.ctaLink ? (
+                    <Link to={plan.ctaLink}
+                      className={`text-center py-3 rounded-full font-bold text-sm transition-all active:scale-95 ${
+                        plan.destacado
+                          ? 'bg-[#91cf5b] hover:bg-[#7ab848] text-white'
+                          : 'bg-gray-900 hover:bg-gray-800 text-white'
+                      }`}>
+                      {plan.cta}
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => setContactoAbierto(true)}
+                      className="text-center py-3 rounded-full font-bold text-sm transition-all active:scale-95 bg-gray-900 hover:bg-gray-800 text-white">
+                      {plan.cta}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -396,6 +426,61 @@ export default function LandingPage({ usuario }) {
           <p className="mt-2 md:mt-0">Hecho en Chile 🇨🇱</p>
         </div>
       </footer>
+
+      {/* ── Modal Contacto Empresa ───────────────────────────────────────── */}
+      {contactoAbierto && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setContactoAbierto(false)}>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-black text-gray-900 mb-1">Plan Empresa</h3>
+            <p className="text-sm text-gray-500 mb-5">Cuéntanos sobre tu negocio y te contactamos con una propuesta.</p>
+
+            {enviado ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-3">✓</div>
+                <p className="font-bold text-gray-900">¡Mensaje enviado!</p>
+                <p className="text-sm text-gray-500 mt-1">Te contactaremos pronto a <strong>{formContacto.email}</strong></p>
+              </div>
+            ) : (
+              <form onSubmit={handleContacto} className="space-y-3">
+                <input
+                  required placeholder="Tu nombre"
+                  value={formContacto.nombre}
+                  onChange={e => setFormContacto(p => ({ ...p, nombre: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#91cf5b]"
+                />
+                <input
+                  required type="email" placeholder="Correo electrónico"
+                  value={formContacto.email}
+                  onChange={e => setFormContacto(p => ({ ...p, email: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#91cf5b]"
+                />
+                <input
+                  required placeholder="Nombre del negocio"
+                  value={formContacto.empresa}
+                  onChange={e => setFormContacto(p => ({ ...p, empresa: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#91cf5b]"
+                />
+                <textarea
+                  rows={3} placeholder="¿Cuántas sucursales? ¿Alguna consulta adicional? (opcional)"
+                  value={formContacto.mensaje}
+                  onChange={e => setFormContacto(p => ({ ...p, mensaje: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#91cf5b] resize-none"
+                />
+                <div className="flex gap-3 pt-1">
+                  <button type="button" onClick={() => setContactoAbierto(false)}
+                    className="flex-1 py-2.5 bg-gray-100 rounded-full font-bold text-sm text-gray-700 hover:bg-gray-200 transition-all">
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={enviando}
+                    className="flex-1 py-2.5 bg-gray-900 hover:bg-gray-700 text-white rounded-full font-bold text-sm transition-all disabled:opacity-50">
+                    {enviando ? 'Enviando...' : 'Enviar consulta'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

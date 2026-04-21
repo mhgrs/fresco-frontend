@@ -214,7 +214,8 @@ export default function PortalSuscripcion() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {planes.map(plan => {
             const esPlanActual = planActual?.nombre === plan.nombre;
-            const precio = modalidad === 'anual' && plan.precio_anual !== null
+            const esEmpresa   = plan.nombre === 'empresa';
+            const precio = !esEmpresa && modalidad === 'anual' && plan.precio_anual > 0
               ? Math.round(plan.precio_anual / 12)
               : plan.precio_mensual;
 
@@ -233,30 +234,31 @@ export default function PortalSuscripcion() {
                     )}
                   </div>
                   <div className="text-2xl font-black text-gray-900">
-                    {plan.precio_mensual === null ? 'A convenir' : formatCLP(precio)}
-                    {plan.precio_mensual !== null && precio > 0 && <span className="text-xs font-medium text-gray-400">/mes</span>}
+                    {esEmpresa ? 'A convenir' : formatCLP(precio)}
+                    {!esEmpresa && precio > 0 && <span className="text-xs font-medium text-gray-400">/mes</span>}
                   </div>
-                  {modalidad === 'anual' && plan.precio_anual !== null && (
+                  {!esEmpresa && modalidad === 'anual' && plan.precio_anual > 0 && (
                     <p className="text-xs text-gray-400">{formatCLP(plan.precio_anual)}/año</p>
                   )}
-                  {plan.precio_mensual === null && (
-                    <p className="text-xs text-gray-400 mt-1">Precio personalizado según acuerdo</p>
+                  {esEmpresa && (
+                    <p className="text-xs text-gray-400 mt-1">Precio personalizado · Contáctanos</p>
                   )}
                 </div>
                 <ul className="text-xs text-gray-600 space-y-1 flex-1">
-                  <li>✓ {plan.max_productos.toLocaleString('es-CL')} productos</li>
+                  <li>✓ {esEmpresa ? 'Productos ilimitados' : `${plan.max_productos.toLocaleString('es-CL')} productos`}</li>
                   <li>✓ {plan.max_usuarios} usuarios</li>
                   <li>✓ Reportes y Cierre de Caja</li>
+                  {esEmpresa && <li>✓ Múltiples sucursales</li>}
                 </ul>
                 <button
-                  onClick={() => iniciarPago(plan)}
+                  onClick={() => esEmpresa ? window.location.href = 'mailto:contacto@frescopos.cl?subject=Consulta Plan Empresa' : iniciarPago(plan)}
                   disabled={esPlanActual || procesando}
                   className={`py-2.5 rounded-full text-sm font-bold transition-all active:scale-95 ${
                     esPlanActual
                       ? 'bg-gray-100 text-gray-400 cursor-default'
                       : 'bg-gray-900 hover:bg-gray-700 text-white'
                   } disabled:opacity-50`}>
-                  {esPlanActual ? 'Plan actual' : procesando ? 'Redirigiendo...' : 'Seleccionar'}
+                  {esPlanActual ? 'Plan actual' : esEmpresa ? 'Contactar ventas' : procesando ? 'Redirigiendo...' : 'Seleccionar'}
                 </button>
               </div>
             );
