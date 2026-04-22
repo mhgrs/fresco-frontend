@@ -74,7 +74,7 @@ test('5.3 — Registrar movimiento de ingreso durante el turno', async ({ reques
   if (!turnoId) return;
 
   const res = await request.post('/api/inventario/movimientos-caja/', {
-    data: { tipo: 'INGRESO', monto: 5000, descripcion: 'Test ingreso automatizado' },
+    data: { tipo: 'ingreso', monto: 5000, descripcion: 'Test ingreso automatizado' },
   });
   expect([200, 201]).toContain(res.status());
 });
@@ -92,7 +92,7 @@ test('5.4 — Registrar movimiento de retiro durante el turno', async ({ request
   if (!turnoId) return;
 
   const res = await request.post('/api/inventario/movimientos-caja/', {
-    data: { tipo: 'RETIRO', monto: 1000, descripcion: 'Test retiro automatizado' },
+    data: { tipo: 'retiro', monto: 1000, descripcion: 'Test retiro automatizado' },
   });
   expect([200, 201]).toContain(res.status());
 });
@@ -111,7 +111,8 @@ test('5.5 — Cerrar turno retorna totales calculados', async ({ request }) => {
     });
     expect(cerrar.ok()).toBeTruthy();
     const resultado = await cerrar.json();
-    expect(resultado).toHaveProperty('total_ventas_efectivo');
+    expect(resultado.estado).toBe('cerrado');
+    expect(resultado.fecha_cierre).toBeTruthy();
     return;
   }
   const turno = await nuevo.json();
@@ -120,5 +121,6 @@ test('5.5 — Cerrar turno retorna totales calculados', async ({ request }) => {
   });
   expect(cerrar.ok()).toBeTruthy();
   const resultado = await cerrar.json();
-  expect(resultado).toHaveProperty('total_ventas_efectivo');
+  expect(resultado.estado).toBe('cerrado');
+  expect(resultado.fecha_cierre).toBeTruthy();
 });

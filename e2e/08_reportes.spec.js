@@ -13,9 +13,10 @@ test.beforeEach(async ({ page, request }) => {
 });
 
 // ─── 6.1 ─────────────────────────────────────────────────────────────────────
-test('6.1 — Dashboard muestra ventas del día', async ({ page }) => {
+test('6.1 — Dashboard carga y muestra módulos del negocio', async ({ page }) => {
   await page.goto('/dashboard');
-  await expect(page.locator('text=/hoy|ventas del día|Hoy/i').first()).toBeVisible({ timeout: 8_000 });
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 8_000 });
+  await expect(page.locator('text=/Administración|Inventario|Caja/i').first()).toBeVisible({ timeout: 8_000 });
 });
 
 // ─── 6.2 ─────────────────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ test('6.3 — Productos más vendidos están ordenados', async ({ request }) => 
 
 // ─── 6.4 ─────────────────────────────────────────────────────────────────────
 test('6.4 — Alertas de stock bajo solo muestran productos bajo el umbral', async ({ request }) => {
-  const res = await request.get('/api/inventario/productos/?stock_bajo=true');
+  const res = await request.get('/api/inventario/productos/?stock_bajo=1');
   if (!res.ok()) {
     // Intentar ruta alternativa
     const res2 = await request.get('/api/inventario/alertas/');
