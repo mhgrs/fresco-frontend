@@ -104,9 +104,14 @@ function DetalleVenta({ venta }) {
   const metodo = METODOS_PAGO[venta.metodo_pago] || { label: venta.metodo_pago, cls: 'bg-gray-100 text-gray-600' };
   return (
     <div className="space-y-4">
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-3 flex-wrap items-center">
         <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${metodo.cls}`}>{metodo.label}</span>
         <span className="text-xs font-bold text-gray-400">{fmtFechaHora(venta.fecha)}</span>
+        {venta.cajero_nombre && (
+          <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg">
+            {venta.cajero_nombre}
+          </span>
+        )}
       </div>
       <div className="divide-y divide-gray-100">
         {venta.detalles?.map((d, i) => (
@@ -415,6 +420,7 @@ export default function ActividadNegocio() {
                   <tr>
                     <th className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Fecha y Hora</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Método</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Cajero</th>
                     <th className="px-5 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Productos</th>
                     <th className="px-5 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Total</th>
                   </tr>
@@ -434,6 +440,7 @@ export default function ActividadNegocio() {
                             <td className="px-5 py-3">
                               <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${m.cls}`}>{m.label}</span>
                             </td>
+                            <td className="px-5 py-3 text-sm font-semibold text-gray-600">{v.cajero_nombre || '—'}</td>
                             <td className="px-5 py-3 text-center text-sm font-bold text-gray-600">{v.detalles?.length ?? 0}</td>
                             <td className="px-5 py-3 text-right text-sm font-black text-gray-800">{formatCLP(v.total)}</td>
                           </tr>
@@ -455,6 +462,7 @@ export default function ActividadNegocio() {
                     <th className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Apertura</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Cierre</th>
                     <th className="px-5 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Fondo Apertura</th>
+                    <th className="px-5 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Fondo Cierre</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -481,6 +489,11 @@ export default function ActividadNegocio() {
                             }
                           </td>
                           <td className="px-5 py-3 text-right text-sm font-black text-gray-800">{formatCLP(t.fondo_apertura)}</td>
+                          <td className="px-5 py-3 text-right text-sm font-black">
+                            {t.fondo_cierre != null
+                              ? <span className="text-gray-800">{formatCLP(t.fondo_cierre)}</span>
+                              : <span className="text-gray-300">—</span>}
+                          </td>
                         </tr>
                       ))
                   }
@@ -497,7 +510,7 @@ export default function ActividadNegocio() {
                     <th className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Tipo</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Concepto</th>
                     <th className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Realizado por</th>
-                    <th className="px-5 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Turno</th>
+                    <th className="px-5 py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">N° Turno</th>
                     <th className="px-5 py-3 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Monto</th>
                   </tr>
                 </thead>

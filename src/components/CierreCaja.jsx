@@ -55,7 +55,7 @@ function ModalCierre({ reporte, turno, onClose, onSuccess }) {
     setCerrando(true);
     setError('');
     try {
-      await ventasService.cerrarTurno(turno.id, hayConteo ? contado : null, notas);
+      await ventasService.cerrarTurno(turno.id, hayConteo ? contado : efectivoEsperado, notas);
       onSuccess();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al cerrar el turno.');
