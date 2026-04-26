@@ -19,6 +19,7 @@ import GestionEquipo from '../components/GestionEquipo';
 import PoliticaPrivacidad from '../components/PoliticaPrivacidad';
 import PaginaUnirse from '../components/PaginaUnirse';
 import HistorialVentas from '../components/HistorialVentas';
+import ActividadNegocio from '../components/ActividadNegocio';
 
 
 /**
@@ -106,6 +107,7 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
       
       {isAdmin && <Route path="/equipo" element={wrap(<GestionEquipo />, '/dashboard?module=administracion')} />}
       {isSupervisor && <Route path="/ventas" element={wrap(<HistorialVentas />, '/dashboard?module=administracion')} />}
+      {isSupervisor && <Route path="/actividad" element={wrap(<ActividadNegocio />, '/dashboard?module=administracion')} />}
       <Route path="/unirse/:codigo" element={<Navigate to="/dashboard" replace />} />
 
       {/* Configuración — accesible para todos los usuarios autenticados */}

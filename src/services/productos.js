@@ -19,6 +19,7 @@ export const productosService = {
   eliminar:         (id)        => api.delete(`inventario/productos/${id}/`),
   ajustarStock:     (id, datos) => api.post(`inventario/productos/${id}/ajustar_stock/`, datos),
   movimientos:      ()          => api.get('inventario/productos/movimientos/'),
+  listarMovimientos: (params)  => api.get('inventario/productos/movimientos/', { params }),
   // _silenciarError500: true → el interceptor no dispara el banner de error global
   // (el maestro es una consulta opcional: si falla, la UI lo silencia)
   consultarMaestro: (codigo)    => api.get(`inventario/maestro/${codigo}/`, { _silenciarError500: true }),
