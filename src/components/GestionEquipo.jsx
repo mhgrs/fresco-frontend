@@ -11,7 +11,9 @@ export default function GestionEquipo() {
   const [cargando, setCargando]           = useState(true);
   const [error, setError]                 = useState('');
   const [codigoInvitacion, setCodigo]     = useState('');
+  const [linkInvitacion, setLink]         = useState('');
   const [generandoCodigo, setGenerando]   = useState(false);
+  const [copiado, setCopiado]             = useState('');
   const { notificacion, mostrar }         = useNotificacion();
 
   useEffect(() => {
@@ -43,11 +45,19 @@ export default function GestionEquipo() {
     });
   };
 
+  const copiar = (texto, tipo) => {
+    navigator.clipboard.writeText(texto).then(() => {
+      setCopiado(tipo);
+      setTimeout(() => setCopiado(''), 2000);
+    });
+  };
+
   const generarCodigo = async () => {
     setGenerando(true);
     try {
       const res = await empresasService.generarCodigo();
       setCodigo(res.data.codigo);
+      setLink(res.data.link);
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Error desconocido';
       if (errorMsg.toLowerCase().includes('límite') || errorMsg.toLowerCase().includes('limit')) {
@@ -85,26 +95,55 @@ export default function GestionEquipo() {
         <div className="space-y-8">
           {/* Invitaciones */}
           <div className="bg-white/60 p-6 rounded-2xl shadow-sm border border-gray-200">
-            <h3 className="text-base font-bold text-gray-800 mb-3">Invitar colaborador</h3>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <p className="text-sm text-gray-500 max-w-md">
-                Genera un código de un solo uso para que un nuevo empleado se una a tu empresa.
-                El empleado debe registrarse primero y luego usar este código.
-              </p>
-              {codigoInvitacion ? (
-                <div className="bg-gray-100 border border-gray-300 px-6 py-2 rounded-xl text-2xl font-black tracking-widest text-gray-800 shadow-inner select-all">
-                  {codigoInvitacion}
+            <h3 className="text-base font-bold text-gray-800 mb-1">Invitar colaborador</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Genera un enlace de invitación para compartir con nuevos empleados. El enlace no tiene límite de usos y expira en 7 días.
+            </p>
+
+            {linkInvitacion ? (
+              <div className="space-y-3">
+                {/* Link */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 truncate font-mono">
+                    {linkInvitacion}
+                  </div>
+                  <button
+                    onClick={() => copiar(linkInvitacion, 'link')}
+                    className="shrink-0 bg-[#91cf5b] hover:bg-[#7ab848] text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    {copiado === 'link' ? 'Copiado' : 'Copiar enlace'}
+                  </button>
                 </div>
-              ) : (
+
+                {/* Código manual */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-xl px-4 py-2 text-xl font-black tracking-widest text-gray-800 select-all">
+                    {codigoInvitacion}
+                  </div>
+                  <button
+                    onClick={() => copiar(codigoInvitacion, 'codigo')}
+                    className="shrink-0 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 whitespace-nowrap"
+                  >
+                    {copiado === 'codigo' ? 'Copiado' : 'Copiar código'}
+                  </button>
+                </div>
+
                 <button
-                  onClick={generarCodigo}
-                  disabled={generandoCodigo}
-                  className="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
+                  onClick={() => { setCodigo(''); setLink(''); }}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {generandoCodigo ? 'Generando...' : 'Generar código'}
+                  Generar nuevo enlace
                 </button>
-              )}
-            </div>
+              </div>
+            ) : (
+              <button
+                onClick={generarCodigo}
+                disabled={generandoCodigo}
+                className="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap"
+              >
+                {generandoCodigo ? 'Generando...' : 'Generar enlace de invitación'}
+              </button>
+            )}
           </div>
 
           {/* Gestión de roles */}

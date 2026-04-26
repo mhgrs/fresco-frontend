@@ -8,6 +8,7 @@ import LandingPage from '../components/LandingPage';
 import AdminRedirect from '../components/layout/AdminRedirect';
 import TerminosCondiciones from '../components/TerminosCondiciones';
 import PoliticaPrivacidad from '../components/PoliticaPrivacidad';
+import PaginaUnirse from '../components/PaginaUnirse';
 
 /**
  * Rutas accesibles sin sesión iniciada.
@@ -21,6 +22,7 @@ export default function RutasPublicas({ onLogin }) {
       <Route path="/verificar-email/:token" element={<VerificarEmail />} />
       <Route path="/recuperar-contrasena" element={<RecuperarContrasena />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/unirse/:codigo" element={<PaginaUnirse usuario={null} />} />
       <Route path="/terminos" element={<TerminosCondiciones />} />
       <Route path="/privacidad" element={<PoliticaPrivacidad />} />
       <Route path="/" element={<LandingPage usuario={null} />} />

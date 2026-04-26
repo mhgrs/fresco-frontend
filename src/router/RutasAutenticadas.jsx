@@ -17,6 +17,7 @@ import MovimientosCaja from '../components/MovimientosCaja';
 import TerminosCondiciones from '../components/TerminosCondiciones';
 import GestionEquipo from '../components/GestionEquipo';
 import PoliticaPrivacidad from '../components/PoliticaPrivacidad';
+import PaginaUnirse from '../components/PaginaUnirse';
 
 
 /**
@@ -44,8 +45,8 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
     return (
       <Routes>
         <Route path="/onboarding" element={<OnboardingEmpresa onCompletado={cargarUsuario} cerrarSesion={cerrarSesion} />} />
+        <Route path="/unirse/:codigo" element={<PaginaUnirse usuario={usuario} />} />
         <Route path="*" element={<Navigate to="/onboarding" replace />} />
-        
       </Routes>
     );
   }
@@ -103,6 +104,7 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
         </PlanGuard>, '/dashboard?module=administracion')} />}
       
       {isAdmin && <Route path="/equipo" element={wrap(<GestionEquipo />, '/dashboard?module=administracion')} />}
+      <Route path="/unirse/:codigo" element={<Navigate to="/dashboard" replace />} />
 
       {/* Configuración — accesible para todos los usuarios autenticados */}
       <Route path="/configuracion" element={wrap(<Configuracion usuario={usuario} />, '/dashboard')} />

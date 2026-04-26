@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { empresasService } from '../services/empresas';
 
 export default function OnboardingEmpresa({ onCompletado, cerrarSesion }) {
+  const [searchParams] = useSearchParams();
   const [modo, setModo] = useState('crear'); // 'crear' | 'unirse'
   const [nombreEmpresa, setNombreEmpresa] = useState('');
   const [codigo, setCodigo] = useState('');
@@ -10,6 +12,16 @@ export default function OnboardingEmpresa({ onCompletado, cerrarSesion }) {
 
   useEffect(() => {
     document.title = "Configurar Empresa - Fresco";
+
+    // Código desde el link de invitación (?codigo=) o localStorage
+    const codigoUrl = searchParams.get('codigo');
+    const codigoGuardado = localStorage.getItem('invitacion_codigo');
+    const codigoInicial = (codigoUrl || codigoGuardado || '').toUpperCase();
+    if (codigoInicial) {
+      setCodigo(codigoInicial);
+      setModo('unirse');
+      localStorage.removeItem('invitacion_codigo');
+    }
   }, []);
 
   const handleCrear = async (e) => {
@@ -33,7 +45,7 @@ export default function OnboardingEmpresa({ onCompletado, cerrarSesion }) {
       await empresasService.unirse({ codigo: codigo.toUpperCase() });
       onCompletado();
     } catch (err) {
-      setError(err.response?.data?.error || 'El código es inválido o ya fue utilizado.');
+      setError(err.response?.data?.error || 'El código de invitación es inválido o ha expirado.');
     } finally {
       setCargando(false);
     }
@@ -79,10 +91,10 @@ export default function OnboardingEmpresa({ onCompletado, cerrarSesion }) {
           <form onSubmit={handleUnirse} className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Código de Invitación</label>
-              <input type="text" required autoFocus placeholder="Ej. X8A9B2" maxLength="6" value={codigo} onChange={(e) => setCodigo(e.target.value)} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition text-gray-800 font-black tracking-widest text-center text-2xl uppercase placeholder-gray-300" />
-              <p className="text-xs text-gray-500 mt-3 text-center">Pídele al Administrador de la empresa que genere un código desde su panel de Configuración.</p>
+              <input type="text" required autoFocus placeholder="Ej. X8A9B2C3" maxLength="8" value={codigo} onChange={(e) => setCodigo(e.target.value.toUpperCase())} className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition text-gray-800 font-black tracking-widest text-center text-2xl uppercase placeholder-gray-300" />
+              <p className="text-xs text-gray-500 mt-3 text-center">Pídele al Administrador que comparta el enlace de invitación o el código.</p>
             </div>
-            <button type="submit" disabled={cargando || codigo.length < 6} className="w-full bg-gray-900 hover:bg-gray-800 text-white font-black text-lg py-4 px-4 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 mt-4">
+            <button type="submit" disabled={cargando || codigo.length < 8} className="w-full bg-gray-900 hover:bg-gray-800 text-white font-black text-lg py-4 px-4 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 mt-4">
               {cargando ? 'Verificando...' : 'Unirme y Continuar'}
             </button>
           </form>
