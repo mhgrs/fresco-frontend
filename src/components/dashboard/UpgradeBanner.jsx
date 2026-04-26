@@ -47,7 +47,7 @@ export default function UpgradeBanner({ usuario }) {
         <h3 className="text-2xl font-black tracking-tight">Desbloquea todo el potencial de Fresco</h3>
         <div key={planIndex} className="animate-fade-in h-12 flex items-center">
           <p className="text-gray-400 max-w-lg">
-            <span className="font-bold text-white">{planActual.nombre}:</span> {getPlanFeature(planActual)}
+            {getPlanFeature(planActual)}
           </p>
         </div>
       </div>
