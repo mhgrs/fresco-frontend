@@ -145,6 +145,118 @@ function ModalCierre({ reporte, turno, onClose, onSuccess }) {
   );
 }
 
+// ── Turno abierto por otro cajero ─────────────────────────────────────────────
+function TurnoAjeno({ turno, reporte, onCerrado }) {
+  const [fondoCierre, setFondoCierre] = useState('');
+  const [notas, setNotas]             = useState('');
+  const [cerrando, setCerrando]       = useState(false);
+  const [error, setError]             = useState('');
+
+  const efectivoEsperado = reporte?.efectivo_esperado ?? 0;
+  const contado    = parseInt(fondoCierre, 10) || 0;
+  const hayConteo  = fondoCierre !== '';
+  const diferencia = contado - efectivoEsperado;
+
+  const handleCerrar = async (e) => {
+    e.preventDefault();
+    setCerrando(true);
+    setError('');
+    try {
+      await ventasService.cerrarTurno(
+        turno.id,
+        hayConteo ? contado : efectivoEsperado,
+        notas,
+      );
+      onCerrado();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al cerrar el turno.');
+      setCerrando(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+      <div className="bg-amber-50 border border-amber-200 rounded-3xl shadow-xl p-8 w-full max-w-md">
+        {/* Aviso */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-base font-black text-amber-900">Turno abierto por otro cajero</h2>
+            <p className="text-sm text-amber-700 font-medium">
+              Hay un turno activo de <span className="font-black">{turno.cajero_nombre || 'un cajero anterior'}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Resumen del turno ajeno */}
+        <div className="bg-white/70 rounded-2xl p-4 mb-5 space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-500">Turno</span>
+            <span className="font-bold text-gray-800">#{turno.folio}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">Apertura</span>
+            <span className="font-bold text-gray-800">{formatFecha(turno.fecha_apertura)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500">Fondo apertura</span>
+            <span className="font-bold text-gray-800">{clp(turno.fondo_apertura)}</span>
+          </div>
+          <div className="flex justify-between border-t border-gray-100 pt-2">
+            <span className="text-gray-500">Efectivo esperado</span>
+            <span className="font-black text-blue-700">{clp(efectivoEsperado)}</span>
+          </div>
+        </div>
+
+        {/* Formulario de cierre */}
+        <form onSubmit={handleCerrar} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              Efectivo contado (opcional)
+            </label>
+            <input
+              type="number" min="0"
+              value={fondoCierre}
+              onChange={e => setFondoCierre(e.target.value)}
+              placeholder={String(efectivoEsperado)}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+            />
+            {hayConteo && (
+              <p className="text-xs mt-1.5">
+                Diferencia: <Semaforo diferencia={diferencia} />
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              Notas del cierre (opcional)
+            </label>
+            <textarea
+              rows={2}
+              value={notas}
+              onChange={e => setNotas(e.target.value)}
+              placeholder="Observaciones..."
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white resize-none"
+            />
+          </div>
+
+          {error && <p className="text-sm text-red-600 font-semibold">{error}</p>}
+
+          <button type="submit" disabled={cerrando}
+            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-full transition-all active:scale-95 disabled:opacity-50 text-sm">
+            {cerrando ? 'Cerrando...' : `Cerrar turno de ${turno.cajero_nombre || 'cajero anterior'} y abrir el mío`}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Vista sin turno ───────────────────────────────────────────────────────────
 function SinTurno({ onTurnoAbierto }) {
   const [fondo, setFondo]       = useState('');
@@ -337,7 +449,8 @@ function TabHistorial() {
         <thead className="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">
           <tr>
             <th className="px-4 py-3 text-left">Folio</th>
-            <th className="px-4 py-3 text-left">Cajero</th>
+            <th className="px-4 py-3 text-left">Abierto por</th>
+            <th className="px-4 py-3 text-left">Cerrado por</th>
             <th className="px-4 py-3 text-left">Apertura</th>
             <th className="px-4 py-3 text-left">Cierre</th>
             <th className="px-4 py-3 text-right">Fondo apertura</th>
@@ -349,10 +462,16 @@ function TabHistorial() {
             const diferencia = t.fondo_cierre != null
               ? parseInt(t.fondo_cierre) - parseInt(t.fondo_apertura)
               : null;
+            const cierreAjeno = t.cerrado_por_nombre && t.cerrado_por_nombre !== t.cajero_nombre;
             return (
               <tr key={t.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 font-black text-gray-700">#{t.folio}</td>
                 <td className="px-4 py-3 text-gray-600">{t.cajero_nombre ?? '—'}</td>
+                <td className="px-4 py-3">
+                  {cierreAjeno
+                    ? <span className="text-amber-700 font-bold text-xs bg-amber-50 px-2 py-0.5 rounded-lg">{t.cerrado_por_nombre}</span>
+                    : <span className="text-gray-400 text-xs">—</span>}
+                </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_apertura)}</td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_cierre)}</td>
                 <td className="px-4 py-3 text-right font-semibold">{clp(t.fondo_apertura)}</td>
@@ -378,7 +497,7 @@ const TABS = [
   { id: 'historial',   label: 'Historial' },
 ];
 
-export default function CierreCaja() {
+export default function CierreCaja({ usuario }) {
   const [cargando, setCargando]       = useState(true);
   const [turno, setTurno]             = useState(null);
   const [reporte, setReporte]         = useState(null);
@@ -440,7 +559,8 @@ export default function CierreCaja() {
     );
   }
 
-  const hayTurno = !!turno;
+  const hayTurno   = !!turno;
+  const turnoAjeno = hayTurno && turno.cajero_id != null && turno.cajero_id !== usuario?.id;
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto min-h-full bg-[var(--color-fondo)] transition-colors duration-500">
@@ -455,8 +575,14 @@ export default function CierreCaja() {
         )}
       </div>
 
-      {/* Sin turno activo: mostrar pantalla de apertura directamente */}
-      {!hayTurno ? (
+      {/* Turno abierto por otro cajero */}
+      {turnoAjeno ? (
+        <TurnoAjeno
+          turno={turno}
+          reporte={reporte}
+          onCerrado={handleTurnoAbierto}
+        />
+      ) : !hayTurno ? (
         <SinTurno onTurnoAbierto={handleTurnoAbierto} />
       ) : (
         <>

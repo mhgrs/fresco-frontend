@@ -167,6 +167,12 @@ function DetalleTurno({ turno }) {
             <span className="font-bold text-gray-800">{formatCLP(turno.fondo_cierre)}</span>
           </div>
         )}
+        {turno.cerrado_por_nombre && turno.cerrado_por_nombre !== turno.cajero_nombre && (
+          <div className="flex justify-between pt-2 border-t border-amber-100">
+            <span className="text-amber-600 font-medium">Cerrado por</span>
+            <span className="font-bold text-amber-700">{turno.cerrado_por_nombre}</span>
+          </div>
+        )}
         {turno.notas && (
           <div className="flex justify-between">
             <span className="text-gray-500 font-medium">Notas</span>

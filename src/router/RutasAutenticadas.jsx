@@ -81,7 +81,7 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
       {isCajero && <Route path="/pos" element={wrap(<PuntoDeVenta usuario={usuario} />, '/dashboard?module=caja')} />}
       {isCajero && <Route path="/cierre-caja" element={wrap(
         <PlanGuard permite={usuario.plan?.tiene_cierre_caja}>
-          <CierreCaja />
+          <CierreCaja usuario={usuario} />
         </PlanGuard>, '/dashboard?module=caja')} />}
       {isCajero && <Route path="/movimientos-caja" element={wrap(
         <PlanGuard permite={usuario.plan?.tiene_cierre_caja}>
