@@ -49,11 +49,9 @@ api.interceptors.response.use(
         // Reintentar la petición original; el navegador ya tiene la nueva cookie.
         return api(originalRequest);
       } catch {
-        // El refresh también falló → sesión expirada.
-        // NO hacemos window.location.href aquí: causaría un bucle infinito
-        // (la recarga vuelve a llamar /me/ → 401 → refresh → falla → recarga...).
-        // En cambio rechazamos la promesa; cargarUsuario() deja usuario=null
-        // y el router de React muestra la pantalla de login sin recargar.
+        // Refresh también falló → sesión expirada.
+        // Disparar evento para que App.jsx limpie el usuario sin recargar la página.
+        window.dispatchEvent(new CustomEvent('sesionExpirada'));
         return Promise.reject(error);
       }
     }

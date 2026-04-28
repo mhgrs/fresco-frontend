@@ -23,6 +23,13 @@ export default function App() {
     return () => window.removeEventListener('errorServidor', handler);
   }, []);
 
+  // Sesión expirada: limpiar usuario y volver al login sin recargar la página
+  useEffect(() => {
+    const handler = () => manejarCerrarSesion();
+    window.addEventListener('sesionExpirada', handler);
+    return () => window.removeEventListener('sesionExpirada', handler);
+  }, []);
+
   // Variables de tema global
   useEffect(() => {
     document.documentElement.style.setProperty('--color-fondo', '#fcfbf7');

@@ -13,13 +13,18 @@ export default function Login({ onLogin }) {
     setCargando(true);
     setError('');
     try {
-      // El backend valida las credenciales y establece las cookies JWT HttpOnly.
-      // Los tokens nunca son visibles para JavaScript.
       const response = await usuariosService.login({ username: email, password });
       onLogin(response.data);
-
     } catch (err) {
-      setError(err.response?.data?.error || 'Error de conexión. Revisa tus credenciales.');
+      const status = err.response?.status;
+      if (status === 401 || status === 400) {
+        setError(err.response?.data?.error || 'Correo o contraseña incorrectos.');
+      } else if (status >= 500) {
+        setError('El servidor tuvo un problema. Intenta de nuevo en unos momentos.');
+      } else {
+        setError('No se pudo conectar. Revisa tu conexión a internet.');
+      }
+    } finally {
       setCargando(false);
     }
   };
