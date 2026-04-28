@@ -125,24 +125,39 @@ export default function MovimientosInventario({ usuario }) {
 
     setProcesando(true);
     try {
-      // Enviar peticiones simultáneas por cada producto
-      await Promise.all(seleccionados.map(item => {
-        const cantParseada = parseFloat(String(item.cantidad).replace(',', '.'));
-        return productosService.ajustarStock(item.producto.id, {
-          tipo: formularioGlobal.tipo,
-          cantidad: cantParseada,
-          motivo: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.motivo : null,
-          descripcion: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.descripcion : null
+      const resultados = await Promise.allSettled(
+        seleccionados.map(item => {
+          const cantParseada = parseFloat(String(item.cantidad).replace(',', '.'));
+          return productosService.ajustarStock(item.producto.id, {
+            tipo: formularioGlobal.tipo,
+            cantidad: cantParseada,
+            motivo: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.motivo : null,
+            descripcion: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.descripcion : null,
+          });
         })
-      }));
-      
-      mostrar('Todos los movimientos han sido registrados exitosamente', 'success');
-      setSeleccionados([]);
-      setFormularioGlobal({ ...formularioGlobal, descripcion: '' });
-      cargarDatos(); // Recargar historial y listado de productos actualizado
-      setTabActiva('historial');
-    } catch (error) {
-      mostrar(error.response?.data?.error || 'Error al registrar el movimiento', 'error');
+      );
+
+      const exitosos = resultados
+        .map((r, i) => r.status === 'fulfilled' ? seleccionados[i].producto.id : null)
+        .filter(Boolean);
+      const fallidos = resultados
+        .map((r, i) => r.status === 'rejected' ? seleccionados[i].producto.nombre : null)
+        .filter(Boolean);
+
+      cargarDatos();
+
+      if (fallidos.length === 0) {
+        mostrar('Todos los movimientos registrados exitosamente', 'success');
+        setSeleccionados([]);
+        setFormularioGlobal({ ...formularioGlobal, descripcion: '' });
+        setTabActiva('historial');
+      } else if (exitosos.length > 0) {
+        mostrar(`${exitosos.length} registrado(s). Error en: ${fallidos.join(', ')}`, 'error');
+        setSeleccionados(prev => prev.filter(s => !exitosos.includes(s.producto.id)));
+      } else {
+        const primerError = resultados.find(r => r.status === 'rejected');
+        mostrar(primerError?.reason?.response?.data?.error || 'Error al registrar los movimientos', 'error');
+      }
     } finally {
       setProcesando(false);
     }

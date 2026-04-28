@@ -35,7 +35,7 @@ export default function PuntoDeVenta({ usuario }) {
     suspenderVenta,
     retomarVenta,
     eliminarSuspendida
-  } = useCarrito();
+  } = useCarrito(usuario?.id);
 
   const { termino, setTermino, resultados, inputRef } = useProductSearch(catalogo, agregar);
 

@@ -2,36 +2,52 @@ import { useState, useEffect } from 'react';
 
 /**
  * Gestiona el estado del carrito de venta y todas sus operaciones.
- * Persiste automáticamente los datos en localStorage.
+ * Persiste automáticamente los datos en localStorage, aislado por usuarioId.
  */
-export function useCarrito() {
-  // Inicialización lazy leyendo de localStorage
+export function useCarrito(usuarioId) {
+  const uidKey = String(usuarioId ?? '');
+
+  // Inicialización lazy: solo restaura si los datos pertenecen al mismo usuario
   const [carrito, setCarrito] = useState(() => {
     try {
+      if (!uidKey) return [];
+      const savedUid = localStorage.getItem('pos_usuario_id');
+      if (savedUid !== uidKey) return [];
       const guardado = localStorage.getItem('pos_carrito');
       return guardado ? JSON.parse(guardado) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   });
 
   const [ultimoAgregado, setUltimoAgregado] = useState(() => {
     try {
+      if (!uidKey) return null;
+      const savedUid = localStorage.getItem('pos_usuario_id');
+      if (savedUid !== uidKey) return null;
       const guardado = localStorage.getItem('pos_ultimo_agregado');
       return guardado ? JSON.parse(guardado) : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   });
 
   const [ventasSuspendidas, setVentasSuspendidas] = useState(() => {
     try {
+      if (!uidKey) return [];
+      const savedUid = localStorage.getItem('pos_usuario_id');
+      if (savedUid !== uidKey) return [];
       const guardadas = localStorage.getItem('pos_ventas_suspendidas');
       return guardadas ? JSON.parse(guardadas) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   });
+
+  // Actualizar la marca de usuario cuando cambia
+  useEffect(() => {
+    if (uidKey) localStorage.setItem('pos_usuario_id', uidKey);
+  }, [uidKey]);
 
   // Efectos para sincronizar estado hacia el localStorage
   useEffect(() => {
