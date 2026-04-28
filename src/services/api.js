@@ -49,9 +49,12 @@ api.interceptors.response.use(
         // Reintentar la petición original; el navegador ya tiene la nueva cookie.
         return api(originalRequest);
       } catch {
-        // Refresh también falló → sesión expirada.
-        // Disparar evento para que App.jsx limpie el usuario sin recargar la página.
-        window.dispatchEvent(new CustomEvent('sesionExpirada'));
+        // Refresh también falló. Solo notificar si había una sesión activa:
+        // si localStorage no tiene 'usuario', el error viene de la verificación
+        // inicial (antes del login) y no hay nada que cerrar.
+        if (localStorage.getItem('usuario')) {
+          window.dispatchEvent(new CustomEvent('sesionExpirada'));
+        }
         return Promise.reject(error);
       }
     }
