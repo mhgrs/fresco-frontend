@@ -12,6 +12,7 @@ export default function GestionEquipo() {
   const [error, setError]                 = useState('');
   const [codigoInvitacion, setCodigo]     = useState('');
   const [linkInvitacion, setLink]         = useState('');
+  const [expiraEn, setExpiraEn]           = useState('');
   const [generandoCodigo, setGenerando]   = useState(false);
   const [copiado, setCopiado]             = useState('');
   const { notificacion, mostrar }         = useNotificacion();
@@ -58,6 +59,7 @@ export default function GestionEquipo() {
       const res = await empresasService.generarCodigo();
       setCodigo(res.data.codigo);
       setLink(res.data.link);
+      setExpiraEn(res.data.expira_en || '');
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Error desconocido';
       if (errorMsg.toLowerCase().includes('límite') || errorMsg.toLowerCase().includes('limit')) {
@@ -128,8 +130,20 @@ export default function GestionEquipo() {
                   </button>
                 </div>
 
+                {expiraEn && (
+                  <p className="text-xs text-gray-400">
+                    Vence el{' '}
+                    <span className="font-semibold text-gray-600">
+                      {new Date(expiraEn).toLocaleString('es-CL', {
+                        day: '2-digit', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit',
+                      })}
+                    </span>
+                  </p>
+                )}
+
                 <button
-                  onClick={() => { setCodigo(''); setLink(''); }}
+                  onClick={() => { setCodigo(''); setLink(''); setExpiraEn(''); }}
                   className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   Generar nuevo enlace

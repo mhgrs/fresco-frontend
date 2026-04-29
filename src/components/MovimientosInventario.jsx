@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useNotificacion } from '../hooks/useNotificacion';
+import { useDebounce } from '../hooks/useDebounce';
 import { productosService } from '../services/productos';
 
 export default function MovimientosInventario({ usuario }) {
@@ -22,6 +23,8 @@ export default function MovimientosInventario({ usuario }) {
     productoPreseleccionado ? [{ producto: productoPreseleccionado, cantidad: '' }] : []
   );
   const [procesando, setProcesando] = useState(false);
+  const debouncedBusqueda = useDebounce(busqueda, 250);
+  const agregandoRef = useRef(false);
 
   const cargarDatos = async () => {
     try {
@@ -43,13 +46,18 @@ export default function MovimientosInventario({ usuario }) {
     cargarDatos();
   }, []);
 
-  // Efecto buscador
+  // Limpiar resultados inmediatamente al borrar el campo
   useEffect(() => {
-    if (!busqueda.trim()) {
+    if (!busqueda.trim()) setResultadosBusqueda([]);
+  }, [busqueda]);
+
+  // Buscador debounced: evita duplicados por escritura rápida / lector de barras
+  useEffect(() => {
+    if (!debouncedBusqueda.trim()) {
       setResultadosBusqueda([]);
       return;
     }
-    const term = busqueda.toLowerCase().trim();
+    const term = debouncedBusqueda.toLowerCase().trim();
 
     // Autocompletado exacto (ideal para lectores de códigos de barra)
     const coincidenciaExacta = productos.find(
@@ -57,23 +65,27 @@ export default function MovimientosInventario({ usuario }) {
     );
 
     if (coincidenciaExacta && term.length >= 4) {
-      setSeleccionados(prev => {
-        if (!prev.find(s => s.producto.id === coincidenciaExacta.id)) {
-          return [...prev, { producto: coincidenciaExacta, cantidad: '' }];
-        }
-        return prev;
-      });
-      setBusqueda('');
+      if (!agregandoRef.current) {
+        agregandoRef.current = true;
+        setSeleccionados(prev => {
+          if (!prev.find(s => s.producto.id === coincidenciaExacta.id)) {
+            return [...prev, { producto: coincidenciaExacta, cantidad: '' }];
+          }
+          return prev;
+        });
+        setBusqueda('');
+        setTimeout(() => { agregandoRef.current = false; }, 400);
+      }
       return;
     }
 
-    const filtrados = productos.filter(p => 
-      p.nombre.toLowerCase().includes(term) || 
-      p.sku.toLowerCase().includes(term) || 
+    const filtrados = productos.filter(p =>
+      p.nombre.toLowerCase().includes(term) ||
+      p.sku.toLowerCase().includes(term) ||
       (p.codigo_barras && p.codigo_barras.toLowerCase().includes(term))
     );
     setResultadosBusqueda(filtrados);
-  }, [busqueda, productos]);
+  }, [debouncedBusqueda, productos]);
 
   const agregarProducto = (prod) => {
     setSeleccionados(prev => {

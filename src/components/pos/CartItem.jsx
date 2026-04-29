@@ -39,7 +39,16 @@ export default function CartItem({
           <input
             type="number"
             value={item.cantidad}
-            onChange={(e) => onCambiarCantidad(item.id, e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '') { onCambiarCantidad(item.id, val); return; }
+              if (Number(val) < 0) return;
+              if (item.tipo_venta === 'GRANEL') {
+                const dot = val.indexOf('.');
+                if (dot !== -1 && val.length - dot - 1 > 3) return;
+              }
+              onCambiarCantidad(item.id, val);
+            }}
             onBlur={() => onValidarCantidad(item.id, item.tipo_venta)}
             step={item.tipo_venta === 'GRANEL' ? '0.001' : '1'}
             min="0"

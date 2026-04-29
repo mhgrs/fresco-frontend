@@ -134,6 +134,12 @@ export default function Registro() {
           errorText = `${firstKey === 'email' ? 'Correo' : firstKey}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
       }
       setMensaje({ tipo: 'error', texto: errorText });
+      setFormData(prev => ({
+        ...prev,
+        first_name: '', last_name: '',
+        password: '', confirm_password: '',
+        telefono: '', nacionalidad: 'Chile', direccion: '', acepta_terminos: false,
+      }));
     } finally {
       setCargando(false);
     }
