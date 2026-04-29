@@ -36,15 +36,18 @@ export default function CatalogoProductos({ usuario }) {
     const params = { page: paginaActual };
     if (debouncedTermino.trim()) params.search = debouncedTermino.trim();
     if (categoriaActiva !== 'TODOS') params.categoria = categoriaActiva;
+    if (configOrden.clave) {
+      params.ordering = configOrden.direccion === 'desc' ? `-${configOrden.clave}` : configOrden.clave;
+    }
     productosService.listar(params)
       .then(res => { setProductos(res.data.results); setTotalCount(res.data.count); })
       .catch(console.error)
       .finally(() => setCargando(false));
-  }, [paginaActual, debouncedTermino, categoriaActiva]);
+  }, [paginaActual, debouncedTermino, categoriaActiva, configOrden]);
 
   useEffect(() => {
     setPaginaActual(1);
-  }, [debouncedTermino, categoriaActiva]);
+  }, [debouncedTermino, categoriaActiva, configOrden]);
 
   const alternarEstado = async (id, estadoActual) => {
     if (!esSupervisor()) { mostrar('No tienes permisos para esta acción.', 'error'); return; }
@@ -112,21 +115,6 @@ export default function CatalogoProductos({ usuario }) {
       direccion: prev.clave === clave && prev.direccion === 'asc' ? 'desc' : 'asc',
     }));
   };
-
-  const productosOrdenados = [...productos].sort((a, b) => {
-    if (!configOrden.clave) return 0;
-    let vA = a[configOrden.clave];
-    let vB = b[configOrden.clave];
-    if (configOrden.clave === 'precio' || configOrden.clave === 'stock') {
-      vA = parseFloat(vA); vB = parseFloat(vB);
-    } else {
-      vA = (vA || '').toString().toLowerCase();
-      vB = (vB || '').toString().toLowerCase();
-    }
-    if (vA < vB) return configOrden.direccion === 'asc' ? -1 : 1;
-    if (vA > vB) return configOrden.direccion === 'asc' ? 1 : -1;
-    return 0;
-  });
 
   const totalPaginas = Math.ceil(totalCount / PAGE_SIZE);
   const inicioRango = (paginaActual - 1) * PAGE_SIZE + 1;
@@ -228,7 +216,7 @@ export default function CatalogoProductos({ usuario }) {
                     <td colSpan="7" className="p-8 text-center text-gray-500 font-medium">No se encontraron productos.</td>
                   </tr>
                 ) : (
-                  productosOrdenados.map(prod => (
+                  productos.map(prod => (
                     <ProductoFila
                       key={prod.id}
                       producto={prod}
