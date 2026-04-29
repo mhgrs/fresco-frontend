@@ -310,7 +310,7 @@ export default function FormularioProducto({ usuario }) {
               </div>
               <div className="flex justify-end space-x-2">
                 <button type="button"
-                  onClick={() => { setModalCatAbierto(false); setFormulario(prev => ({ ...prev, categoria: '' })); }}
+                  onClick={() => setModalCatAbierto(false)}
                   className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition">
                   Cancelar
                 </button>

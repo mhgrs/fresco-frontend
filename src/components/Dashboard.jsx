@@ -13,6 +13,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [alertas, setAlertas] = useState([]);
+  const [alertasCacheMs, setAlertasCacheMs] = useState(null);
   const [mostrarAjustes, setMostrarAjustes] = useState(false);
   const ajustesRef = useRef(null);
 
@@ -31,11 +32,17 @@ export default function Dashboard({ usuario, cerrarSesion }) {
         .then(res => {
           const data = Array.isArray(res.data) ? res.data : res.data.results ?? [];
           setAlertas(data);
+          setAlertasCacheMs(null);
           localStorage.setItem('alertas_offline', JSON.stringify(data));
+          localStorage.setItem('alertas_offline_ts', Date.now().toString());
         })
         .catch(() => {
           const cache = localStorage.getItem('alertas_offline');
-          if (cache) setAlertas(JSON.parse(cache));
+          if (cache) {
+            setAlertas(JSON.parse(cache));
+            const ts = localStorage.getItem('alertas_offline_ts');
+            setAlertasCacheMs(ts ? Date.now() - parseInt(ts) : null);
+          }
         });
     }
   }, [usuario.roles, usuario.is_superuser]);
@@ -109,7 +116,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
             {/* Campana de alertas: solo usuarios con cualquier rol */}
             {roles.length > 0 && (
-              <AlertasDropdown alertas={alertas} />
+              <AlertasDropdown alertas={alertas} cacheMs={alertasCacheMs} />
             )}
 
             {/* Menú de usuario */}

@@ -21,8 +21,14 @@ export default function HistorialVentas() {
   const [fechaDesde, setFechaDesde] = useState(hoy());
   const [fechaHasta, setFechaHasta] = useState(hoy());
   const [expandida, setExpandida]   = useState(null);
+  const [errorFecha, setErrorFecha] = useState('');
 
   const buscar = async () => {
+    if (fechaDesde > fechaHasta) {
+      setErrorFecha('La fecha "Desde" no puede ser posterior a "Hasta".');
+      return;
+    }
+    setErrorFecha('');
     setCargando(true);
     try {
       const res = await ventasService.listarHistorial({
@@ -83,6 +89,11 @@ export default function HistorialVentas() {
           {cargando ? 'Buscando...' : 'Buscar'}
         </button>
       </div>
+      {errorFecha && (
+        <p className="text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 mb-4">
+          {errorFecha}
+        </p>
+      )}
 
       {/* Resumen */}
       {!cargando && ventas.length > 0 && (

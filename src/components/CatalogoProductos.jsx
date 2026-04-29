@@ -16,6 +16,8 @@ export default function CatalogoProductos({ usuario }) {
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [categoriaActiva, setCategoriaActiva] = useState('TODOS');
   const [confirmarEliminar, setConfirmarEliminar] = useState({ visible: false, id: null, nombre: '' });
+  const [eliminando, setEliminando] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [configOrden, setConfigOrden] = useState({ clave: null, direccion: 'asc' });
 
@@ -76,6 +78,8 @@ export default function CatalogoProductos({ usuario }) {
   };
 
   const ejecutarEliminacion = async () => {
+    setEliminando(true);
+    setErrorEliminar('');
     try {
       await productosService.eliminar(confirmarEliminar.id);
       mostrar('Producto eliminado permanentemente', 'success');
@@ -83,8 +87,9 @@ export default function CatalogoProductos({ usuario }) {
       setTotalCount(c => c - 1);
       setConfirmarEliminar({ visible: false, id: null, nombre: '' });
     } catch {
-      mostrar('No se puede eliminar porque tiene historial de ventas', 'error');
-      setConfirmarEliminar({ visible: false, id: null, nombre: '' });
+      setErrorEliminar('No se puede eliminar porque tiene historial de ventas.');
+    } finally {
+      setEliminando(false);
     }
   };
 
@@ -140,7 +145,9 @@ export default function CatalogoProductos({ usuario }) {
         <ConfirmarEliminarModal
           mensaje={<>Está a punto de borrar permanentemente <strong>{confirmarEliminar.nombre}</strong>. Esta acción no se puede deshacer.</>}
           onConfirmar={ejecutarEliminacion}
-          onCancelar={() => setConfirmarEliminar({ visible: false, id: null, nombre: '' })}
+          onCancelar={() => { setConfirmarEliminar({ visible: false, id: null, nombre: '' }); setErrorEliminar(''); }}
+          cargando={eliminando}
+          errorMensaje={errorEliminar}
         />
       )}
 

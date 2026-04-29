@@ -307,6 +307,7 @@ export default function ActividadNegocio() {
   const [tabActiva, setTabActiva]   = useState('ventas');
   const [cargando, setCargando]     = useState(true);
   const [detalle, setDetalle]       = useState(null);
+  const [errorFecha, setErrorFecha] = useState('');
 
   const [ventas,    setVentas]    = useState([]);
   const [turnos,    setTurnos]    = useState([]);
@@ -314,6 +315,11 @@ export default function ActividadNegocio() {
   const [movInv,    setMovInv]    = useState([]);
 
   const buscar = useCallback(async () => {
+    if (fechaDesde > fechaHasta) {
+      setErrorFecha('La fecha "Desde" no puede ser posterior a "Hasta".');
+      return;
+    }
+    setErrorFecha('');
     setCargando(true);
     const params = { fecha_desde: fechaDesde, fecha_hasta: fechaHasta };
     const [r1, r2, r3, r4] = await Promise.allSettled([
@@ -398,6 +404,11 @@ export default function ActividadNegocio() {
           {cargando ? 'Buscando…' : 'Buscar'}
         </button>
       </div>
+      {errorFecha && (
+        <p className="text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 mb-4">
+          {errorFecha}
+        </p>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-200/60 p-1 rounded-2xl mb-5 overflow-x-auto flex-shrink-0">

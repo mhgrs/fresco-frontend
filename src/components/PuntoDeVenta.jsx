@@ -215,6 +215,7 @@ export default function PuntoDeVenta({ usuario }) {
 
     // ACTUALIZACIÓN OPTIMISTA (Fondo Inmediato)
     // 1. Descontar el stock localmente para que el cajero vea el catálogo actualizado al instante
+    const snapshotCatalogo = [...catalogo];
     const nuevoCatalogo = catalogo.map(prod => {
       const itemVendido = carrito.find(c => c.id === prod.id);
       if (itemVendido) return { ...prod, stock: prod.stock - itemVendido.cantidad };
@@ -263,6 +264,9 @@ export default function PuntoDeVenta({ usuario }) {
 
         mostrar('Sin conexión: Venta guardada para sincronizar luego', 'warning');
       } else {
+        // Error del servidor: revertir actualización optimista de stock
+        setCatalogo(snapshotCatalogo);
+        localStorage.setItem('catalogo_offline', JSON.stringify(snapshotCatalogo));
         const errorData = error.response?.data;
         console.error('❌ Detalle del error del backend:', errorData);
         let msgError = 'Error al registrar la venta';

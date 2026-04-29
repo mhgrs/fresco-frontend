@@ -80,6 +80,7 @@ function TabPerfil({ usuario }) {
           <input
             value={usuario.email || ''}
             disabled
+            tabIndex={-1}
             className="w-full border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-medium bg-gray-50 text-gray-400 cursor-not-allowed"
           />
           <p className="text-xs text-gray-400 mt-1">El correo no se puede modificar.</p>

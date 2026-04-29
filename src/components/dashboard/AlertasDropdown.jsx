@@ -2,13 +2,17 @@ import { useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useClickOutside } from '../../hooks/useClickOutside';
 
-/**
- * Campana de notificaciones con dropdown de alertas de stock.
- * Maneja su propio estado abierto/cerrado internamente.
- *
- * Props: alertas — array de { id, nombre, stock, tipo_venta }
- */
-export default function AlertasDropdown({ alertas }) {
+function formatEdadCache(ms) {
+  if (!ms) return null;
+  const min = Math.round(ms / 60000);
+  if (min < 1) return 'hace menos de 1 min';
+  if (min === 1) return 'hace 1 min';
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  return `hace ${h}h`;
+}
+
+export default function AlertasDropdown({ alertas, cacheMs = null }) {
   const [mostrar, setMostrar] = useState(false);
   const ref = useRef(null);
   const cerrar = useCallback(() => setMostrar(false), []);
@@ -32,12 +36,19 @@ export default function AlertasDropdown({ alertas }) {
 
       {mostrar && (
         <div className="absolute right-0 mt-3 w-[70vw] sm:w-80 max-w-sm bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform origin-top-right transition-all z-50">
-          <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <span className="font-bold text-gray-800 text-sm">Alertas Recientes</span>
-            {alertas.length > 0 && (
-              <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider">
-                {alertas.length} Novedades
-              </span>
+          <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-gray-800 text-sm">Alertas Recientes</span>
+              {alertas.length > 0 && (
+                <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider">
+                  {alertas.length} Novedades
+                </span>
+              )}
+            </div>
+            {cacheMs !== null && (
+              <p className="text-[10px] text-amber-600 font-semibold mt-1">
+                Sin conexión · Actualizado {formatEdadCache(cacheMs)}
+              </p>
             )}
           </div>
           <div className="max-h-64 overflow-y-auto">
