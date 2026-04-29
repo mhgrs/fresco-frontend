@@ -106,57 +106,62 @@ export default function MovimientosInventario({ usuario }) {
       return;
     }
 
-    for (let item of seleccionados) {
-      const cantParseada = parseFloat(String(item.cantidad).replace(',', '.'));
-      if (!item.cantidad || isNaN(cantParseada) || cantParseada <= 0) {
-        mostrar(`Ingresa una cantidad válida mayor a 0 para ${item.producto.nombre}`, 'error');
-        return;
+    // Validar ítem por ítem: separar válidos de inválidos sin bloquear el lote
+    const validos = [];
+    const omitidos = [];
+    for (const item of seleccionados) {
+      const cant = parseFloat(String(item.cantidad).replace(',', '.'));
+      if (!item.cantidad || isNaN(cant) || cant <= 0) {
+        omitidos.push(`${item.producto.nombre} (cantidad inválida)`);
+        continue;
       }
+      if (formularioGlobal.tipo === 'RETIRO' && cant > parseFloat(item.producto.stock)) {
+        omitidos.push(`${item.producto.nombre} (stock insuficiente: ${parseFloat(item.producto.stock)})`);
+        continue;
+      }
+      validos.push({ item, cant });
+    }
 
-      // NUEVA VALIDACIÓN: Prevenir envío de error 400 por stock insuficiente
-      if (formularioGlobal.tipo === 'RETIRO') {
-        const stockActual = parseFloat(item.producto.stock);
-        if (cantParseada > stockActual) {
-          mostrar(`El retiro de ${cantParseada} excede el stock de ${item.producto.nombre} (${stockActual})`, 'error');
-          return;
-        }
-      }
+    if (validos.length === 0) {
+      mostrar(omitidos[0] || 'No hay ítems válidos para procesar', 'error');
+      return;
     }
 
     setProcesando(true);
     try {
       const resultados = await Promise.allSettled(
-        seleccionados.map(item => {
-          const cantParseada = parseFloat(String(item.cantidad).replace(',', '.'));
-          return productosService.ajustarStock(item.producto.id, {
+        validos.map(({ item, cant }) =>
+          productosService.ajustarStock(item.producto.id, {
             tipo: formularioGlobal.tipo,
-            cantidad: cantParseada,
+            cantidad: cant,
             motivo: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.motivo : null,
             descripcion: formularioGlobal.tipo === 'RETIRO' ? formularioGlobal.descripcion : null,
-          });
-        })
+          })
+        )
       );
 
-      const exitosos = resultados
-        .map((r, i) => r.status === 'fulfilled' ? seleccionados[i].producto.id : null)
+      const idsExitosos = resultados
+        .map((r, i) => r.status === 'fulfilled' ? validos[i].item.producto.id : null)
         .filter(Boolean);
-      const fallidos = resultados
-        .map((r, i) => r.status === 'rejected' ? seleccionados[i].producto.nombre : null)
+      const nombresApiFallidos = resultados
+        .map((r, i) => r.status === 'rejected' ? validos[i].item.producto.nombre : null)
         .filter(Boolean);
 
       cargarDatos();
 
-      if (fallidos.length === 0) {
+      const todosFallidos = [...omitidos, ...nombresApiFallidos];
+
+      if (idsExitosos.length > 0 && todosFallidos.length === 0) {
         mostrar('Todos los movimientos registrados exitosamente', 'success');
         setSeleccionados([]);
         setFormularioGlobal({ ...formularioGlobal, descripcion: '' });
         setTabActiva('historial');
-      } else if (exitosos.length > 0) {
-        mostrar(`${exitosos.length} registrado(s). Error en: ${fallidos.join(', ')}`, 'error');
-        setSeleccionados(prev => prev.filter(s => !exitosos.includes(s.producto.id)));
+      } else if (idsExitosos.length > 0) {
+        mostrar(`${idsExitosos.length} registrado(s). Sin registrar: ${todosFallidos.join(' | ')}`, 'error');
+        setSeleccionados(prev => prev.filter(s => !idsExitosos.includes(s.producto.id)));
       } else {
-        const primerError = resultados.find(r => r.status === 'rejected');
-        mostrar(primerError?.reason?.response?.data?.error || 'Error al registrar los movimientos', 'error');
+        const primerApiError = resultados.find(r => r.status === 'rejected');
+        mostrar(primerApiError?.reason?.response?.data?.error || `Sin registrar: ${todosFallidos.join(' | ')}`, 'error');
       }
     } finally {
       setProcesando(false);

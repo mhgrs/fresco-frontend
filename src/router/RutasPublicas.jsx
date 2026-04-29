@@ -27,7 +27,7 @@ export default function RutasPublicas({ onLogin }) {
       <Route path="/privacidad" element={<PoliticaPrivacidad />} />
       <Route path="/" element={<LandingPage usuario={null} />} />
       <Route path="/fresco-admin/*" element={<AdminRedirect />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/fresco-login" replace />} />
     </Routes>
   );
 }
