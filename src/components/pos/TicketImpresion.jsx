@@ -1,5 +1,15 @@
 import React from 'react';
 
+const METODOS_LABEL = {
+  EFECTIVO:      'Efectivo',
+  TARJETA:       'Tarjeta',
+  TRANSFERENCIA: 'Transferencia',
+  ANOTADO:       'Anotado',
+};
+
+const fmtCLP = (v) =>
+  `$${new Intl.NumberFormat('es-CL').format(Math.round(Number(v) || 0))}`;
+
 export default function TicketImpresion({ venta }) {
   if (!venta) return null;
 
@@ -54,9 +64,16 @@ export default function TicketImpresion({ venta }) {
             <tbody>
               {venta.detalles.map((item, idx) => (
                 <tr key={idx}>
-                  <td className="align-top pr-1">{item.cantidad}</td>
-                  <td className="align-top pr-1 leading-tight">{item.nombre}</td>
-                  <td className="align-top text-right">${item.subtotal}</td>
+                  <td className="align-top pr-1">
+                    {parseFloat(item.cantidad) % 1 === 0
+                      ? parseFloat(item.cantidad)
+                      : parseFloat(item.cantidad).toFixed(3)}
+                  </td>
+                  <td className="align-top pr-1 leading-tight">
+                    <span>{item.nombre}</span>
+                    <span className="block text-gray-500">{fmtCLP(item.precio_unitario)} c/u</span>
+                  </td>
+                  <td className="align-top text-right">{fmtCLP(item.subtotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -65,12 +82,12 @@ export default function TicketImpresion({ venta }) {
 
         <div className="flex justify-between font-bold text-base mb-4">
           <span>TOTAL:</span>
-          <span>${venta.total}</span>
+          <span>{fmtCLP(venta.total)}</span>
         </div>
 
         <div className="text-xs mb-6">
-          <p>Pago: {venta.metodo_pago}</p>
-          <p>Ref: {venta.offline_id.substring(0, 8)}</p>
+          <p>Pago: {METODOS_LABEL[venta.metodo_pago] || venta.metodo_pago}</p>
+          {venta.offline_id && <p>Ref: {venta.offline_id.substring(0, 8)}</p>}
         </div>
 
         <div className="text-center text-xs mt-4 mb-8">

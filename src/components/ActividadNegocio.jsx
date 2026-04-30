@@ -208,6 +208,33 @@ function DetalleTurno({ turno }) {
       {turno.movimientos?.length === 0 && (
         <p className="text-sm text-gray-400 text-center py-4">Sin movimientos de caja en este turno.</p>
       )}
+
+      {/* Desglose por método de pago */}
+      {turno.desglose?.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ventas por método de pago</p>
+          <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
+            {turno.desglose.map((d, i) => {
+              const cfg = METODOS_PAGO[d.metodo_pago] || { label: d.metodo_pago, cls: 'bg-gray-100 text-gray-600' };
+              return (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${cfg.cls}`}>{cfg.label}</span>
+                  <span className="font-black text-gray-800">{formatCLP(d.total)}</span>
+                </div>
+              );
+            })}
+            <div className="flex items-center justify-between text-sm pt-2 border-t border-gray-200">
+              <span className="text-gray-500 font-medium">Total ventas</span>
+              <span className="font-black text-gray-900">
+                {formatCLP(turno.desglose.reduce((s, d) => s + d.total, 0))}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+      {turno.desglose?.length === 0 && (
+        <p className="text-sm text-gray-400 text-center py-2">Sin ventas registradas en este turno.</p>
+      )}
     </div>
   );
 }
