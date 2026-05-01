@@ -187,13 +187,16 @@ export default function Registro() {
         {paso === 2 && mensaje.tipo !== 'success' && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label><input type="text" name="first_name" required autoFocus value={formData.first_name} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label><input type="text" name="last_name" required value={formData.last_name} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label><input type="text" name="first_name" required autoFocus value={formData.first_name} onChange={handleChange} autoComplete="given-name" className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Apellido *</label><input type="text" name="last_name" required value={formData.last_name} onChange={handleChange} autoComplete="family-name" className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
             </div>
             
+            {/* Campo oculto para que el autocompletado del navegador asocie el usuario aquí y no en el apellido */}
+            <input type="email" name="email" value={formData.email} readOnly className="hidden" autoComplete="username" />
+
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label><input type="password" name="password" required minLength="8" value={formData.password} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Confirmar *</label><input type="password" name="confirm_password" required minLength="8" value={formData.confirm_password} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label><input type="password" name="password" required minLength="8" value={formData.password} onChange={handleChange} autoComplete="new-password" className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Confirmar *</label><input type="password" name="confirm_password" required minLength="8" value={formData.confirm_password} onChange={handleChange} autoComplete="new-password" className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#91cf5b] focus:border-transparent outline-none transition" /></div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

@@ -50,7 +50,7 @@ export const PLANES = [
       'Todo lo del plan Básico',
       'Hasta 1.500 productos',
       '6 usuarios',
-      'Catálogo maestro global',
+      
     ],
     bloqueadas: [],
     cta: 'Empezar ahora',

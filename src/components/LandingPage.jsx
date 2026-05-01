@@ -176,6 +176,7 @@ export default function LandingPage({ usuario }) {
                 ),
                 titulo: 'Multi-usuario con roles',
                 texto: 'Asigna roles de ADMIN, SUPERVISOR, CAJERO o BODEGA. Cada persona accede solo a lo que necesita para operar.',
+                texto: 'Asigna permisos específicos a tu equipo. Cada persona accede solo a lo que necesita para operar.',
               },
               {
                 icono: (
