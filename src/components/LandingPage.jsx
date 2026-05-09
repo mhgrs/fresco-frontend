@@ -39,7 +39,7 @@ export default function LandingPage({ usuario }) {
     <div className="min-h-screen bg-[var(--color-fondo)] text-gray-800 font-sans selection:bg-[#91cf5b] selection:text-white flex flex-col transition-colors duration-500">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 bg-[var(--color-fondo)]/80 backdrop-blur-md border-none">
+      <header className="sticky top-0 z-50 bg-[var(--color-fondo)] backdrop-blur-md border-b">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="text-3xl font-black text-[#91cf5b] tracking-tighter">Fresco</div>
 
