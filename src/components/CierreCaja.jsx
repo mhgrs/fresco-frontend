@@ -416,13 +416,21 @@ function TabTurno({ turno, reporte, onSolicitarCierre }) {
 }
 
 // ── Historial de cierres ──────────────────────────────────────────────────────
+function BadgeDiferencia({ diferencia }) {
+  if (diferencia === null || diferencia === undefined) return <span className="text-gray-300 text-xs">Sin arqueo</span>;
+  const abs = Math.abs(diferencia);
+  if (abs === 0)    return <span className="text-xs font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Sin diferencia</span>;
+  if (abs <= 500)   return <span className="text-xs font-black text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">{clp(diferencia)}</span>;
+  return <span className="text-xs font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full">{clp(diferencia)}</span>;
+}
+
 function TabHistorial() {
   const [turnos, setTurnos]     = useState([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     ventasService.historialTurnos()
-      .then(res => setTurnos(res.data.filter(t => t.estado === 'cerrado')))
+      .then(res => setTurnos(res.data))
       .catch(() => {})
       .finally(() => setCargando(false));
   }, []);
@@ -448,39 +456,47 @@ function TabHistorial() {
       <table className="w-full text-sm">
         <thead className="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">
           <tr>
-            <th className="px-4 py-3 text-left">Folio</th>
-            <th className="px-4 py-3 text-left">Abierto por</th>
-            <th className="px-4 py-3 text-left">Cerrado por</th>
-            <th className="px-4 py-3 text-left">Apertura</th>
+            <th className="px-4 py-3 text-left">#</th>
+            <th className="px-4 py-3 text-left">Cajero</th>
             <th className="px-4 py-3 text-left">Cierre</th>
-            <th className="px-4 py-3 text-right">Fondo apertura</th>
-            <th className="px-4 py-3 text-right">Fondo cierre</th>
+            <th className="px-4 py-3 text-right">Total ventas</th>
+            <th className="px-4 py-3 text-left">Por método</th>
+            <th className="px-4 py-3 text-right">Efect. esperado</th>
+            <th className="px-4 py-3 text-right">Diferencia arqueo</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
           {turnos.map(t => {
-            const diferencia = t.fondo_cierre != null
-              ? parseInt(t.fondo_cierre) - parseInt(t.fondo_apertura)
-              : null;
             const cierreAjeno = t.cerrado_por_nombre && t.cerrado_por_nombre !== t.cajero_nombre;
+            const metodos = t.totales_por_metodo ?? {};
             return (
               <tr key={t.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 font-black text-gray-700">#{t.folio}</td>
-                <td className="px-4 py-3 text-gray-600">{t.cajero_nombre ?? '—'}</td>
                 <td className="px-4 py-3">
-                  {cierreAjeno
-                    ? <span className="text-amber-700 font-bold text-xs bg-amber-50 px-2 py-0.5 rounded-lg">{t.cerrado_por_nombre}</span>
-                    : <span className="text-gray-400 text-xs">—</span>}
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_apertura)}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_cierre)}</td>
-                <td className="px-4 py-3 text-right font-semibold">{clp(t.fondo_apertura)}</td>
-                <td className="px-4 py-3 text-right">
-                  {t.fondo_cierre != null ? (
-                    <span className={`font-black ${diferencia === 0 ? 'text-green-600' : Math.abs(diferencia) <= 500 ? 'text-yellow-600' : 'text-red-600'}`}>
-                      {clp(t.fondo_cierre)}
+                  <span className="text-gray-700 font-semibold">{t.cajero_nombre ?? '—'}</span>
+                  {cierreAjeno && (
+                    <span className="block text-amber-700 font-bold text-xs bg-amber-50 px-1.5 py-0.5 rounded-md mt-0.5 w-fit">
+                      cerrado: {t.cerrado_por_nombre}
                     </span>
-                  ) : <span className="text-gray-300">—</span>}
+                  )}
+                </td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{formatFecha(t.fecha_cierre)}</td>
+                <td className="px-4 py-3 text-right font-black text-gray-800">{clp(t.total_ventas)}</td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-col gap-0.5">
+                    {Object.entries(metodos).map(([metodo, total]) => (
+                      <span key={metodo} className="text-xs text-gray-500">
+                        {METODO_ICONS[metodo] ?? '💰'} {clp(total)}
+                      </span>
+                    ))}
+                    {Object.keys(metodos).length === 0 && (
+                      <span className="text-xs text-gray-300">Sin ventas</span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-right text-gray-600 font-semibold">{clp(t.efectivo_esperado)}</td>
+                <td className="px-4 py-3 text-right">
+                  <BadgeDiferencia diferencia={t.diferencia_arqueo} />
                 </td>
               </tr>
             );

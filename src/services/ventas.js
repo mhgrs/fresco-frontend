@@ -12,7 +12,7 @@ export const ventasService = {
   abrirTurno:      (fondoApertura) => api.post('inventario/turnos/abrir/', { fondo_apertura: fondoApertura }),
   cerrarTurno:     (id, fondoCierre, notas) =>
     api.post(`inventario/turnos/${id}/cerrar/`, { fondo_cierre: fondoCierre, notas }),
-  historialTurnos: ()              => api.get('inventario/turnos/'),
+  historialTurnos: ()              => api.get('inventario/turnos/historial/'),
   listarTurnos:    (params)        => api.get('inventario/turnos/', { params }),
   obtenerTurno:    (id)            => api.get(`inventario/turnos/${id}/`),
 
