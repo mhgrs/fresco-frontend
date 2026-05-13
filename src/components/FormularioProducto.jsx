@@ -146,8 +146,26 @@ export default function FormularioProducto({ usuario }) {
       }
       setTimeout(() => navigate('/inventario'), 1500);
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.response?.data?.detail || '';
-      
+      const data = error.response?.data || {};
+
+      // Errores por campo que devuelve DRF (ej. codigo_barras duplicado, precio < 1)
+      const camposMensaje = {
+        codigo_barras: 'Ya existe un producto con este código de barras',
+        precio:        'El valor debe ser igual o mayor a 1',
+        nombre:        'Nombre',
+        stock:         'Stock',
+        umbral_stock:  'Umbral de alerta',
+        categoria:     'Categoría',
+      };
+      for (const [campo, mensaje] of Object.entries(camposMensaje)) {
+        if (data[campo]) {
+          const fallback = Array.isArray(data[campo]) ? data[campo][0] : data[campo];
+          mostrar(mensaje || fallback, 'error');
+          return;
+        }
+      }
+
+      const errorMsg = data.error || data.detail || '';
       if (errorMsg.toLowerCase().includes('límite') || errorMsg.toLowerCase().includes('limit')) {
         mostrar(
           <span>
