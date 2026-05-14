@@ -1,14 +1,6 @@
 import React from 'react';
-
-const METODOS_LABEL = {
-  EFECTIVO:      'Efectivo',
-  TARJETA:       'Tarjeta',
-  TRANSFERENCIA: 'Transferencia',
-  ANOTADO:       'Anotado',
-};
-
-const fmtCLP = (v) =>
-  `$${new Intl.NumberFormat('es-CL').format(Math.round(Number(v) || 0))}`;
+import { formatCLP as fmtCLP } from '../../utils/format';
+import { METODOS_PAGO } from '../../constants/metodoPago';
 
 export default function TicketImpresion({ venta }) {
   if (!venta) return null;
@@ -86,7 +78,7 @@ export default function TicketImpresion({ venta }) {
         </div>
 
         <div className="text-xs mb-6">
-          <p>Pago: {METODOS_LABEL[venta.metodo_pago] || venta.metodo_pago}</p>
+          <p>Pago: {METODOS_PAGO[venta.metodo_pago]?.label || venta.metodo_pago}</p>
           {venta.offline_id && <p>Ref: {venta.offline_id.substring(0, 8)}</p>}
         </div>
 

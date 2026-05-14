@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ventasService } from '../services/ventas';
-
-const formatCLP = (v) =>
-  `$${new Intl.NumberFormat('es-CL').format(Math.round(Number(v) || 0))}`;
-
-const METODOS = {
-  EFECTIVO:      { label: 'Efectivo',      cls: 'bg-green-100 text-green-700' },
-  TARJETA:       { label: 'Tarjeta',       cls: 'bg-blue-100 text-blue-700' },
-  TRANSFERENCIA: { label: 'Transferencia', cls: 'bg-purple-100 text-purple-700' },
-  ANOTADO:       { label: 'Anotado',       cls: 'bg-orange-100 text-orange-700' },
-};
+import { formatCLP } from '../utils/format';
+import { METODOS_PAGO } from '../constants/metodoPago';
 
 function hoy() {
   return new Date().toISOString().slice(0, 10);
@@ -140,7 +132,7 @@ export default function HistorialVentas() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {ventas.map(v => {
-                  const metodo  = METODOS[v.metodo_pago] || { label: v.metodo_pago, cls: 'bg-gray-100 text-gray-600' };
+                  const metodo  = METODOS_PAGO[v.metodo_pago] || { label: v.metodo_pago, cls: 'bg-gray-100 text-gray-600' };
                   const abierta = expandida === v.id;
                   const fecha   = new Date(v.fecha);
                   return (

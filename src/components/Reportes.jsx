@@ -7,16 +7,8 @@ import {
 } from 'recharts';
 import ChartModal from './reportes/ChartModal';
 import TarjetaMetrica from './reportes/TarjetaMetrica';
-
-const formatCLP = (v) =>
-  `$${new Intl.NumberFormat('es-CL').format(Math.round(Number(v) || 0))}`;
-
-const METODOS_PAGO = {
-  EFECTIVO:      { label: 'Efectivo',      bg: 'bg-green-500',  text: 'text-green-700',  light: 'bg-green-50' },
-  TARJETA:       { label: 'Tarjeta',       bg: 'bg-blue-500',   text: 'text-blue-700',   light: 'bg-blue-50' },
-  TRANSFERENCIA: { label: 'Transferencia', bg: 'bg-purple-500', text: 'text-purple-700', light: 'bg-purple-50' },
-  ANOTADO:       { label: 'Anotado',       bg: 'bg-orange-400', text: 'text-orange-700', light: 'bg-orange-50' },
-};
+import { formatCLP } from '../utils/format';
+import { METODOS_PAGO } from '../constants/metodoPago';
 
 function TooltipArea({ active, payload, label }) {
   if (!active || !payload?.length) return null;

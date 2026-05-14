@@ -1,30 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ventasService } from '../services/ventas';
 import { productosService } from '../services/productos';
-
-const formatCLP = (v) =>
-  `$${new Intl.NumberFormat('es-CL').format(Math.round(Number(v) || 0))}`;
+import { formatCLP, fmtFecha, fmtHora, fmtFechaHora } from '../utils/format';
+import { METODOS_PAGO } from '../constants/metodoPago';
 
 function hoy() { return new Date().toISOString().slice(0, 10); }
-
-function fmtFecha(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('es-CL');
-}
-function fmtHora(iso) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-}
-function fmtFechaHora(iso) {
-  return `${fmtFecha(iso)} ${fmtHora(iso)}`;
-}
-
-const METODOS_PAGO = {
-  EFECTIVO:      { label: 'Efectivo',      cls: 'bg-green-100 text-green-700' },
-  TARJETA:       { label: 'Tarjeta',       cls: 'bg-blue-100 text-blue-700' },
-  TRANSFERENCIA: { label: 'Transferencia', cls: 'bg-purple-100 text-purple-700' },
-  ANOTADO:       { label: 'Anotado',       cls: 'bg-orange-100 text-orange-700' },
-};
 
 const TIPO_MOV = {
   ingreso: { label: 'Ingreso', cls: 'bg-green-100 text-green-700' },

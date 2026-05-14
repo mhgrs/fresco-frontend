@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-const METODOS_PAGO = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'ANOTADO'];
+import { METODOS_KEYS } from '../../constants/metodoPago';
 
 /**
  * Modal de cobro. Gestiona internamente el método de pago y el efectivo recibido.
@@ -100,7 +99,7 @@ export default function PaymentModal({ total, carrito = [], onConfirmar, onCerra
         )}
 
         <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 flex-none">
-          {METODOS_PAGO.map(m => (
+          {METODOS_KEYS.map(m => (
             <button
               key={m}
               onClick={() => setMetodoPago(m)}

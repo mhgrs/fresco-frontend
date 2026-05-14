@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ventasService } from '../services/ventas';
 import ModalMovimiento from './pos/ModalMovimiento';
-
-function clp(n) {
-  if (n === undefined || n === null) return '$0';
-  return `$${Number(n).toLocaleString('es-CL')}`;
-}
+import { clp } from '../utils/format';
 
 export default function MovimientosCaja() {
   const [cargando, setCargando] = useState(true);
