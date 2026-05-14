@@ -16,13 +16,13 @@ const PASOS = [
     ruta: '/pos',
     cta: 'Ir al POS',
   },
-  {
+ /*  {
     id: 'configurar_empresa',
     titulo: 'Configura tu empresa',
     descripcion: 'Agrega el logo y los datos fiscales de tu negocio.',
     ruta: '/configuracion',
     cta: 'Ir a configuración',
-  },
+  }, */
 ];
 
 const KEY = 'onboarding_completados';

@@ -209,20 +209,52 @@ export default function MovimientosInventario({ usuario }) {
             
             {/* Columna Izquierda: Buscador y Formulario Global */}
             <div className="w-full md:w-1/3 flex flex-col gap-4">
+              {/* 1. Selector Ingreso / Retiro — siempre primero */}
               <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-lg shadow-sm">
-                <div className="flex bg-gray-200 rounded-lg p-1 mb-4">
+                <div className="flex bg-gray-200 rounded-lg p-1">
                   <button type="button" onClick={() => setFormularioGlobal({ ...formularioGlobal, tipo: 'INGRESO' })} className={`flex-1 py-2 font-bold rounded-md transition ${formularioGlobal.tipo === 'INGRESO' ? 'bg-green-500 text-white shadow' : 'text-gray-600 hover:bg-gray-300'}`}>Ingreso (+)</button>
                   <button type="button" onClick={() => setFormularioGlobal({ ...formularioGlobal, tipo: 'RETIRO' })} className={`flex-1 py-2 font-bold rounded-md transition ${formularioGlobal.tipo === 'RETIRO' ? 'bg-red-500 text-white shadow' : 'text-gray-600 hover:bg-gray-300'}`}>Retiro (-)</button>
                 </div>
-                
-                {formularioGlobal.tipo === 'RETIRO' && (
+              </div>
+
+              {/* 2. Buscador — siempre segundo, dropdown flota sobre el resto */}
+              <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-lg shadow-sm relative z-10">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Buscar Producto</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b]"
+                    placeholder="Nombre, SKU o Cód. de barras..."
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                  />
+                  {(resultadosBusqueda.length > 0 || (busqueda.trim() && resultadosBusqueda.length === 0)) && (
+                    <ul className="absolute z-50 w-full bg-white border border-gray-200 mt-1 rounded-md shadow-lg max-h-60 overflow-y-auto custom-scrollbar">
+                      {resultadosBusqueda.map(prod => (
+                        <li key={prod.id} onClick={() => agregarProducto(prod)} className="px-4 py-2 hover:bg-[#91cf5b] hover:text-white cursor-pointer transition-colors group">
+                          <p className="text-sm font-bold">{prod.nombre}</p>
+                          <div className="flex justify-between mt-0.5">
+                            <p className="text-xs font-mono opacity-70">{prod.sku}</p>
+                            <p className="text-xs font-semibold group-hover:text-white text-blue-600 shrink-0 ml-2">Stock: {prod.tipo_venta === 'UNIDAD' ? Math.round(prod.stock) : Number(prod.stock).toFixed(2)}</p>
+                          </div>
+                        </li>
+                      ))}
+                      {busqueda.trim() && resultadosBusqueda.length === 0 && <li className="px-4 py-3 text-center text-sm text-gray-500">No hay coincidencias.</li>}
+                    </ul>
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Formulario de motivo/descripción — solo en RETIRO */}
+              {formularioGlobal.tipo === 'RETIRO' && (
+                <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-lg shadow-sm">
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Motivo del Retiro</label>
                       <select required value={formularioGlobal.motivo} onChange={(e) => setFormularioGlobal({...formularioGlobal, motivo: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500 bg-white">
-                      <option value="MERMA">Merma</option><option value="DANADO">Dañado</option>
-                      <option value="CFECHA">Cambio por caducado</option>
-                      <option value="OTRO">Otro</option>
+                        <option value="MERMA">Merma</option><option value="DANADO">Dañado</option>
+                        <option value="CFECHA">Cambio por caducado</option>
+                        <option value="OTRO">Otro</option>
                       </select>
                     </div>
                     <div>
@@ -232,31 +264,8 @@ export default function MovimientosInventario({ usuario }) {
                       <input type="text" maxLength="100" value={formularioGlobal.descripcion} onChange={(e) => setFormularioGlobal({...formularioGlobal, descripcion: e.target.value})} className="w-full p-2 border rounded focus:ring-2 focus:ring-red-500" placeholder="Ej: Retiro por donación..." />
                     </div>
                   </div>
-                )}
-              </div>
-
-              <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 p-6 rounded-lg shadow-sm flex flex-col flex-1 min-h-0">
-                <label className="block text-sm font-bold text-gray-700 mb-2">Buscar Producto</label>
-                <input 
-                  type="text" 
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-[#91cf5b]" 
-                  placeholder="Nombre, SKU o Cód. de barras..." 
-                  value={busqueda} 
-                  onChange={(e) => setBusqueda(e.target.value)} 
-                />
-                <div className="mt-2 flex-1 overflow-y-auto custom-scrollbar  rounded  ">
-                  {resultadosBusqueda.map(prod => (
-                     <div key={prod.id} onClick={() => agregarProducto(prod)} className="p-3 border-b hover:bg-gray-50 cursor-pointer transition">
-                        <p className="text-sm font-bold text-gray-800 line-clamp-1">{prod.nombre}</p>
-                        <div className="flex justify-between mt-1">
-                           <p className="text-xs text-gray-500 font-mono">{prod.sku}</p>
-                           <p className="text-xs font-semibold text-blue-600">Stock: {prod.tipo_venta === 'UNIDAD' ? Math.round(prod.stock) : Number(prod.stock).toFixed(2)}</p>
-                        </div>
-                     </div>
-                  ))}
-                  {busqueda && resultadosBusqueda.length === 0 && <p className="p-4 text-center text-sm text-gray-500">No hay coincidencias.</p>}
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Columna Derecha: Lista de Productos a Mover (Carrito) */}
