@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ventasService } from '../../services/ventas';
-import { clp, formatFecha } from '../../utils/format';
+import { clp, fmtFecha, fmtHora } from '../../utils/format';
 import { METODOS_PAGO } from '../../constants/metodoPago';
 import BadgeDiferencia from './BadgeDiferencia';
 
@@ -60,18 +60,18 @@ export default function TabHistorial() {
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-      <div className="overflow-x-auto overflow-y-auto max-h-[60vh] custom-scrollbar">
+      <div className="overflow-y-auto max-h-[60vh] custom-scrollbar">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider sticky top-0 z-10">
             <tr>
-              <th className="px-4 py-3 text-left">#</th>
-              <th className="px-4 py-3 text-left">Cajero</th>
-              <th className="px-4 py-3 text-left">Apertura</th>
-              <th className="px-4 py-3 text-left">Cierre</th>
-              <th className="px-4 py-3 text-right">Total ventas</th>
-              <th className="px-4 py-3 text-left">Por método</th>
-              <th className="px-4 py-3 text-right">Efect. esperado</th>
-              <th className="px-4 py-3 text-right">Diferencia arqueo</th>
+              <th className="px-2 py-3 text-left">#</th>
+              <th className="px-2 py-3 text-left">Cajero</th>
+              <th className="px-2 py-3 text-left">Apertura</th>
+              <th className="px-2 py-3 text-left">Cierre</th>
+              <th className="px-2 py-3 text-right">Total ventas</th>
+              <th className="px-2 py-3 text-left">Por método</th>
+              <th className="px-2 py-3 text-right">Efect. esperado</th>
+              <th className="px-2 py-3 text-right whitespace-nowrap">Dif. arqueo</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -80,8 +80,8 @@ export default function TabHistorial() {
               const metodos = t.totales_por_metodo ?? {};
               return (
                 <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-black text-gray-700">#{t.folio}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-3 font-black text-gray-700">#{t.folio}</td>
+                  <td className="px-2 py-3">
                     <span className="text-gray-700 font-semibold">{t.cajero_nombre ?? '—'}</span>
                     {cierreAjeno && (
                       <span className="block text-amber-700 font-bold text-xs bg-amber-50 px-1.5 py-0.5 rounded-md mt-0.5 w-fit">
@@ -89,10 +89,22 @@ export default function TabHistorial() {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{formatFecha(t.fecha_apertura)}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{formatFecha(t.fecha_cierre)}</td>
-                  <td className="px-4 py-3 text-right font-black text-gray-800">{clp(t.total_ventas)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-3">
+                    <span className="block text-xs text-gray-400">{fmtFecha(t.fecha_apertura)}</span>
+                    <span className="block text-xs font-semibold text-gray-700">{fmtHora(t.fecha_apertura)}</span>
+                  </td>
+                  <td className="px-2 py-3">
+                    {t.fecha_cierre ? (
+                      <>
+                        <span className="block text-xs text-gray-400">{fmtFecha(t.fecha_cierre)}</span>
+                        <span className="block text-xs font-semibold text-gray-700">{fmtHora(t.fecha_cierre)}</span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-gray-300">—</span>
+                    )}
+                  </td>
+                  <td className="px-2 py-3 text-right font-black text-gray-800">{clp(t.total_ventas)}</td>
+                  <td className="px-2 py-3">
                     <div className="flex flex-col gap-0.5">
                       {Object.entries(metodos).map(([metodo, total]) => (
                         <span key={metodo} className="text-xs text-gray-500 whitespace-nowrap">
@@ -104,8 +116,8 @@ export default function TabHistorial() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right text-gray-600 font-semibold">{clp(t.efectivo_esperado)}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-3 text-right text-gray-600 font-semibold">{clp(t.efectivo_esperado)}</td>
+                  <td className="px-2 py-3 text-right">
                     <BadgeDiferencia diferencia={t.diferencia_arqueo} />
                   </td>
                 </tr>
