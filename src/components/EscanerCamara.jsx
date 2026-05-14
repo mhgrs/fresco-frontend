@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { logError } from '../utils/logger';
 
 // Este componente ha sido reescrito para máxima simplicidad y robustez.
 // Se encarga de la selección de cámara, permisos y limpieza de forma automática.
@@ -74,7 +75,7 @@ export default function EscanerCamara({ onScan, onClose }) {
             html5QrCode.stop()
               .then(() => onScan(decodedText))
               .catch(err => {
-                console.error("Error al detener el escáner después del éxito:", err);
+                logError('EscanerCamara', err);
                 // Igualmente llamamos a onScan, porque el código ya se leyó.
                 onScan(decodedText);
               });
@@ -91,7 +92,7 @@ export default function EscanerCamara({ onScan, onClose }) {
 
       } catch (err) {
         if (isMounted) {
-          console.error("Error al iniciar el escáner:", err);
+          logError('EscanerCamara', err);
           if (err.name === "NotAllowedError") {
             setError("Debe otorgar permisos de cámara para usar esta función.");
           } else {
@@ -109,7 +110,7 @@ export default function EscanerCamara({ onScan, onClose }) {
       isMounted = false;
       // Verificamos si el escáner está activo antes de intentar detenerlo.
       if (html5QrCode?.isScanning) {
-        html5QrCode.stop().catch(err => console.error("Fallo al detener el escáner al cerrar.", err));
+        html5QrCode.stop().catch(err => logError('EscanerCamara', err));
       }
     };
     // El array de dependencias vacío asegura que este efecto se ejecute solo una vez.

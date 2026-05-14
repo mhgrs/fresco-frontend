@@ -9,6 +9,7 @@ import ChartModal from './reportes/ChartModal';
 import TarjetaMetrica from './reportes/TarjetaMetrica';
 import { formatCLP } from '../utils/format';
 import { METODOS_PAGO } from '../constants/metodoPago';
+import { logError } from '../utils/logger';
 
 function TooltipArea({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -39,7 +40,7 @@ export default function Reportes() {
         setMetricas(metRes.data);
         if (zRes) setReporteZ(zRes.data);
       })
-      .catch(err => console.error('Error al obtener métricas:', err))
+      .catch(err => logError('Reportes', err))
       .finally(() => setCargando(false));
   }, []);
 

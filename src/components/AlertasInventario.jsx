@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { productosService } from '../services/productos';
 import { useNavigate } from 'react-router-dom';
+import { logError } from '../utils/logger';
 
 export default function AlertasInventario() {
   const [alertas, setAlertas] = useState([]);
@@ -13,7 +14,7 @@ export default function AlertasInventario() {
         const bajoUmbral = res.data.filter(p => p.esta_activo && parseFloat(p.stock) <= parseFloat(p.umbral_stock));
         setAlertas(bajoUmbral);
       })
-      .catch(err => console.error("Error cargando alertas:", err))
+      .catch(err => logError('AlertasInventario', err))
       .finally(() => setCargando(false));
   }, []);
 

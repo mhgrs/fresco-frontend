@@ -8,6 +8,7 @@ import PaymentModal from './pos/PaymentModal';
 import { productosService } from '../services/productos';
 import { ventasService } from '../services/ventas';
 import TicketImpresion from './pos/TicketImpresion';
+import { logError } from '../utils/logger';
 import NetworkStatusIndicator from './ui/NetworkStatusIndicator';
 
 export default function PuntoDeVenta({ usuario }) {
@@ -268,7 +269,7 @@ export default function PuntoDeVenta({ usuario }) {
         setCatalogo(snapshotCatalogo);
         localStorage.setItem('catalogo_offline', JSON.stringify(snapshotCatalogo));
         const errorData = error.response?.data;
-        console.error('❌ Detalle del error del backend:', errorData);
+        logError('PuntoDeVenta', errorData);
         let msgError = 'Error al registrar la venta';
         if (errorData) {
           if (typeof errorData === 'object' && !errorData.error) {

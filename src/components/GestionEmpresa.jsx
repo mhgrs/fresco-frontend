@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { usuariosService } from '../services/usuarios';
 import { empresasService } from '../services/empresas';
 import { ROLES } from '../constants/roles';
+import { logError } from '../utils/logger';
 
 function TabEquipo() {
   const [equipo, setEquipo] = useState([]);
@@ -25,7 +26,7 @@ function TabEquipo() {
         setEquipo(resEquipo.data);
       } catch (err) {
         setError('No se pudo cargar la información del equipo.');
-        console.error(err);
+        logError('GestionEmpresa', err);
       } finally {
         setCargando(false);
       }
@@ -40,7 +41,7 @@ function TabEquipo() {
     try {
       await usuariosService.actualizarRoles(userId, newRoles);
     } catch (error) {
-      console.error("Fallo al actualizar roles:", error);
+      logError('GestionEmpresa', error);
       setEquipo(equipoOriginal); // Revertir en caso de error
       alert('Hubo un error al actualizar los roles.');
     }

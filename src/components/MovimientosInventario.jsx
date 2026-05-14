@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { useDebounce } from '../hooks/useDebounce';
 import { productosService } from '../services/productos';
+import { logError } from '../utils/logger';
 
 export default function MovimientosInventario({ usuario }) {
   const location = useLocation();
@@ -35,7 +36,7 @@ export default function MovimientosInventario({ usuario }) {
       setProductos(resProd.data.filter(p => p.esta_activo));
       setMovimientos(resMov.data);
     } catch (error) {
-      console.error(error);
+      logError('MovimientosInventario', error);
       mostrar('Error al cargar los datos', 'error');
     } finally {
       setCargando(false);

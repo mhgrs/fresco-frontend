@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ventasService } from '../services/ventas';
 import ModalMovimiento from './pos/ModalMovimiento';
 import { clp } from '../utils/format';
+import { logError } from '../utils/logger';
 
 export default function MovimientosCaja() {
   const [cargando, setCargando] = useState(true);
@@ -34,7 +35,7 @@ export default function MovimientosCaja() {
       const res = await ventasService.listarMovimientos?.() || { data: [] };
       setHistorial(res.data);
     } catch (err) {
-      console.error("No se pudo cargar el historial", err);
+      logError('MovimientosCaja', err);
     } finally {
       setCargando(false);
     }

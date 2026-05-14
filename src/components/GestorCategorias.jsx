@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNotificacion } from '../hooks/useNotificacion';
 import { usePermisos } from '../hooks/usePermisos';
 import { categoriasService } from '../services/categorias';
+import { logError } from '../utils/logger';
 
 export default function GestorCategorias({ usuario }) {
   const [categorias, setCategorias] = useState([]);
@@ -16,7 +17,7 @@ export default function GestorCategorias({ usuario }) {
       const res = await categoriasService.listar();
       setCategorias(res.data);
     } catch (error) {
-      console.error(error);
+      logError('GestorCategorias', error);
     }
   };
 

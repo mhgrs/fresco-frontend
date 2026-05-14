@@ -5,6 +5,7 @@ import { usePermisos } from '../hooks/usePermisos';
 import { useDebounce } from '../hooks/useDebounce';
 import { productosService } from '../services/productos';
 import { categoriasService } from '../services/categorias';
+import { logError } from '../utils/logger';
 import ProductoFila from './catalogo/ProductoFila';
 import ConfirmarEliminarModal from './ui/ConfirmarEliminarModal';
 
@@ -30,7 +31,7 @@ export default function CatalogoProductos({ usuario }) {
   useEffect(() => {
     categoriasService.listar()
       .then(res => setCategorias(res.data))
-      .catch(console.error);
+      .catch(err => logError('CatalogoProductos', err));
   }, []);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function CatalogoProductos({ usuario }) {
     }
     productosService.listar(params)
       .then(res => { setProductos(res.data.results); setTotalCount(res.data.count); })
-      .catch(console.error)
+      .catch(err => logError('CatalogoProductos', err))
       .finally(() => setCargando(false));
   }, [paginaActual, debouncedTermino, categoriaActiva, configOrden]);
 
