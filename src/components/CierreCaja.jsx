@@ -98,8 +98,7 @@ function ModalCierre({ reporte, turno, onClose, onSuccess }) {
 
         <div className="mb-4">
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-            Efectivo contado (opcional)
-          </label>
+            Efectivo contado 
           <input
             type="number" min="0"
             value={fondoContado}
@@ -117,7 +116,7 @@ function ModalCierre({ reporte, turno, onClose, onSuccess }) {
 
         <div className="mb-5">
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-            Notas del cierre (opcional)
+            Notas del cierre 
           </label>
           <textarea
             rows={2}
@@ -217,7 +216,7 @@ function TurnoAjeno({ turno, reporte, onCerrado }) {
         <form onSubmit={handleCerrar} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-              Efectivo contado (opcional)
+              Efectivo contado
             </label>
             <input
               type="number" min="0"
@@ -234,7 +233,7 @@ function TurnoAjeno({ turno, reporte, onCerrado }) {
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-              Notas del cierre (opcional)
+              Notas del cierre
             </label>
             <textarea
               rows={2}
