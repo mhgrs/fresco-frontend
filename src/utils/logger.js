@@ -8,3 +8,11 @@ export function logError(context, err) {
     console.error(`[${context}] Error inesperado.`);
   }
 }
+
+// Para flujos donde el error es esperado y no interrumpe la UI.
+// En producción solo deja traza del contexto, sin exponer el error.
+export function logInfo(context, msg) {
+  if (import.meta.env.DEV) {
+    console.info(`[${context}]`, msg);
+  }
+}

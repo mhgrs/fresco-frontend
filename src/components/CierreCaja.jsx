@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ventasService } from '../services/ventas';
+import { logInfo } from '../utils/logger';
 import ModalConfirmaCierre from './cierre/ModalConfirmaCierre';
 import ResumenTurno from './cierre/ResumenTurno';
 import TabHistorial from './cierre/TabHistorial';
@@ -33,7 +34,7 @@ export default function CierreCaja({ usuario }) {
         try {
           const resReporte = await ventasService.reporteZ();
           setReporte(resReporte.data);
-        } catch { /* sin reporte previo, ok */ }
+        } catch (err) { logInfo('CierreCaja.reporteZ', err); }
       } else {
         setTurno(null);
       }

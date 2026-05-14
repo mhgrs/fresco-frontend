@@ -59,7 +59,7 @@ export default function App() {
   useEffect(() => { cargarUsuario(); }, [cargarUsuario]);
 
   const manejarCerrarSesion = async () => {
-    try { await usuariosService.logout(); } catch { /* continuar aunque falle */ }
+    try { await usuariosService.logout(); } catch (err) { logInfo('App.logout', err); }
     setUsuario(null);
     localStorage.removeItem('usuario');
   };
