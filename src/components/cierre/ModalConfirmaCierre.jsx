@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ventasService } from '../../services/ventas';
 import { formatCLP } from '../../utils/format';
 import Modal from '../ui/Modal';
 import Semaforo from './Semaforo';
+import TicketCierre from './TicketCierre';
 
 export default function ModalConfirmaCierre({ reporte, turno, onClose, onSuccess }) {
   const [fondoContado, setFondoContado] = useState('');
   const [notas, setNotas]               = useState('');
   const [cerrando, setCerrando]         = useState(false);
   const [error, setError]               = useState('');
+  const [turnoCerrado, setTurnoCerrado] = useState(null);
+  const ticketRef                       = useRef(null);
 
   const efectivoEsperado = reporte?.efectivo_esperado ?? 0;
   const contado    = parseInt(fondoContado, 10) || 0;
@@ -19,14 +22,64 @@ export default function ModalConfirmaCierre({ reporte, turno, onClose, onSuccess
     setCerrando(true);
     setError('');
     try {
-      await ventasService.cerrarTurno(turno.id, hayConteo ? contado : efectivoEsperado, notas);
+      const res = await ventasService.cerrarTurno(turno.id, hayConteo ? contado : efectivoEsperado, notas);
       localStorage.removeItem('turno_cache');
-      onSuccess();
+      setTurnoCerrado(res.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Error al cerrar el turno.');
       setCerrando(false);
     }
   };
+
+  const handleImprimir = () => {
+    if (ticketRef.current) {
+      ticketRef.current.style.display = 'block';
+    }
+    setTimeout(() => {
+      window.print();
+      if (ticketRef.current) {
+        ticketRef.current.style.display = 'none';
+      }
+    }, 80);
+  };
+
+  // Estado post-cierre: mostrar opciones de imprimir y finalizar
+  if (turnoCerrado) {
+    return (
+      <Modal onClose={() => { onSuccess(); }} closeOnOverlay={false}>
+        <TicketCierre turno={turnoCerrado} ref={ticketRef} />
+
+        <div className="text-center mb-5">
+          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-black text-gray-900">Turno #{turnoCerrado.folio} cerrado</h3>
+          <p className="text-sm text-gray-400 mt-1">¿Deseas imprimir el comprobante de cierre?</p>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={handleImprimir}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gray-100 rounded-full font-bold text-gray-700 hover:bg-gray-200 transition-all text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Imprimir cierre
+          </button>
+          <button
+            onClick={onSuccess}
+            className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-700 transition-all text-sm active:scale-95"
+          >
+            Finalizar
+          </button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal onClose={onClose} closeOnOverlay={false}>
