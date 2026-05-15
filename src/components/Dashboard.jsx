@@ -115,8 +115,8 @@ export default function Dashboard({ usuario, cerrarSesion }) {
               <span className="text-sm font-bold text-gray-700">{usuario.empresa_nombre || 'Mi Empresa'}</span>
             </div>
 
-            {/* Campana de alertas: solo usuarios con cualquier rol */}
-            {roles.length > 0 && (
+            {/* Campana de alertas: solo usuarios con permisos asignados */}
+            {(usuario.permisos?.length > 0 || usuario.is_superuser) && (
               <AlertasDropdown alertas={alertas} cacheMs={alertasCacheMs} />
             )}
 
@@ -172,7 +172,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
         {/* Contenedor de contenido que crece para empujar el banner hacia abajo */}
         <div className="flex-1">
-        {(!roles || roles.length === 0) && (
+        {(!usuario.permisos || usuario.permisos.length === 0) && !usuario.is_superuser && (
           <div className="mb-8 bg-white/60 backdrop-blur border border-yellow-200 p-5 rounded-2xl shadow-sm">
             <div className="flex">
               <div className="flex-shrink-0 bg-yellow-100 p-2 rounded-full">
