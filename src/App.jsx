@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { usuariosService } from './services/usuarios';
 import { sincronizarVentas } from './utils/syncVentas';
+import { logInfo } from './utils/logger';
 import RutasPublicas from './router/RutasPublicas';
 import RutasAutenticadas from './router/RutasAutenticadas';
 import SyncFeedback from './components/ui/SyncFeedback';
@@ -64,25 +65,45 @@ export default function App() {
     localStorage.removeItem('usuario');
   };
 
-  // Sync offline → online
-  useEffect(() => {
-    const _sincronizar = async () => {
-      setSincronizando(true);
-      const { exitosas } = await sincronizarVentas();
-      setSincronizando(false);
-      if (exitosas > 0) window.dispatchEvent(new Event('ventasSincronizadas'));
-    };
-    const handleOnline  = () => { setIsOnline(true); _sincronizar(); };
-    const handleOffline = () => setIsOnline(false);
+  // Ref para que los efectos de abajo siempre invoquen la versión más reciente
+  // de sincronizar sin necesitar re-registrar los listeners.
+  const sincronizarRef = useRef(null);
+  const sincronizar = useCallback(async () => {
+    const cola = JSON.parse(localStorage.getItem('ventas_offline') || '[]');
+    if (cola.length === 0) return;           // nada que enviar
+    setSincronizando(true);
+    await sincronizarVentas();               // ventasSincronizadas se despacha internamente
+    setSincronizando(false);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  sincronizarRef.current = sincronizar;
 
-    window.addEventListener('online', handleOnline);
+  // Sync: evento online (corte de red) + visibilitychange (volver a la pestaña)
+  useEffect(() => {
+    const run = () => sincronizarRef.current?.();
+    const handleOnline   = () => { setIsOnline(true); run(); };
+    const handleOffline  = () => setIsOnline(false);
+    // visibilitychange cubre el caso donde la red nunca cayó pero el backend
+    // estuvo caído; al volver a la pestaña se intenta de nuevo.
+    const handleVisible  = () => { if (document.visibilityState === 'visible') run(); };
+
+    window.addEventListener('online',  handleOnline);
     window.addEventListener('offline', handleOffline);
-    if (navigator.onLine && usuario) _sincronizar();
+    document.addEventListener('visibilitychange', handleVisible);
+    if (navigator.onLine && usuario) run();
 
     return () => {
-      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('online',  handleOnline);
       window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', handleVisible);
     };
+  }, [usuario]);
+
+  // Reintento periódico cada 60 s mientras hay ventas en cola.
+  // Cubre caídas del backend donde navigator.onLine nunca cambia (ej. deploy de Render).
+  useEffect(() => {
+    if (!usuario) return;
+    const id = setInterval(() => sincronizarRef.current?.(), 60_000);
+    return () => clearInterval(id);
   }, [usuario]);
 
   if (verificandoSesion) {

@@ -24,6 +24,7 @@ export default function TurnoAjeno({ turno, reporte, onCerrado }) {
         hayConteo ? contado : efectivoEsperado,
         notas,
       );
+      localStorage.removeItem('turno_cache');
       onCerrado();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al cerrar el turno.');

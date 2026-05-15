@@ -10,11 +10,12 @@ export default function SyncFeedback() {
     };
 
     const handleEnd = (e) => {
-      const { exitosas, fallidas } = e.detail;
+      const { exitosas, fallidas, errores = [] } = e.detail;
       if (fallidas === 0) {
         mostrar(`${exitosas} venta(s) sincronizada(s) correctamente.`, 'success');
       } else if (exitosas === 0) {
-        mostrar(`Sincronización completada. ${fallidas} ventas no pudieron enviarse.`, 'error');
+        const razon = errores[0]?.error ? ` (${errores[0].error})` : '';
+        mostrar(`${fallidas} venta(s) no pudieron enviarse${razon}`, 'error');
       } else {
         mostrar(`Sincronización parcial: ${exitosas} exitosas, ${fallidas} fallidas.`, 'warning');
       }

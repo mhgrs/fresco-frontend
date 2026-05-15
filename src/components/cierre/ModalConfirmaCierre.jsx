@@ -20,6 +20,7 @@ export default function ModalConfirmaCierre({ reporte, turno, onClose, onSuccess
     setError('');
     try {
       await ventasService.cerrarTurno(turno.id, hayConteo ? contado : efectivoEsperado, notas);
+      localStorage.removeItem('turno_cache');
       onSuccess();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al cerrar el turno.');

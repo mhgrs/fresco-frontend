@@ -22,7 +22,7 @@ export default function CatalogPanel({
     <div className="w-7/12 flex flex-col h-full overflow-hidden">
       {/* Toolbar */}
       <div className="flex justify-between items-center mb-2 sm:mb-4 flex-none">
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center ml-2">
           <NetworkStatusIndicator />
         </div>
         <div className="flex gap-2 items-center">
@@ -30,13 +30,13 @@ export default function CatalogPanel({
             onClick={hayEspera ? onAbrirSuspendidas : onSuspender}
             disabled={suspendDisabled}
             title={!hayEspera ? 'Pausar venta actual' : 'Ventas en espera'}
-            className={`flex items-center transition backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 gap-1.5 ${
+            className={`flex items-center  transition backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 gap-1.5 ${
               suspendDisabled
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'bg-white/90 hover:bg-white cursor-pointer text-gray-700'
             }`}
           >
-            <span className={`text-base leading-none ${suspendDisabled ? 'opacity-50' : ''}`}>⏱️</span>
+            <span className={`text-base leading-none  ${suspendDisabled ? 'opacity-50' : ''}`}>⏱️</span>
             <span className="text-sm font-bold hidden sm:block">{!hayEspera ? 'Pausar' : 'En Espera'}</span>
             {hayEspera && (
               <span className="bg-orange-100 text-orange-800 text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-md">

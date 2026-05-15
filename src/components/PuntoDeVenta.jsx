@@ -56,8 +56,32 @@ export default function PuntoDeVenta({ usuario }) {
   useEffect(() => {
     if (!tieneCierreCaja) { setEstadoCaja('abierto'); return; }
     ventasService.turnoActivo()
-      .then(() => setEstadoCaja('abierto'))
-      .catch(() => setEstadoCaja('cerrado'));
+      .then(() => { localStorage.setItem('turno_cache', '1'); setEstadoCaja('abierto'); })
+      .catch(() => {
+        if (localStorage.getItem('turno_cache')) {
+          setEstadoCaja('abierto');
+        } else {
+          setEstadoCaja('cerrado');
+        }
+      });
+  }, [tieneCierreCaja]);
+
+  useEffect(() => {
+    if (!tieneCierreCaja) return;
+    const onOnline = () => {
+      ventasService.turnoActivo()
+        .then(() => { localStorage.setItem('turno_cache', '1'); setEstadoCaja('abierto'); })
+        .catch((err) => {
+          // Solo invalida el cache si el servidor respondió explícitamente (turno cerrado).
+          // Errores de red transitoria no deben cambiar el estado ni borrar el cache.
+          if (err.response) {
+            localStorage.removeItem('turno_cache');
+            setEstadoCaja('cerrado');
+          }
+        });
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
   }, [tieneCierreCaja]);
 
   useEffect(() => { inputRef.current?.focus(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
