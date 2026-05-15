@@ -1,4 +1,4 @@
-import { clp, formatFecha } from '../../utils/format';
+import { formatCLP, fmtFechaLarga } from '../../utils/format';
 import { METODOS_PAGO } from '../../constants/metodoPago';
 import KPICard from './KPICard';
 
@@ -13,7 +13,7 @@ export default function ResumenTurno({ turno, reporte, onSolicitarCierre }) {
           </div>
           <p className="text-sm text-gray-500 font-medium">
             {turno.cajero_nombre && <span>{turno.cajero_nombre} · </span>}
-            Apertura: {formatFecha(turno.fecha_apertura)}
+            Apertura: {fmtFechaLarga(turno.fecha_apertura)}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -35,16 +35,16 @@ export default function ResumenTurno({ turno, reporte, onSolicitarCierre }) {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard color="yellow" label="Fondo apertura"    valor={clp(reporte?.fondo_apertura)}    sub="Efectivo inicial" />
-        <KPICard color="green"  label="Ventas totales"    valor={clp(reporte?.total_ventas)}       sub={`${reporte?.cantidad_transacciones ?? 0} transacciones`} />
-        <KPICard color="green"  label="Efectivo ventas"   valor={clp(reporte?.efectivo_ventas)}    sub="Solo pagos en efectivo" />
-        <KPICard color="blue"   label="Efectivo esperado" valor={clp(reporte?.efectivo_esperado)}  sub="Fondo + efectivo + movimientos" />
+        <KPICard color="yellow" label="Fondo apertura"    valor={formatCLP(reporte?.fondo_apertura)}    sub="Efectivo inicial" />
+        <KPICard color="green"  label="Ventas totales"    valor={formatCLP(reporte?.total_ventas)}       sub={`${reporte?.cantidad_transacciones ?? 0} transacciones`} />
+        <KPICard color="green"  label="Efectivo ventas"   valor={formatCLP(reporte?.efectivo_ventas)}    sub="Solo pagos en efectivo" />
+        <KPICard color="blue"   label="Efectivo esperado" valor={formatCLP(reporte?.efectivo_esperado)}  sub="Fondo + efectivo + movimientos" />
       </div>
 
       {(reporte?.total_ingresos_mov > 0 || reporte?.total_retiros_mov > 0) && (
         <div className="grid grid-cols-2 gap-4">
-          <KPICard color="green" label="Ingresos manuales" valor={clp(reporte?.total_ingresos_mov)} sub="Entradas no relacionadas a ventas" />
-          <KPICard color="red"   label="Retiros"            valor={clp(reporte?.total_retiros_mov)}  sub="Salidas de efectivo del turno" />
+          <KPICard color="green" label="Ingresos manuales" valor={formatCLP(reporte?.total_ingresos_mov)} sub="Entradas no relacionadas a ventas" />
+          <KPICard color="red"   label="Retiros"            valor={formatCLP(reporte?.total_retiros_mov)}  sub="Salidas de efectivo del turno" />
         </div>
       )}
 
@@ -61,7 +61,7 @@ export default function ResumenTurno({ turno, reporte, onSolicitarCierre }) {
                     {item.metodo_pago.toLowerCase()}
                   </span>
                 </div>
-                <span className="text-xl font-black text-gray-900">{clp(item.total_metodo)}</span>
+                <span className="text-xl font-black text-gray-900">{formatCLP(item.total_metodo)}</span>
               </div>
             ))}
           </div>

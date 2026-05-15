@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ventasService } from '../../services/ventas';
-import { clp, formatFecha } from '../../utils/format';
+import { formatCLP, fmtFechaLarga } from '../../utils/format';
 import Semaforo from './Semaforo';
 
 export default function TurnoAjeno({ turno, reporte, onCerrado }) {
@@ -56,15 +56,15 @@ export default function TurnoAjeno({ turno, reporte, onCerrado }) {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Apertura</span>
-            <span className="font-bold text-gray-800">{formatFecha(turno.fecha_apertura)}</span>
+            <span className="font-bold text-gray-800">{fmtFechaLarga(turno.fecha_apertura)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Fondo apertura</span>
-            <span className="font-bold text-gray-800">{clp(turno.fondo_apertura)}</span>
+            <span className="font-bold text-gray-800">{formatCLP(turno.fondo_apertura)}</span>
           </div>
           <div className="flex justify-between border-t border-gray-100 pt-2">
             <span className="text-gray-500">Efectivo esperado</span>
-            <span className="font-black text-blue-700">{clp(efectivoEsperado)}</span>
+            <span className="font-black text-blue-700">{formatCLP(efectivoEsperado)}</span>
           </div>
         </div>
 

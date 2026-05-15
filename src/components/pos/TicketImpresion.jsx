@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatCLP as fmtCLP } from '../../utils/format';
+import { formatCLP } from '../../utils/format';
 import { METODOS_PAGO } from '../../constants/metodoPago';
 
 export default function TicketImpresion({ venta }) {
@@ -63,9 +63,9 @@ export default function TicketImpresion({ venta }) {
                   </td>
                   <td className="align-top pr-1 leading-tight">
                     <span>{item.nombre}</span>
-                    <span className="block text-gray-500">{fmtCLP(item.precio_unitario)} c/u</span>
+                    <span className="block text-gray-500">{formatCLP(item.precio_unitario)} c/u</span>
                   </td>
-                  <td className="align-top text-right">{fmtCLP(item.subtotal)}</td>
+                  <td className="align-top text-right">{formatCLP(item.subtotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -74,7 +74,7 @@ export default function TicketImpresion({ venta }) {
 
         <div className="flex justify-between font-bold text-base mb-4">
           <span>TOTAL:</span>
-          <span>{fmtCLP(venta.total)}</span>
+          <span>{formatCLP(venta.total)}</span>
         </div>
 
         <div className="text-xs mb-6">

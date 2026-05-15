@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ventasService } from '../services/ventas';
 import ModalMovimiento from './pos/ModalMovimiento';
-import { clp } from '../utils/format';
+import { formatCLP } from '../utils/format';
 import { logError } from '../utils/logger';
 
 export default function MovimientosCaja() {
@@ -105,15 +105,15 @@ export default function MovimientosCaja() {
                   <div className="grid grid-cols-3 gap-3 mb-6">
                     <div className="bg-green-50 border border-green-100 rounded-2xl p-4 text-center">
                       <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">Total ingresos</p>
-                      <p className="text-2xl font-black text-green-700">{clp(totalIngresos)}</p>
+                      <p className="text-2xl font-black text-green-700">{formatCLP(totalIngresos)}</p>
                     </div>
                     <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-center">
                       <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-1">Total retiros</p>
-                      <p className="text-2xl font-black text-red-600">{clp(totalRetiros)}</p>
+                      <p className="text-2xl font-black text-red-600">{formatCLP(totalRetiros)}</p>
                     </div>
                     <div className={`rounded-2xl p-4 text-center border ${balance >= 0 ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'}`}>
                       <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Balance del Turno</p>
-                      <p className={`text-2xl font-black ${balance >= 0 ? 'text-blue-700' : 'text-orange-600'}`}>{balance >= 0 ? '+' : ''}{clp(balance)}</p>
+                      <p className={`text-2xl font-black ${balance >= 0 ? 'text-blue-700' : 'text-orange-600'}`}>{balance >= 0 ? '+' : ''}{formatCLP(balance)}</p>
                     </div>
                   </div>
                 )}
@@ -137,7 +137,7 @@ export default function MovimientosCaja() {
                             {m.descripcion && <p className="text-xs text-gray-400 mt-0.5 truncate">{m.descripcion}</p>}
                             <p className="text-xs text-gray-300 mt-0.5">{m.hora}</p>
                           </div>
-                          <span className={`text-lg font-black tabular-nums ${m.tipo === 'ingreso' ? 'text-green-700' : 'text-red-600'}`}>{m.tipo === 'ingreso' ? '+' : '−'}{clp(m.monto)}</span>
+                          <span className={`text-lg font-black tabular-nums ${m.tipo === 'ingreso' ? 'text-green-700' : 'text-red-600'}`}>{m.tipo === 'ingreso' ? '+' : '−'}{formatCLP(m.monto)}</span>
                           <button onClick={() => handleEliminar(m.id)} disabled={eliminando === m.id} className="p-1.5 text-gray-200 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 disabled:opacity-40 flex-shrink-0" title="Eliminar">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                           </button>
@@ -168,7 +168,7 @@ export default function MovimientosCaja() {
                        <td className="px-4 py-3 text-gray-600">{m.fecha || m.hora}</td>
                        <td className="px-4 py-3"><span className={`text-xs font-black px-2 py-0.5 rounded-full ${m.tipo === 'ingreso' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{m.tipo === 'ingreso' ? 'Ingreso' : 'Retiro'}</span></td>
                        <td className="px-4 py-3 text-gray-700">{m.concepto}</td>
-                       <td className={`px-4 py-3 text-right font-black ${m.tipo === 'ingreso' ? 'text-green-700' : 'text-red-600'}`}>{m.tipo === 'ingreso' ? '+' : '−'}{clp(m.monto)}</td>
+                       <td className={`px-4 py-3 text-right font-black ${m.tipo === 'ingreso' ? 'text-green-700' : 'text-red-600'}`}>{m.tipo === 'ingreso' ? '+' : '−'}{formatCLP(m.monto)}</td>
                     </tr>
                   ))}
                 </tbody>

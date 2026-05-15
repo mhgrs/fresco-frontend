@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ventasService } from '../../services/ventas';
-import { clp, fmtFecha, fmtHora } from '../../utils/format';
+import { formatCLP, fmtFecha, fmtHora } from '../../utils/format';
 import { METODOS_PAGO } from '../../constants/metodoPago';
 import BadgeDiferencia from './BadgeDiferencia';
 
@@ -103,12 +103,12 @@ export default function TabHistorial() {
                       <span className="text-xs text-gray-300">—</span>
                     )}
                   </td>
-                  <td className="px-2 py-3 text-right font-black text-gray-800">{clp(t.total_ventas)}</td>
+                  <td className="px-2 py-3 text-right font-black text-gray-800">{formatCLP(t.total_ventas)}</td>
                   <td className="px-2 py-3">
                     <div className="flex flex-col gap-0.5">
                       {Object.entries(metodos).map(([metodo, total]) => (
                         <span key={metodo} className="text-xs text-gray-500 whitespace-nowrap">
-                          {METODOS_PAGO[metodo]?.icon ?? '💰'} {clp(total)}
+                          {METODOS_PAGO[metodo]?.icon ?? '💰'} {formatCLP(total)}
                         </span>
                       ))}
                       {Object.keys(metodos).length === 0 && (
@@ -116,7 +116,7 @@ export default function TabHistorial() {
                       )}
                     </div>
                   </td>
-                  <td className="px-2 py-3 text-right text-gray-600 font-semibold">{clp(t.efectivo_esperado)}</td>
+                  <td className="px-2 py-3 text-right text-gray-600 font-semibold">{formatCLP(t.efectivo_esperado)}</td>
                   <td className="px-2 py-3 text-right">
                     <BadgeDiferencia diferencia={t.diferencia_arqueo} />
                   </td>
