@@ -88,11 +88,19 @@ export default function PuntoDeVenta({ usuario }) {
       if (e.key === 'F12') { e.preventDefault(); if (carrito.length > 0) setModalAbierto(true); return; }
       if (e.key === 'Escape') { setTermino(''); inputRef.current?.focus(); return; }
       if (resultados.length > 0) {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-          e.preventDefault(); setSelectedIndex(prev => Math.min(prev + 1, resultados.length - 1)); return;
+        const w = window.innerWidth;
+        const cols = w >= 1280 ? 4 : w >= 1024 ? 3 : w >= 640 ? 2 : 1;
+        if (e.key === 'ArrowRight') {
+          e.preventDefault(); setSelectedIndex(prev => Math.min(prev < 0 ? 0 : prev + 1, resultados.length - 1)); return;
         }
-        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-          e.preventDefault(); setSelectedIndex(prev => Math.max(prev - 1, 0)); return;
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault(); setSelectedIndex(prev => Math.max(prev < 0 ? 0 : prev - 1, 0)); return;
+        }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault(); setSelectedIndex(prev => { const next = (prev < 0 ? 0 : prev) + cols; return next < resultados.length ? next : prev < 0 ? 0 : prev; }); return;
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault(); setSelectedIndex(prev => { const next = (prev < 0 ? 0 : prev) - cols; return next >= 0 ? next : prev < 0 ? 0 : prev; }); return;
         }
       }
       if (e.key === 'Enter') {

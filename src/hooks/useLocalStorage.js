@@ -1,20 +1,22 @@
+import { useCallback, useMemo } from 'react';
+
 export function useLocalStorage(key) {
-  const get = (fallback = null) => {
+  const get = useCallback((fallback = null) => {
     try {
       const raw = localStorage.getItem(key);
       return raw !== null ? JSON.parse(raw) : fallback;
     } catch {
       return fallback;
     }
-  };
+  }, [key]);
 
-  const set = (value) => {
+  const set = useCallback((value) => {
     localStorage.setItem(key, JSON.stringify(value));
-  };
+  }, [key]);
 
-  const remove = () => {
+  const remove = useCallback(() => {
     localStorage.removeItem(key);
-  };
+  }, [key]);
 
-  return { get, set, remove };
+  return useMemo(() => ({ get, set, remove }), [get, set, remove]);
 }

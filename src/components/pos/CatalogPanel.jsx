@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import NetworkStatusIndicator from '../ui/NetworkStatusIndicator';
 
 export default function CatalogPanel({
@@ -6,6 +7,14 @@ export default function CatalogPanel({
   ultimoAgregado, ventasSuspendidas, carrito,
   onProductClick, onSuspender, onAbrirSuspendidas, tieneCierreCaja,
 }) {
+  const cardRefs = useRef([]);
+
+  useEffect(() => {
+    if (selectedIndex >= 0 && cardRefs.current[selectedIndex]) {
+      cardRefs.current[selectedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [selectedIndex]);
+
   const hayEspera = ventasSuspendidas.length > 0;
   const suspendDisabled = !hayEspera && carrito.length === 0;
 
@@ -73,20 +82,22 @@ export default function CatalogPanel({
           placeholder="Buscar..."
           value={termino}
           onChange={e => setTermino(e.target.value)}
+          autoComplete="off"
         />
       </div>
 
       {/* Grilla de productos / estados */}
       <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 -mr-1 sm:-mr-2 pb-2 sm:pb-4 custom-scrollbar">
         {resultados.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 p-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
             {resultados.map((prod, index) => (
               <button
                 key={prod.id}
+                ref={el => { cardRefs.current[index] = el; }}
                 onClick={() => onProductClick(prod)}
                 className={`bg-[var(--color-tarjeta)] backdrop-blur-md p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm sm:shadow-lg text-left h-28 sm:h-36 flex flex-col justify-between transition-all group ${
                   selectedIndex === index
-                    ? 'ring-4 ring-[#91cf5b] border-transparent scale-[1.02] z-10'
+                    ? 'outline outline-4 outline-[#91cf5b] border-transparent scale-[1.02] z-10'
                     : 'border border-white/60 hover:-translate-y-1 hover:shadow-xl hover:border-[#91cf5b]/50 active:scale-95'
                 }`}
               >
@@ -96,8 +107,8 @@ export default function CatalogPanel({
                 </div>
                 <div className="flex justify-between items-end mt-1 sm:mt-2">
                   <span className="text-[#91cf5b] font-black text-sm sm:text-lg">${prod.precio}</span>
-                  <span className="text-[9px] sm:text-xs bg-gray-100 text-gray-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded sm:rounded-md font-semibold whitespace-nowrap">
-                    Stk: {prod.tipo_venta === 'UNIDAD' ? Math.round(prod.stock) : Number(prod.stock).toFixed(2)}
+                  <span className="text-[9px] sm:text-xs bg-gray-100 text-gray-400 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded sm:rounded-md font-semibold whitespace-nowrap">
+                    Stock: {prod.tipo_venta === 'UNIDAD' ? Math.round(prod.stock) : Number(prod.stock).toFixed(2)}
                   </span>
                 </div>
               </button>
