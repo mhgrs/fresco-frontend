@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usuariosService } from '../services/usuarios';
 import { empresasService } from '../services/empresas';
-import { ROLES } from '../constants/roles';
+import { rolesService } from '../services/roles';
+import { usePermisos } from '../hooks/usePermisos';
 import { useNotificacion } from '../hooks/useNotificacion';
 
-export default function GestionEquipo() {
+import GestorRoles from './equipo/GestorRoles';
+
+export default function GestionEquipo({ usuario }) {
+  const [tabActiva, setTabActiva]          = useState('equipo');
   const [equipo, setEquipo]               = useState([]);
   const [rolesDisponibles, setRolesDisp]  = useState([]);
   const [cargando, setCargando]           = useState(true);
@@ -16,15 +20,16 @@ export default function GestionEquipo() {
   const [generandoCodigo, setGenerando]   = useState(false);
   const [copiado, setCopiado]             = useState('');
   const { notificacion, mostrar }         = useNotificacion();
+  const { tiene }                         = usePermisos(usuario);
 
   useEffect(() => {
     (async () => {
       try {
         const [resEquipo, resRoles] = await Promise.all([
           usuariosService.listarEquipo(),
-          usuariosService.listarRoles(),
+          rolesService.listar(),
         ]);
-        setRolesDisp(resRoles.data.filter(r => r.nombre !== ROLES.ADMIN));
+        setRolesDisp(resRoles.data);
         setEquipo(resEquipo.data);
       } catch {
         setError('No se pudo cargar la información del equipo.');
@@ -89,8 +94,32 @@ export default function GestionEquipo() {
         </div>
       )}
 
-      <h1 className="text-2xl font-black text-gray-900 mb-6">Gestión de Equipo</h1>
+      <h1 className="text-2xl font-black text-gray-900 mb-4">Gestión de Equipo</h1>
 
+      {/* Tab switcher */}
+      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setTabActiva('equipo')}
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tabActiva === 'equipo' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Equipo
+        </button>
+        {tiene('equipo.gestionar_roles') && (
+          <button
+            onClick={() => setTabActiva('roles')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tabActiva === 'roles' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Roles
+          </button>
+        )}
+      </div>
+
+      {tabActiva === 'roles' && tiene('equipo.gestionar_roles') && (
+        <GestorRoles />
+      )}
+
+      {tabActiva === 'equipo' && (
+      <>
       {cargando ? <div className="text-center p-8 text-gray-400">Cargando equipo...</div>
        : error ? <div className="text-center p-8 text-red-500">{error}</div>
        : (
@@ -161,44 +190,48 @@ export default function GestionEquipo() {
           </div>
 
           {/* Gestión de roles */}
-          <div className="bg-white/60 p-6 rounded-2xl shadow-sm border border-gray-200">
-            <h3 className="text-base font-bold text-gray-800 mb-4">Gestionar roles</h3>
-            {equipo.length === 0 ? (
-              <p className="text-sm text-gray-400">No hay otros usuarios en tu empresa todavía.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-100">
-                  <thead>
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Usuario</th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Roles</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {equipo.map(user => (
-                      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="text-sm font-semibold text-gray-900">{user.first_name} {user.last_name}</div>
-                          <div className="text-xs text-gray-400">{user.email}</div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap gap-4">
-                            {rolesDisponibles.map(rol => (
-                              <label key={rol.nombre} className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
-                                <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-[#91cf5b] focus:ring-[#7ab848] cursor-pointer" checked={user.roles.includes(rol.nombre)} onChange={e => handleCheckbox(user.id, rol.nombre, e.target.checked)} />
-                                {rol.nombre}
-                              </label>
-                            ))}
-                          </div>
-                        </td>
+          {tiene('equipo.asignar_roles') && (
+            <div className="bg-white/60 p-6 rounded-2xl shadow-sm border border-gray-200">
+              <h3 className="text-base font-bold text-gray-800 mb-4">Asignar roles</h3>
+              {equipo.length === 0 ? (
+                <p className="text-sm text-gray-400">No hay otros usuarios en tu empresa todavía.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-100">
+                    <thead>
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Usuario</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Roles</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {equipo.map(user => (
+                        <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="text-sm font-semibold text-gray-900">{user.first_name} {user.last_name}</div>
+                            <div className="text-xs text-gray-400">{user.email}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-4">
+                              {rolesDisponibles.map(rol => (
+                                <label key={rol.nombre} className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
+                                  <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-[#91cf5b] focus:ring-[#7ab848] cursor-pointer" checked={user.roles.includes(rol.nombre)} onChange={e => handleCheckbox(user.id, rol.nombre, e.target.checked)} />
+                                  {rol.nombre}
+                                </label>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+      )}
+      </>
       )}
     </div>
   );

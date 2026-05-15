@@ -25,7 +25,9 @@ export default function CatalogoProductos({ usuario }) {
   const PAGE_SIZE = 50;
   const navigate = useNavigate();
   const { notificacion, mostrar } = useNotificacion();
-  const { esSupervisor, esBodega } = usePermisos(usuario);
+  const { tiene } = usePermisos(usuario);
+  const esSupervisor = () => tiene('inventario.editar_producto');
+  const esBodega     = () => tiene('inventario.ver');
   const debouncedTermino = useDebounce(terminoBusqueda, 300);
 
   useEffect(() => {

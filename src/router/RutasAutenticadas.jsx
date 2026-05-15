@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { usePermisos } from '../hooks/usePermisos';
 import Dashboard from '../components/Dashboard';
 import PuntoDeVenta from '../components/PuntoDeVenta';
 import CierreCaja from '../components/CierreCaja';
@@ -53,11 +54,11 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
     );
   }
 
-  const roles = usuario.roles || [];
-  const isAdmin      = roles.includes('ADMIN') || usuario.is_superuser;
-  const isSupervisor = isAdmin  || roles.includes('SUPERVISOR');
-  const isCajero     = isSupervisor || roles.includes('CAJERO');
-  const isBodega     = isCajero || roles.includes('BODEGA');
+  const { tiene } = usePermisos(usuario);
+  const isAdmin      = tiene('equipo.gestionar_roles');
+  const isSupervisor = tiene('ventas.ver_todas');
+  const isCajero     = tiene('pos.acceder');
+  const isBodega     = tiene('inventario.ver');
 
   const wrap = (child, fallback = '/dashboard') => (
     <ModuleLayout isOnline={isOnline} sincronizando={sincronizando} usuario={usuario} fallback={fallback}>
@@ -105,7 +106,7 @@ export default function RutasAutenticadas({ usuario, isOnline, sincronizando, ce
           <Reportes />
         </PlanGuard>, '/dashboard?module=administracion')} />}
       
-      {isAdmin && <Route path="/equipo" element={wrap(<GestionEquipo />, '/dashboard?module=administracion')} />}
+      {isAdmin && <Route path="/equipo" element={wrap(<GestionEquipo usuario={usuario} />, '/dashboard?module=administracion')} />}
       {isSupervisor && <Route path="/ventas" element={wrap(<HistorialVentas />, '/dashboard?module=administracion')} />}
       {isSupervisor && <Route path="/actividad" element={wrap(<ActividadNegocio />, '/dashboard?module=administracion')} />}
       <Route path="/unirse/:codigo" element={<Navigate to="/dashboard" replace />} />

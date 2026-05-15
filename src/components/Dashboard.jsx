@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { productosService } from '../services/productos';
+import { usePermisos } from '../hooks/usePermisos';
 import { useClickOutside } from '../hooks/useClickOutside';
 import ModuleCard from './dashboard/ModuleCard';
 import AlertasDropdown from './dashboard/AlertasDropdown';
@@ -27,7 +28,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
 
   useEffect(() => {
     document.title = "Fresco";
-    if (usuario.roles?.includes('ADMIN') || usuario.is_superuser) {
+    if (usuario.is_superuser || usuario.permisos?.includes('alertas.ver')) {
       productosService.listarStockBajo()
         .then(res => {
           const data = Array.isArray(res.data) ? res.data : res.data.results ?? [];
@@ -45,7 +46,7 @@ export default function Dashboard({ usuario, cerrarSesion }) {
           }
         });
     }
-  }, [usuario.roles, usuario.is_superuser]);
+  }, [usuario.permisos, usuario.is_superuser]);
 
   const cerrarAjustes = useCallback(() => setMostrarAjustes(false), []);
   useClickOutside(ajustesRef, cerrarAjustes);
@@ -69,11 +70,11 @@ export default function Dashboard({ usuario, cerrarSesion }) {
   const IconoHistorial  = <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>;
   const IconoActividad  = <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
 
-  const roles = usuario.roles || [];
-  const isCajero     = roles.includes('ADMIN') || roles.includes('SUPERVISOR') || roles.includes('CAJERO');
-  const isBodega     = isCajero || roles.includes('BODEGA');
-  const isSupervisor = roles.includes('ADMIN') || roles.includes('SUPERVISOR');
-  const isAdmin      = roles.includes('ADMIN') || usuario.is_superuser;
+  const { tiene } = usePermisos(usuario);
+  const isCajero     = tiene('pos.acceder');
+  const isBodega     = tiene('inventario.ver');
+  const isSupervisor = tiene('ventas.ver_todas');
+  const isAdmin      = tiene('equipo.gestionar_roles');
 
   const botonVolver = (
     <button

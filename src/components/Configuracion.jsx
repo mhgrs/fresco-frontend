@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { usuariosService } from '../services/usuarios';
+import { usePermisos } from '../hooks/usePermisos';
 import PortalSuscripcion from './suscripcion/PortalSuscripcion';
 
 // ── Tab Perfil ─────────────────────────────────────────────────────────────────
@@ -145,7 +146,8 @@ function TabPerfil({ usuario }) {
 export default function Configuracion({ usuario }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const isAdmin = (usuario.roles || []).includes('ADMIN') || usuario.is_superuser;
+  const { tiene } = usePermisos(usuario);
+  const isAdmin = tiene('configuracion.editar');
 
   const TABS = [
     { id: 'perfil', label: 'Perfil' },

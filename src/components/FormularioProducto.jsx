@@ -15,9 +15,9 @@ export default function FormularioProducto({ usuario }) {
   const esEdicion = Boolean(id);
 
   const { notificacion, mostrar } = useNotificacion();
-  const { esAdmin, esSupervisor } = usePermisos(usuario);
-  const puedeEditar    = esSupervisor(); // ADMIN + SUPERVISOR pueden editar campos de precio/stock
-  const puedeEditarTodo = esAdmin();     // Solo ADMIN puede editar código de barras
+  const { tiene } = usePermisos(usuario);
+  const puedeEditar    = tiene('inventario.editar_producto');
+  const puedeEditarTodo = tiene('inventario.editar_producto');
 
   const [categorias, setCategorias] = useState([]);
   const [cargando, setCargando] = useState(esEdicion);

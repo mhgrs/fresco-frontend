@@ -1,26 +1,23 @@
-import { ROLES } from '../constants/roles';
-
 /**
  * Hook para verificar permisos del usuario actual.
  *
- * Uso:
- *   const { tiene, esAdmin, esSupervisor, esCajero, esBodega } = usePermisos(usuario);
+ * Nueva API (Feature 2 — permisos flexibles):
+ *   tiene('pos.realizar_venta')   — verifica un permiso específico por código
  *
- *   if (esAdmin()) { ... }
- *   if (esSupervisor()) { ... }    // ADMIN o SUPERVISOR
- *   if (esCajero()) { ... }        // ADMIN, SUPERVISOR o CAJERO
- *   if (esBodega()) { ... }        // ADMIN, SUPERVISOR, CAJERO o BODEGA
- *   if (tiene(ROLES.ADMIN, ROLES.BODEGA)) { ... }  // cualquiera de esos roles
+ * API legacy (compatibilidad durante migración):
+ *   esAdmin()      → tiene('equipo.gestionar_roles')
+ *   esSupervisor() → tiene('ventas.ver_todas')
+ *   esCajero()     → tiene('pos.realizar_venta')
+ *   esBodega()     → tiene('inventario.ver')
  */
 export function usePermisos(usuario) {
-  // Verifica si el usuario tiene al menos uno de los roles indicados
-  const tiene = (...roles) =>
-    !!(roles.some(r => usuario?.roles?.includes(r)) || usuario?.is_superuser);
+  const tiene = (codigo) =>
+    !!(usuario?.is_superuser || usuario?.permisos?.includes(codigo));
 
-  const esAdmin      = () => tiene(ROLES.ADMIN);
-  const esSupervisor = () => tiene(ROLES.ADMIN, ROLES.SUPERVISOR);
-  const esCajero     = () => tiene(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CAJERO);
-  const esBodega     = () => tiene(ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.CAJERO, ROLES.BODEGA);
+  const esAdmin      = () => tiene('equipo.gestionar_roles');
+  const esSupervisor = () => tiene('ventas.ver_todas');
+  const esCajero     = () => tiene('pos.realizar_venta');
+  const esBodega     = () => tiene('inventario.ver');
 
   return { tiene, esAdmin, esSupervisor, esCajero, esBodega };
 }

@@ -10,7 +10,8 @@ export default function GestorCategorias({ usuario }) {
   const [confirmarEliminar, setConfirmarEliminar] = useState({ visible: false, id: null, nombre: '' });
 
   const { notificacion, mostrar } = useNotificacion();
-  const { esSupervisor } = usePermisos(usuario);
+  const { tiene } = usePermisos(usuario);
+  const esSupervisor = () => tiene('categorias.gestionar');
 
   const cargarCategorias = async () => {
     try {
