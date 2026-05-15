@@ -24,28 +24,28 @@ export default function NetworkStatusIndicator() {
       <button 
         onClick={() => pendingCount > 0 && setShowModal(true)}
         disabled={pendingCount === 0 && isOnline}
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${isOnline ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 cursor-pointer shadow-sm ring-2 ring-yellow-400' : 'bg-red-100 text-red-800 cursor-pointer hover:bg-red-200 shadow-sm'}`}
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${isOnline ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 cursor-pointer shadow-sm ring-2 ring-yellow-400' : 'bg-red-100 text-red-800 cursor-pointer hover:bg-red-200 shadow-sm'}`}
         title={pendingCount > 0 ? "Ver ventas pendientes" : "Sin conexión"}
       >
         {!isOnline ? (
           <>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 16" />
             </svg>
-            <span>Modo Offline</span>
+            <span className="hidden sm:block">Modo Offline</span>
           </>
         ) : (
           <>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span >Sincronización pendiente</span>
+            <span className="hidden sm:block">Sincronización pendiente</span>
           </>
         )}
-        
+
         {pendingCount > 0 && (
-          <span className="ml-2 bg-white/50 px-2 py-0.5 rounded-full text-xs font-bold text-black">
+          <span className="bg-white/50 px-1.5 py-0.5 rounded-full text-xs font-bold text-black">
             {pendingCount}
           </span>
         )}
