@@ -54,7 +54,7 @@ export default function ModuleLayout({ children, isOnline = true, sincronizando 
           </div>
         </div>
       </header>
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-y-auto">
         {children}
       </main>
     </div>
