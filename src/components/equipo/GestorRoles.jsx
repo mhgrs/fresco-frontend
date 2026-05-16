@@ -81,7 +81,7 @@ function FormularioRol({ permisosDisponibles, rolInicial, onGuardar, onCancelar 
 
       <div>
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Permisos</p>
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
           {Object.entries(porModulo).map(([modulo, perms]) => {
             const codigos = perms.map(p => p.codigo);
             const todos = codigos.every(c => seleccionados.has(c));
