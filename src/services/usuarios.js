@@ -5,6 +5,7 @@ export const usuariosService = {
   logout:           ()             => api.post('inventario/usuarios/logout/'),
   me:               ()             => api.get('inventario/usuarios/me/'),
   actualizarPerfil: (datos)        => api.patch('inventario/usuarios/me/', datos),
+  cambiarPassword:  (datos)        => api.post('inventario/usuarios/cambiar-password/', datos),
   listarEquipo:     ()             => api.get('inventario/usuarios/'),
   actualizarRoles:  (id, roles)    => api.patch(`inventario/usuarios/${id}/`, { roles }),
   listarRoles:      ()             => api.get('inventario/roles/'),

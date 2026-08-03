@@ -141,6 +141,117 @@ function TabPerfil({ usuario }) {
   );
 }
 
+// ── Tab Seguridad ──────────────────────────────────────────────────────────────
+
+function TabSeguridad() {
+  const [form, setForm] = useState({ password_actual: '', nueva_password: '', confirmar: '' });
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje]     = useState(null);
+
+  const handleChange = (e) =>
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMensaje(null);
+
+    if (form.nueva_password !== form.confirmar) {
+      setMensaje({ tipo: 'error', texto: 'La nueva contraseña y su confirmación no coinciden.' });
+      return;
+    }
+    if (form.nueva_password.length < 8) {
+      setMensaje({ tipo: 'error', texto: 'La nueva contraseña debe tener al menos 8 caracteres.' });
+      return;
+    }
+
+    setGuardando(true);
+    try {
+      await usuariosService.cambiarPassword({
+        password_actual: form.password_actual,
+        nueva_password:  form.nueva_password,
+      });
+      setMensaje({ tipo: 'success', texto: 'Contraseña actualizada correctamente.' });
+      setForm({ password_actual: '', nueva_password: '', confirmar: '' });
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.response?.data?.error || 'Error al cambiar la contraseña.' });
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <div className="max-w-lg">
+      {mensaje && (
+        <div className={`mb-5 px-4 py-3 rounded-xl text-sm font-semibold flex items-center gap-2 ${
+          mensaje.tipo === 'success'
+            ? 'bg-green-50 text-green-800 border border-green-200'
+            : 'bg-red-50 text-red-800 border border-red-200'
+        }`}>
+          {mensaje.tipo === 'success' ? '✓' : '✗'} {mensaje.texto}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            Contraseña actual
+          </label>
+          <input
+            type="password"
+            name="password_actual"
+            value={form.password_actual}
+            onChange={handleChange}
+            required
+            autoComplete="current-password"
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#91cf5b] bg-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            Nueva contraseña
+          </label>
+          <input
+            type="password"
+            name="nueva_password"
+            value={form.nueva_password}
+            onChange={handleChange}
+            required
+            autoComplete="new-password"
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#91cf5b] bg-white"
+          />
+          <p className="text-xs text-gray-400 mt-1">Mínimo 8 caracteres.</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            Confirmar nueva contraseña
+          </label>
+          <input
+            type="password"
+            name="confirmar"
+            value={form.confirmar}
+            onChange={handleChange}
+            required
+            autoComplete="new-password"
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#91cf5b] bg-white"
+          />
+        </div>
+
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={guardando}
+            className="bg-gray-900 hover:bg-gray-700 text-white font-bold px-6 py-2.5 rounded-full text-sm transition-all active:scale-95 disabled:opacity-50"
+          >
+            {guardando ? 'Guardando...' : 'Cambiar contraseña'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 // ── Componente principal ───────────────────────────────────────────────────────
 
 export default function Configuracion({ usuario }) {
@@ -150,8 +261,9 @@ export default function Configuracion({ usuario }) {
   const isAdmin = tiene('configuracion.editar');
 
   const TABS = [
-    { id: 'perfil', label: 'Perfil' },
-    { id: 'pagos',  label: 'Suscripción'  },
+    { id: 'perfil',     label: 'Perfil'       },
+    { id: 'seguridad',  label: 'Seguridad'    },
+    { id: 'pagos',      label: 'Suscripción'  },
   ];
 
   const tabParam   = searchParams.get('tab');
@@ -185,8 +297,9 @@ export default function Configuracion({ usuario }) {
 
       {/* Contenido */}
       <div className="flex-1 overflow-y-auto -mx-6 px-6 custom-scrollbar">
-        {tabActiva === 'perfil' && <TabPerfil usuario={usuario} />}
-        {tabActiva === 'pagos'  && <PortalSuscripcion />}
+        {tabActiva === 'perfil'    && <TabPerfil usuario={usuario} />}
+        {tabActiva === 'seguridad' && <TabSeguridad />}
+        {tabActiva === 'pagos'     && <PortalSuscripcion />}
       </div>
     </div>
   );

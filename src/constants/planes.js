@@ -19,8 +19,8 @@ export const PLANES = [
   },
   {
     nombre: 'Básico',
-    precio_mensual: 17990,
-    precio_anual: 211562,
+    precio_mensual: 28000,
+    precio_anual: 329280,
     descripcion: 'Ideal para almacenes y minimarkets pequeños.',
     productos: 800,
     usuarios: 3,
@@ -41,8 +41,8 @@ export const PLANES = [
   },
   {
     nombre: 'Pro',
-    precio_mensual: 23990,
-    precio_anual: 282122,
+    precio_mensual: 38000,
+    precio_anual: 446880,
     descripcion: 'Para negocios en crecimiento con más equipo.',
     productos: 1500,
     usuarios: 6,
