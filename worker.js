@@ -1,4 +1,4 @@
-const BACKEND = 'https://pos-system-wfog.onrender.com';
+const BACKEND = 'https://pos-system-production-2606.up.railway.app';
 const PROXY_PREFIXES = ['/api/', '/fresco-admin/', '/static/'];
 // Archivos que NUNCA deben cachearse en el browser para que los updates lleguen de inmediato
 const NO_CACHE_PATHS = new Set(['/', '/index.html', '/sw.js']);
