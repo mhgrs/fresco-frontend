@@ -1,36 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PLANES } from '../constants/planes';
 
-function formatPrecio(n) {
-  return n === 0 ? 'Gratis' : `$${n.toLocaleString('es-CL')}`;
+const WSP = 'https://wa.me/56987268235?text=Hola%2C%20quiero%20información%20sobre%20Fresco%20POS';
+
+function IconWsp() {
+  return (
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  );
 }
 
 export default function LandingPage({ usuario }) {
-  const [anual, setAnual] = useState(false);
-  const [contactoAbierto, setContactoAbierto] = useState(false);
-  const [formContacto, setFormContacto] = useState({ nombre: '', email: '', empresa: '', mensaje: '' });
-  const [enviando, setEnviando] = useState(false);
-  const [enviado, setEnviado] = useState(false);
-
-  const handleContacto = async (e) => {
-    e.preventDefault();
-    setEnviando(true);
-    try {
-      await fetch('/api/inventario/usuarios/contacto/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formContacto),
-      });
-      setEnviado(true);
-      setTimeout(() => { setContactoAbierto(false); setEnviado(false); setFormContacto({ nombre: '', email: '', empresa: '', mensaje: '' }); }, 3000);
-    } catch {
-      // silencioso — el email igual se intenta
-    } finally {
-      setEnviando(false);
-    }
-  };
-
   useEffect(() => {
     document.title = 'Fresco — Sistema POS para tu negocio';
   }, []);
@@ -45,7 +26,7 @@ export default function LandingPage({ usuario }) {
 
           <nav className="hidden md:flex space-x-8 text-sm font-bold text-gray-600">
             <a href="#caracteristicas" className="hover:text-[#91cf5b] transition-colors">Características</a>
-            <a href="#precios"         className="hover:text-[#91cf5b] transition-colors">Precios</a>
+            <a href="#contacto"        className="hover:text-[#91cf5b] transition-colors">Contacto</a>
             <a href="#faq"             className="hover:text-[#91cf5b] transition-colors">FAQ</a>
           </nav>
 
@@ -92,9 +73,9 @@ export default function LandingPage({ usuario }) {
               className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all active:scale-95">
               Empezar gratis — sin tarjeta
             </Link>
-            <a href="#precios"
+            <a href="#contacto"
               className="w-full sm:w-auto bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-full font-bold text-lg shadow-sm transition-all active:scale-95">
-              Ver planes
+              Solicitar acceso
             </a>
           </div>
           <p className="mt-5 text-xs text-gray-400 font-medium">
@@ -201,130 +182,24 @@ export default function LandingPage({ usuario }) {
           </div>
         </section>
 
-        {/* ── Precios ────────────────────────────────────────────────────── */}
-        <section id="precios" className="py-24 px-6 bg-white/50 border-y border-gray-200">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
-                Planes simples y transparentes
-              </h2>
-              <p className="text-lg text-gray-500 mb-8">
-                Precios en CLP. Sin costos ocultos. Cancela cuando quieras.
-              </p>
-
-              {/* Toggle mensual / anual */}
-              <div className="inline-flex items-center gap-3 bg-gray-100 rounded-full p-1">
-                <button
-                  onClick={() => setAnual(false)}
-                  className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${!anual ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
-                  Mensual
-                </button>
-                <button
-                  onClick={() => setAnual(true)}
-                  className={`px-5 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${anual ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
-                  Anual
-                  <span className="bg-[#91cf5b] text-white text-[10px] font-black px-2 py-0.5 rounded-full">−2%</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {PLANES.map((plan) => (
-                <div key={plan.nombre}
-                  className={`relative rounded-2xl p-6 flex flex-col border transition-all ${
-                    plan.destacado
-                      ? 'bg-gray-900 text-white border-gray-900 shadow-2xl scale-105'
-                      : 'bg-[var(--color-tarjeta)] border-white/60 shadow-sm'
-                  }`}>
-
-                  {plan.destacado && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="bg-[#91cf5b] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow">
-                        Más popular
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="mb-4">
-                    <h3 className={`font-black text-xl mb-1 ${plan.destacado ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.nombre}
-                    </h3>
-                    <p className={`text-xs leading-relaxed ${plan.destacado ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {plan.descripcion}
-                    </p>
-                  </div>
-
-                  <div className="mb-6">
-                    <div className={`text-4xl font-black ${plan.destacado ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.precio_mensual === null 
-                        ? 'A convenir'
-                        : plan.precio_mensual === 0
-                          ? 'Gratis'
-                          : formatPrecio(anual
-                            ? Math.round(plan.precio_anual / 12)
-                            : plan.precio_mensual)
-                      }
-                    </div>
-                    {plan.precio_mensual !== null && plan.precio_mensual > 0 && (
-                      <div className={`text-xs mt-1 ${plan.destacado ? 'text-gray-400' : 'text-gray-400'}`}>
-                        {anual
-                          ? `${formatPrecio(plan.precio_anual)}/año · Ahorra 2%`
-                          : 'por mes · ajuste anual por IPC'}
-                      </div>
-                    )}
-                    {plan.precio_mensual === null && (
-                      <div className={`text-xs mt-1 ${plan.destacado ? 'text-gray-400' : 'text-gray-400'}`}>
-                        Precio personalizado según acuerdo
-                      </div>
-                    )}
-                  </div>
-
-                  <div className={`text-xs font-bold uppercase tracking-wider mb-3 ${plan.destacado ? 'text-gray-400' : 'text-gray-400'}`}>
-                    {plan.productos === null ? 'Ilimitados' : plan.productos.toLocaleString('es-CL')} productos · {plan.usuarios} {plan.usuarios === 1 ? 'usuario' : 'usuarios'}
-                  </div>
-
-                  <ul className="space-y-2 mb-6 flex-1">
-                    {plan.caracteristicas.map((c) => (
-                      <li key={c} className="flex items-start gap-2 text-sm">
-                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#91cf5b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className={plan.destacado ? 'text-gray-300' : 'text-gray-600'}>{c}</span>
-                      </li>
-                    ))}
-                    {plan.bloqueadas.map((c) => (
-                      <li key={c} className="flex items-start gap-2 text-sm opacity-40">
-                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        <span className={plan.destacado ? 'text-gray-400' : 'text-gray-400'}>{c}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {plan.ctaLink ? (
-                    <Link to={plan.ctaLink}
-                      className={`text-center py-3 rounded-full font-bold text-sm transition-all active:scale-95 ${
-                        plan.destacado
-                          ? 'bg-[#91cf5b] hover:bg-[#7ab848] text-white'
-                          : 'bg-gray-900 hover:bg-gray-800 text-white'
-                      }`}>
-                      {plan.cta}
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() => setContactoAbierto(true)}
-                      className="text-center py-3 rounded-full font-bold text-sm transition-all active:scale-95 bg-gray-900 hover:bg-gray-800 text-white">
-                      {plan.cta}
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <p className="text-center text-xs text-gray-400 mt-8">
-              Los precios son en CLP e incluyen IVA. El precio mensual puede ajustarse anualmente según el IPC, con aviso previo de 30 días.
+        {/* ── Contacto ───────────────────────────────────────────────────── */}
+        <section id="contacto" className="py-24 px-6 bg-white/50 border-y border-gray-200">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
+              ¿Listo para empezar?
+            </h2>
+            <p className="text-lg text-gray-500 mb-10">
+              Escríbenos por WhatsApp y te activamos la cuenta en minutos.<br />
+              Sin contratos ni tarjeta de crédito.
             </p>
+            <a
+              href={WSP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 bg-[#25D366] hover:bg-[#1ebe5a] text-white px-8 py-4 rounded-full font-black text-lg shadow-lg transition-all active:scale-95">
+              <IconWsp />
+              Solicitar acceso
+            </a>
           </div>
         </section>
 
@@ -345,11 +220,7 @@ export default function LandingPage({ usuario }) {
               },
               {
                 q: '¿Puedo cambiar de plan en cualquier momento?',
-                a: 'Sí. Puedes subir o bajar de plan cuando quieras desde la configuración de tu cuenta. Si pagas anual y cambias antes, se aplica un crédito proporcional.',
-              },
-              {
-                q: '¿Qué métodos de pago aceptan?',
-                a: 'Aceptamos tarjetas de débito y crédito, y transferencia bancaria. Todos los cobros son en CLP.',
+                a: 'Sí. Escríbenos por WhatsApp y lo activamos en minutos, sin burocracia.',
               },
               {
                 q: '¿Mis datos están seguros?',
@@ -403,7 +274,7 @@ export default function LandingPage({ usuario }) {
             <h4 className="font-bold mb-4 text-gray-100">Producto</h4>
             <ul className="space-y-3 text-sm text-gray-400">
               <li><a href="#caracteristicas" className="hover:text-white transition-colors">Características</a></li>
-              <li><a href="#precios"         className="hover:text-white transition-colors">Precios</a></li>
+              <li><a href="#contacto"        className="hover:text-white transition-colors">Contacto</a></li>
               <li><a href="#faq"             className="hover:text-white transition-colors">FAQ</a></li>
             </ul>
           </div>
@@ -428,60 +299,6 @@ export default function LandingPage({ usuario }) {
         </div>
       </footer>
 
-      {/* ── Modal Contacto Empresa ───────────────────────────────────────── */}
-      {contactoAbierto && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setContactoAbierto(false)}>
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-black text-gray-900 mb-1">Plan Empresa</h3>
-            <p className="text-sm text-gray-500 mb-5">Cuéntanos sobre tu negocio y te contactamos con una propuesta.</p>
-
-            {enviado ? (
-              <div className="text-center py-8">
-                <div className="text-4xl mb-3">✓</div>
-                <p className="font-bold text-gray-900">¡Mensaje enviado!</p>
-                <p className="text-sm text-gray-500 mt-1">Te contactaremos pronto a <strong>{formContacto.email}</strong></p>
-              </div>
-            ) : (
-              <form onSubmit={handleContacto} className="space-y-3">
-                <input
-                  required placeholder="Tu nombre"
-                  value={formContacto.nombre}
-                  onChange={e => setFormContacto(p => ({ ...p, nombre: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#91cf5b]"
-                />
-                <input
-                  required type="email" placeholder="Correo electrónico"
-                  value={formContacto.email}
-                  onChange={e => setFormContacto(p => ({ ...p, email: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#91cf5b]"
-                />
-                <input
-                  required placeholder="Nombre del negocio"
-                  value={formContacto.empresa}
-                  onChange={e => setFormContacto(p => ({ ...p, empresa: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#91cf5b]"
-                />
-                <textarea
-                  rows={3} placeholder="¿Cuántas sucursales? ¿Alguna consulta adicional? (opcional)"
-                  value={formContacto.mensaje}
-                  onChange={e => setFormContacto(p => ({ ...p, mensaje: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#91cf5b] resize-none"
-                />
-                <div className="flex gap-3 pt-1">
-                  <button type="button" onClick={() => setContactoAbierto(false)}
-                    className="flex-1 py-2.5 bg-gray-100 rounded-full font-bold text-sm text-gray-700 hover:bg-gray-200 transition-all">
-                    Cancelar
-                  </button>
-                  <button type="submit" disabled={enviando}
-                    className="flex-1 py-2.5 bg-gray-900 hover:bg-gray-700 text-white rounded-full font-bold text-sm transition-all disabled:opacity-50">
-                    {enviando ? 'Enviando...' : 'Enviar consulta'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
