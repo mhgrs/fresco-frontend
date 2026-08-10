@@ -266,8 +266,8 @@ export default function CatalogoProductos({ usuario }) {
           onClick={() => setModalForm(null)}
         >
           <div
-            className="bg-[var(--color-fondo)] rounded-xl w-full max-w-2xl flex flex-col shadow-2xl"
-            style={{ height: 'min(90vh, 720px)' }}
+            className="bg-[var(--color-fondo)] rounded-xl w-full max-w-2xl flex flex-col shadow-2xl overflow-hidden"
+            style={{ maxHeight: 'min(92vh, 780px)' }}
             onClick={e => e.stopPropagation()}
           >
             <FormularioProducto

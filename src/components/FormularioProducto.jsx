@@ -96,7 +96,6 @@ export default function FormularioProducto({ usuario, modoModal = false, idProdu
         const catEncontrada = catNombre
           ? categorias.find(c => c.nombre.toLowerCase() === catNombre.toLowerCase())
           : null;
-
         setFormulario(prev => {
           const updNombre    = nombre_estandarizado && !prev.nombre;
           const updMarca     = marca && !prev.marca;
@@ -156,7 +155,6 @@ export default function FormularioProducto({ usuario, modoModal = false, idProdu
       }
     } catch (error) {
       const data = error.response?.data || {};
-
       const camposMensaje = {
         codigo_barras: 'Ya existe un producto con este código de barras',
         precio:        'El valor debe ser igual o mayor a 1',
@@ -172,15 +170,12 @@ export default function FormularioProducto({ usuario, modoModal = false, idProdu
           return;
         }
       }
-
       const errorMsg = data.error || data.detail || '';
       if (errorMsg.toLowerCase().includes('límite') || errorMsg.toLowerCase().includes('limit')) {
         mostrar(
           <span>
             Alcanzaste el límite de productos activos del plan "gratis". Actualiza tu plan en{' '}
-            <Link to="/configuracion?tab=pagos" className="underline font-bold">
-              suscripción
-            </Link>{' '}
+            <Link to="/configuracion?tab=pagos" className="underline font-bold">suscripción</Link>{' '}
             para poder agregar más.
           </span>,
           'error'
@@ -205,99 +200,7 @@ export default function FormularioProducto({ usuario, modoModal = false, idProdu
     }
   };
 
-  // ── Campos del formulario (compartidos entre modal y página completa) ──────────
-  const camposFormulario = (
-    <>
-      <CodigoBarrasField
-        value={formulario.codigo_barras}
-        onChange={(valor) => setFormulario(prev => ({ ...prev, codigo_barras: valor }))}
-        onBlur={() => buscarMaestro(formulario.codigo_barras)}
-        onScan={(codigo) => {
-          setFormulario(prev => ({ ...prev, codigo_barras: codigo }));
-          buscarMaestro(codigo);
-        }}
-        disabled={!puedeEditarTodo}
-      />
-
-      <SugerenciasInput
-        label="Marca *"
-        name="marca"
-        value={formulario.marca}
-        onChange={(valor) => setFormulario(prev => ({ ...prev, marca: valor }))}
-        sugerencias={sugerenciasMarca}
-        onSeleccionar={(item) => setFormulario(prev => ({ ...prev, marca: item }))}
-        placeholder="Ej: Coca-Cola, Soprole..."
-        required
-      />
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
-        <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio}
-          className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Categoría *</label>
-        <select required name="categoria" value={formulario.categoria} onChange={manejarCambio}
-          className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 bg-white">
-          <option value="">Seleccione...</option>
-          {categorias.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.nombre} ({cat.codigo})</option>
-          ))}
-          <option value="NUEVA_CAT" className="font-bold text-blue-600 bg-blue-50">
-            ➕ Crear nueva categoría...
-          </option>
-        </select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Precio (CLP) *</label>
-          <input disabled={!puedeEditar} required type="number" min="0" name="precio"
-            value={formulario.precio} onChange={manejarCambio}
-            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Tipo Venta *</label>
-          <select disabled={!puedeEditar} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio}
-            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
-            <option value="UNIDAD">Unidad</option>
-            <option value="GRANEL">Granel</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Stock Actual {formulario.tipo_venta !== 'UNIDAD' && '(Kilos, max 2 decimales)'}
-          </label>
-          <input disabled={!puedeEditar} type="number"
-            step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'}
-            name="stock" value={formulario.stock} onChange={manejarCambio}
-            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Umbral Alerta Mínima</label>
-          <input disabled={!puedeEditar} type="number"
-            step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} min="0"
-            name="umbral_stock" value={formulario.umbral_stock} onChange={manejarCambio}
-            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Proveedores (Opcional)</label>
-        <ProveedoresManager
-          proveedores={formulario.proveedores}
-          onChange={(valor) => setFormulario(prev => ({ ...prev, proveedores: valor }))}
-          proveedoresExistentes={proveedoresExistentes}
-        />
-      </div>
-    </>
-  );
-
-  // ── Modal de categoría (compartido) ───────────────────────────────────────────
+  // Modal de categoría rápida (z-index alto para aparecer sobre el modal principal)
   const modalCategoria = modalCatAbierto && (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
       <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
@@ -311,13 +214,9 @@ export default function FormularioProducto({ usuario, modoModal = false, idProdu
           </div>
           <div className="flex justify-end space-x-2">
             <button type="button" onClick={() => setModalCatAbierto(false)}
-              className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition">
-              Cancelar
-            </button>
+              className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition">Cancelar</button>
             <button type="submit"
-              className="px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 transition">
-              Crear
-            </button>
+              className="px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 transition">Crear</button>
           </div>
         </form>
       </div>
@@ -326,7 +225,9 @@ export default function FormularioProducto({ usuario, modoModal = false, idProdu
 
   if (cargando) return <div className="p-8 text-center text-gray-500">Cargando datos...</div>;
 
-  // ── Modo modal: header fijo + campos con scroll + footer fijo ─────────────────
+  // ── Modo modal ────────────────────────────────────────────────────────────────
+  // Header fijo + campos compactos con scroll solo en mobile + footer fijo.
+  // En desktop todo el contenido cabe sin scroll gracias al layout 2 columnas.
   if (modoModal) {
     return (
       <>
@@ -343,37 +244,118 @@ export default function FormularioProducto({ usuario, modoModal = false, idProdu
           <h2 className="text-xl font-bold text-gray-900">
             {esEdicion ? 'Editar Producto' : 'Nuevo Producto'}
           </h2>
-          <button
-            type="button"
-            onClick={onCerrar}
-            className="text-gray-400 hover:text-gray-700 transition-colors p-1 rounded-lg hover:bg-gray-100"
-          >
+          <button type="button" onClick={onCerrar}
+            className="text-gray-400 hover:text-gray-700 transition-colors p-1 rounded-lg hover:bg-gray-100">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Campos con scroll */}
-        <form id="fresco-producto-form" onSubmit={guardarProducto} className="flex-1 overflow-y-auto px-6 py-5 space-y-4 custom-scrollbar">
-          {camposFormulario}
+        {/* Campos: scroll solo en mobile; en desktop todo cabe */}
+        <form
+          id="fresco-producto-form"
+          onSubmit={guardarProducto}
+          className="flex-1 overflow-y-auto px-6 py-4 space-y-3 custom-scrollbar"
+        >
+          {/* Código de barras — ancho completo */}
+          <CodigoBarrasField
+            value={formulario.codigo_barras}
+            onChange={(valor) => setFormulario(prev => ({ ...prev, codigo_barras: valor }))}
+            onBlur={() => buscarMaestro(formulario.codigo_barras)}
+            onScan={(codigo) => { setFormulario(prev => ({ ...prev, codigo_barras: codigo })); buscarMaestro(codigo); }}
+            disabled={!puedeEditarTodo}
+          />
+
+          {/* Marca + Nombre — 2 columnas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <SugerenciasInput
+              label="Marca *"
+              name="marca"
+              value={formulario.marca}
+              onChange={(valor) => setFormulario(prev => ({ ...prev, marca: valor }))}
+              sugerencias={sugerenciasMarca}
+              onSeleccionar={(item) => setFormulario(prev => ({ ...prev, marca: item }))}
+              placeholder="Ej: Coca-Cola, Soprole..."
+              required
+            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Nombre *</label>
+              <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+
+          {/* Categoría — ancho completo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Categoría *</label>
+            <select required name="categoria" value={formulario.categoria} onChange={manejarCambio}
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 bg-white">
+              <option value="">Seleccione...</option>
+              {categorias.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.nombre} ({cat.codigo})</option>
+              ))}
+              <option value="NUEVA_CAT" className="font-bold text-blue-600 bg-blue-50">➕ Crear nueva categoría...</option>
+            </select>
+          </div>
+
+          {/* Precio + Tipo Venta — 2 columnas */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Precio (CLP) *</label>
+              <input disabled={!puedeEditar} required type="number" min="0" name="precio"
+                value={formulario.precio} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Tipo Venta *</label>
+              <select disabled={!puedeEditar} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                <option value="UNIDAD">Unidad</option>
+                <option value="GRANEL">Granel</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Stock + Umbral — 2 columnas */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Stock {formulario.tipo_venta !== 'UNIDAD' && '(kg)'}
+              </label>
+              <input disabled={!puedeEditar} type="number"
+                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'}
+                name="stock" value={formulario.stock} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Umbral Alerta</label>
+              <input disabled={!puedeEditar} type="number"
+                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} min="0"
+                name="umbral_stock" value={formulario.umbral_stock} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+            </div>
+          </div>
+
+          {/* Proveedores — ancho completo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Proveedores (Opcional)</label>
+            <ProveedoresManager
+              proveedores={formulario.proveedores}
+              onChange={(valor) => setFormulario(prev => ({ ...prev, proveedores: valor }))}
+              proveedoresExistentes={proveedoresExistentes}
+            />
+          </div>
         </form>
 
-        {/* Footer fijo */}
+        {/* Footer */}
         <div className="flex justify-end gap-3 px-6 py-4 border-t flex-none">
-          <button
-            type="button"
-            onClick={onCerrar}
-            className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition"
-          >
+          <button type="button" onClick={onCerrar}
+            className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
             Cancelar
           </button>
-          <button
-            type="submit"
-            form="fresco-producto-form"
-            disabled={!puedeEditar && esEdicion}
-            className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded transition disabled:opacity-50"
-          >
+          <button type="submit" form="fresco-producto-form" disabled={!puedeEditar && esEdicion}
+            className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded transition disabled:opacity-50">
             Guardar Producto
           </button>
         </div>
@@ -397,7 +379,87 @@ export default function FormularioProducto({ usuario, modoModal = false, idProdu
         </h2>
 
         <form onSubmit={guardarProducto} className="space-y-5">
-          {camposFormulario}
+          <CodigoBarrasField
+            value={formulario.codigo_barras}
+            onChange={(valor) => setFormulario(prev => ({ ...prev, codigo_barras: valor }))}
+            onBlur={() => buscarMaestro(formulario.codigo_barras)}
+            onScan={(codigo) => { setFormulario(prev => ({ ...prev, codigo_barras: codigo })); buscarMaestro(codigo); }}
+            disabled={!puedeEditarTodo}
+          />
+
+          <SugerenciasInput
+            label="Marca *"
+            name="marca"
+            value={formulario.marca}
+            onChange={(valor) => setFormulario(prev => ({ ...prev, marca: valor }))}
+            sugerencias={sugerenciasMarca}
+            onSeleccionar={(item) => setFormulario(prev => ({ ...prev, marca: item }))}
+            placeholder="Ej: Coca-Cola, Soprole..."
+            required
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
+            <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio}
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Categoría *</label>
+            <select required name="categoria" value={formulario.categoria} onChange={manejarCambio}
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 bg-white">
+              <option value="">Seleccione...</option>
+              {categorias.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.nombre} ({cat.codigo})</option>
+              ))}
+              <option value="NUEVA_CAT" className="font-bold text-blue-600 bg-blue-50">➕ Crear nueva categoría...</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Precio (CLP) *</label>
+              <input disabled={!puedeEditar} required type="number" min="0" name="precio"
+                value={formulario.precio} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Tipo Venta *</label>
+              <select disabled={!puedeEditar} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+                <option value="UNIDAD">Unidad</option>
+                <option value="GRANEL">Granel</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Stock Actual {formulario.tipo_venta !== 'UNIDAD' && '(Kilos, max 2 decimales)'}
+              </label>
+              <input disabled={!puedeEditar} type="number"
+                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'}
+                name="stock" value={formulario.stock} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Umbral Alerta Mínima</label>
+              <input disabled={!puedeEditar} type="number"
+                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} min="0"
+                name="umbral_stock" value={formulario.umbral_stock} onChange={manejarCambio}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Proveedores (Opcional)</label>
+            <ProveedoresManager
+              proveedores={formulario.proveedores}
+              onChange={(valor) => setFormulario(prev => ({ ...prev, proveedores: valor }))}
+              proveedoresExistentes={proveedoresExistentes}
+            />
+          </div>
 
           <div className="flex justify-end space-x-4 pt-4 border-t mt-6">
             <button type="button" onClick={() => navigate('/inventario')}
