@@ -8,6 +8,7 @@ import { categoriasService } from '../services/categorias';
 import { logError } from '../utils/logger';
 import ProductoFila from './catalogo/ProductoFila';
 import ConfirmarEliminarModal from './ui/ConfirmarEliminarModal';
+import FormularioProducto from './FormularioProducto';
 
 export default function CatalogoProductos({ usuario }) {
   const [productos, setProductos] = useState([]);
@@ -21,6 +22,8 @@ export default function CatalogoProductos({ usuario }) {
   const [errorEliminar, setErrorEliminar] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [configOrden, setConfigOrden] = useState({ clave: null, direccion: 'asc' });
+  const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const PAGE_SIZE = 50;
   const navigate = useNavigate();
@@ -48,7 +51,7 @@ export default function CatalogoProductos({ usuario }) {
       .then(res => { setProductos(res.data.results); setTotalCount(res.data.count); })
       .catch(err => logError('CatalogoProductos', err))
       .finally(() => setCargando(false));
-  }, [paginaActual, debouncedTermino, categoriaActiva, configOrden]);
+  }, [paginaActual, debouncedTermino, categoriaActiva, configOrden, reloadKey]);
 
   useEffect(() => {
     setPaginaActual(1);
@@ -113,8 +116,9 @@ export default function CatalogoProductos({ usuario }) {
     navigate(`/inventario/editar/${id}`);
   };
 
-  const intentarNuevo = (e) => {
-    if (!esBodega()) { e.preventDefault(); mostrar('No tienes los permisos', 'error'); }
+  const intentarNuevo = () => {
+    if (!esBodega()) { mostrar('No tienes los permisos', 'error'); return; }
+    setModalNuevoAbierto(true);
   };
 
   const solicitarOrden = (clave) => {
@@ -162,10 +166,10 @@ export default function CatalogoProductos({ usuario }) {
               <span className="text-lg">🏷️</span>
             </Link>
           )}
-          <Link to="/inventario/nuevo" onClick={intentarNuevo} className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-4 py-2 rounded font-bold shadow transition flex items-center">
+          <button onClick={intentarNuevo} className="bg-[#91cf5b] hover:bg-[#7ab848] text-white px-4 py-2 rounded font-bold shadow transition flex items-center">
             <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
             Nuevo Producto
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -254,6 +258,30 @@ export default function CatalogoProductos({ usuario }) {
           </div>
         )}
       </div>
+
+      {/* Modal Nuevo Producto */}
+      {modalNuevoAbierto && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setModalNuevoAbierto(false)}
+        >
+          <div
+            className="bg-[var(--color-fondo)] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <FormularioProducto
+              usuario={usuario}
+              modoModal
+              onSuccess={() => {
+                setModalNuevoAbierto(false);
+                setReloadKey(k => k + 1);
+                mostrar('Producto creado exitosamente', 'success');
+              }}
+              onCerrar={() => setModalNuevoAbierto(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

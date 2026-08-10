@@ -9,9 +9,10 @@ import ProveedoresManager from './form/ProveedoresManager';
 import { productosService } from '../services/productos';
 import { categoriasService } from '../services/categorias';
 
-export default function FormularioProducto({ usuario }) {
+export default function FormularioProducto({ usuario, modoModal = false, onSuccess, onCerrar }) {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id: routeId } = useParams();
+  const id = modoModal ? undefined : routeId;
   const esEdicion = Boolean(id);
 
   const { notificacion, mostrar } = useNotificacion();
@@ -69,7 +70,7 @@ export default function FormularioProducto({ usuario }) {
         }
       } catch {
         mostrar('Error al cargar la información', 'error');
-        setTimeout(() => navigate('/inventario'), 1500);
+        if (!modoModal) setTimeout(() => navigate('/inventario'), 1500);
       } finally {
         setCargando(false);
       }
@@ -140,11 +141,16 @@ export default function FormularioProducto({ usuario }) {
       if (esEdicion) {
         await productosService.actualizar(id, payload);
         mostrar('Producto actualizado exitosamente', 'success');
+        setTimeout(() => navigate('/inventario'), 1500);
       } else {
         await productosService.crear(payload);
-        mostrar('Producto creado exitosamente', 'success');
+        if (modoModal) {
+          onSuccess?.();
+        } else {
+          mostrar('Producto creado exitosamente', 'success');
+          setTimeout(() => navigate('/inventario'), 1500);
+        }
       }
-      setTimeout(() => navigate('/inventario'), 1500);
     } catch (error) {
       const data = error.response?.data || {};
 
@@ -302,7 +308,7 @@ export default function FormularioProducto({ usuario }) {
           </div>
 
           <div className="flex justify-end space-x-4 pt-4 border-t mt-6">
-            <button type="button" onClick={() => navigate('/inventario')}
+            <button type="button" onClick={() => modoModal ? onCerrar?.() : navigate('/inventario')}
               className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
               Cancelar
             </button>
