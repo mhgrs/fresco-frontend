@@ -22,7 +22,7 @@ export default function CatalogoProductos({ usuario }) {
   const [errorEliminar, setErrorEliminar] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
   const [configOrden, setConfigOrden] = useState({ clave: null, direccion: 'asc' });
-  const [modalNuevoAbierto, setModalNuevoAbierto] = useState(false);
+  const [modalForm, setModalForm] = useState(null); // null | 'nuevo' | id (editar)
   const [reloadKey, setReloadKey] = useState(0);
 
   const PAGE_SIZE = 50;
@@ -113,12 +113,12 @@ export default function CatalogoProductos({ usuario }) {
 
   const intentarEditar = (id) => {
     if (!esSupervisor()) { mostrar('No tienes los permisos', 'error'); return; }
-    navigate(`/inventario/editar/${id}`);
+    setModalForm(id);
   };
 
   const intentarNuevo = () => {
     if (!esBodega()) { mostrar('No tienes los permisos', 'error'); return; }
-    setModalNuevoAbierto(true);
+    setModalForm('nuevo');
   };
 
   const solicitarOrden = (clave) => {
@@ -259,25 +259,27 @@ export default function CatalogoProductos({ usuario }) {
         )}
       </div>
 
-      {/* Modal Nuevo Producto */}
-      {modalNuevoAbierto && (
+      {/* Modal Nuevo / Editar Producto */}
+      {modalForm !== null && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          onClick={() => setModalNuevoAbierto(false)}
+          onClick={() => setModalForm(null)}
         >
           <div
-            className="bg-[var(--color-fondo)] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-[var(--color-fondo)] rounded-xl w-full max-w-2xl flex flex-col shadow-2xl"
+            style={{ height: 'min(90vh, 720px)' }}
             onClick={e => e.stopPropagation()}
           >
             <FormularioProducto
               usuario={usuario}
               modoModal
-              onSuccess={() => {
-                setModalNuevoAbierto(false);
+              idProducto={modalForm === 'nuevo' ? undefined : modalForm}
+              onSuccess={(accion) => {
+                setModalForm(null);
                 setReloadKey(k => k + 1);
-                mostrar('Producto creado exitosamente', 'success');
+                mostrar(accion === 'actualizado' ? 'Producto actualizado exitosamente' : 'Producto creado exitosamente', 'success');
               }}
-              onCerrar={() => setModalNuevoAbierto(false)}
+              onCerrar={() => setModalForm(null)}
             />
           </div>
         </div>

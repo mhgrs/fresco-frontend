@@ -9,15 +9,15 @@ import ProveedoresManager from './form/ProveedoresManager';
 import { productosService } from '../services/productos';
 import { categoriasService } from '../services/categorias';
 
-export default function FormularioProducto({ usuario, modoModal = false, onSuccess, onCerrar }) {
+export default function FormularioProducto({ usuario, modoModal = false, idProducto, onSuccess, onCerrar }) {
   const navigate = useNavigate();
   const { id: routeId } = useParams();
-  const id = modoModal ? undefined : routeId;
+  const id = modoModal ? idProducto : routeId;
   const esEdicion = Boolean(id);
 
   const { notificacion, mostrar } = useNotificacion();
   const { tiene } = usePermisos(usuario);
-  const puedeEditar    = tiene('inventario.editar_producto');
+  const puedeEditar     = tiene('inventario.editar_producto');
   const puedeEditarTodo = tiene('inventario.editar_producto');
 
   const [categorias, setCategorias] = useState([]);
@@ -93,7 +93,6 @@ export default function FormularioProducto({ usuario, modoModal = false, onSucce
       const res = await productosService.consultarMaestro(codigo);
       if (res.data) {
         const { nombre_estandarizado, marca, categoria: catNombre } = res.data;
-        // Intentar mapear la categoría del maestro a una categoría cargada (por nombre)
         const catEncontrada = catNombre
           ? categorias.find(c => c.nombre.toLowerCase() === catNombre.toLowerCase())
           : null;
@@ -114,7 +113,7 @@ export default function FormularioProducto({ usuario, modoModal = false, onSucce
           return prev;
         });
       }
-    } catch { /* 404 → producto nuevo, sin datos globales */ }
+    } catch { /* 404 → producto nuevo */ }
   };
 
   const guardarProducto = async (e) => {
@@ -140,12 +139,16 @@ export default function FormularioProducto({ usuario, modoModal = false, onSucce
     try {
       if (esEdicion) {
         await productosService.actualizar(id, payload);
-        mostrar('Producto actualizado exitosamente', 'success');
-        setTimeout(() => navigate('/inventario'), 1500);
+        if (modoModal) {
+          onSuccess?.('actualizado');
+        } else {
+          mostrar('Producto actualizado exitosamente', 'success');
+          setTimeout(() => navigate('/inventario'), 1500);
+        }
       } else {
         await productosService.crear(payload);
         if (modoModal) {
-          onSuccess?.();
+          onSuccess?.('creado');
         } else {
           mostrar('Producto creado exitosamente', 'success');
           setTimeout(() => navigate('/inventario'), 1500);
@@ -154,7 +157,6 @@ export default function FormularioProducto({ usuario, modoModal = false, onSucce
     } catch (error) {
       const data = error.response?.data || {};
 
-      // Errores por campo que devuelve DRF (ej. codigo_barras duplicado, precio < 1)
       const camposMensaje = {
         codigo_barras: 'Ya existe un producto con este código de barras',
         precio:        'El valor debe ser igual o mayor a 1',
@@ -203,8 +205,183 @@ export default function FormularioProducto({ usuario, modoModal = false, onSucce
     }
   };
 
+  // ── Campos del formulario (compartidos entre modal y página completa) ──────────
+  const camposFormulario = (
+    <>
+      <CodigoBarrasField
+        value={formulario.codigo_barras}
+        onChange={(valor) => setFormulario(prev => ({ ...prev, codigo_barras: valor }))}
+        onBlur={() => buscarMaestro(formulario.codigo_barras)}
+        onScan={(codigo) => {
+          setFormulario(prev => ({ ...prev, codigo_barras: codigo }));
+          buscarMaestro(codigo);
+        }}
+        disabled={!puedeEditarTodo}
+      />
+
+      <SugerenciasInput
+        label="Marca *"
+        name="marca"
+        value={formulario.marca}
+        onChange={(valor) => setFormulario(prev => ({ ...prev, marca: valor }))}
+        sugerencias={sugerenciasMarca}
+        onSeleccionar={(item) => setFormulario(prev => ({ ...prev, marca: item }))}
+        placeholder="Ej: Coca-Cola, Soprole..."
+        required
+      />
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
+        <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio}
+          className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Categoría *</label>
+        <select required name="categoria" value={formulario.categoria} onChange={manejarCambio}
+          className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 bg-white">
+          <option value="">Seleccione...</option>
+          {categorias.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.nombre} ({cat.codigo})</option>
+          ))}
+          <option value="NUEVA_CAT" className="font-bold text-blue-600 bg-blue-50">
+            ➕ Crear nueva categoría...
+          </option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Precio (CLP) *</label>
+          <input disabled={!puedeEditar} required type="number" min="0" name="precio"
+            value={formulario.precio} onChange={manejarCambio}
+            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Tipo Venta *</label>
+          <select disabled={!puedeEditar} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio}
+            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
+            <option value="UNIDAD">Unidad</option>
+            <option value="GRANEL">Granel</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Stock Actual {formulario.tipo_venta !== 'UNIDAD' && '(Kilos, max 2 decimales)'}
+          </label>
+          <input disabled={!puedeEditar} type="number"
+            step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'}
+            name="stock" value={formulario.stock} onChange={manejarCambio}
+            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Umbral Alerta Mínima</label>
+          <input disabled={!puedeEditar} type="number"
+            step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} min="0"
+            name="umbral_stock" value={formulario.umbral_stock} onChange={manejarCambio}
+            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Proveedores (Opcional)</label>
+        <ProveedoresManager
+          proveedores={formulario.proveedores}
+          onChange={(valor) => setFormulario(prev => ({ ...prev, proveedores: valor }))}
+          proveedoresExistentes={proveedoresExistentes}
+        />
+      </div>
+    </>
+  );
+
+  // ── Modal de categoría (compartido) ───────────────────────────────────────────
+  const modalCategoria = modalCatAbierto && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+      <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+        <h3 className="text-xl font-bold mb-4 border-b pb-2">Nueva Categoría</h3>
+        <form onSubmit={guardarNuevaCategoria}>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+            <input required autoFocus type="text" value={nuevaCat.nombre}
+              onChange={(e) => setNuevaCat({ ...nuevaCat, nombre: e.target.value })}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <button type="button" onClick={() => setModalCatAbierto(false)}
+              className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition">
+              Cancelar
+            </button>
+            <button type="submit"
+              className="px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 transition">
+              Crear
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
   if (cargando) return <div className="p-8 text-center text-gray-500">Cargando datos...</div>;
 
+  // ── Modo modal: header fijo + campos con scroll + footer fijo ─────────────────
+  if (modoModal) {
+    return (
+      <>
+        {notificacion.visible && (
+          <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded shadow-lg text-white font-bold ${notificacion.tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+            {notificacion.mensaje}
+          </div>
+        )}
+
+        {modalCategoria}
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b flex-none">
+          <h2 className="text-xl font-bold text-gray-900">
+            {esEdicion ? 'Editar Producto' : 'Nuevo Producto'}
+          </h2>
+          <button
+            type="button"
+            onClick={onCerrar}
+            className="text-gray-400 hover:text-gray-700 transition-colors p-1 rounded-lg hover:bg-gray-100"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Campos con scroll */}
+        <form id="fresco-producto-form" onSubmit={guardarProducto} className="flex-1 overflow-y-auto px-6 py-5 space-y-4 custom-scrollbar">
+          {camposFormulario}
+        </form>
+
+        {/* Footer fijo */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t flex-none">
+          <button
+            type="button"
+            onClick={onCerrar}
+            className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            form="fresco-producto-form"
+            disabled={!puedeEditar && esEdicion}
+            className="bg-[#91cf5b] hover:bg-[#7ab848] text-white font-bold py-2 px-6 rounded transition disabled:opacity-50"
+          >
+            Guardar Producto
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  // ── Modo página completa ───────────────────────────────────────────────────────
   return (
     <div className="p-6 h-full flex justify-center bg-[var(--color-fondo)] overflow-y-auto relative transition-colors duration-500">
 
@@ -220,95 +397,10 @@ export default function FormularioProducto({ usuario, modoModal = false, onSucce
         </h2>
 
         <form onSubmit={guardarProducto} className="space-y-5">
-          <CodigoBarrasField
-            value={formulario.codigo_barras}
-            onChange={(valor) => setFormulario(prev => ({ ...prev, codigo_barras: valor }))}
-            onBlur={() => buscarMaestro(formulario.codigo_barras)}
-            onScan={(codigo) => {
-              setFormulario(prev => ({ ...prev, codigo_barras: codigo }));
-              buscarMaestro(codigo);
-            }}
-            disabled={!puedeEditarTodo}
-          />
-
-          <SugerenciasInput
-            label="Marca *"
-            name="marca"
-            value={formulario.marca}
-            onChange={(valor) => setFormulario(prev => ({ ...prev, marca: valor }))}
-            sugerencias={sugerenciasMarca}
-            onSeleccionar={(item) => setFormulario(prev => ({ ...prev, marca: item }))}
-            placeholder="Ej: Coca-Cola, Soprole..."
-            required
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nombre del Producto *</label>
-            <input required type="text" name="nombre" value={formulario.nombre} onChange={manejarCambio}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Categoría *</label>
-            <select required name="categoria" value={formulario.categoria} onChange={manejarCambio}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 bg-white">
-              <option value="">Seleccione...</option>
-              {categorias.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.nombre} ({cat.codigo})</option>
-              ))}
-              <option value="NUEVA_CAT" className="font-bold text-blue-600 bg-blue-50">
-                ➕ Crear nueva categoría...
-              </option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Precio (CLP) *</label>
-              <input disabled={!puedeEditar} required type="number" min="0" name="precio"
-                value={formulario.precio} onChange={manejarCambio}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Tipo Venta *</label>
-              <select disabled={!puedeEditar} name="tipo_venta" value={formulario.tipo_venta} onChange={manejarCambio}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500">
-                <option value="UNIDAD">Unidad</option>
-                <option value="GRANEL">Granel</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Stock Actual {formulario.tipo_venta !== 'UNIDAD' && '(Kilos, max 2 decimales)'}
-              </label>
-              <input disabled={!puedeEditar} type="number"
-                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'}
-                name="stock" value={formulario.stock} onChange={manejarCambio}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Umbral Alerta Mínima</label>
-              <input disabled={!puedeEditar} type="number"
-                step={formulario.tipo_venta === 'UNIDAD' ? '1' : '0.01'} min="0"
-                name="umbral_stock" value={formulario.umbral_stock} onChange={manejarCambio}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Proveedores (Opcional)</label>
-            <ProveedoresManager
-              proveedores={formulario.proveedores}
-              onChange={(valor) => setFormulario(prev => ({ ...prev, proveedores: valor }))}
-              proveedoresExistentes={proveedoresExistentes}
-            />
-          </div>
+          {camposFormulario}
 
           <div className="flex justify-end space-x-4 pt-4 border-t mt-6">
-            <button type="button" onClick={() => modoModal ? onCerrar?.() : navigate('/inventario')}
+            <button type="button" onClick={() => navigate('/inventario')}
               className="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded hover:bg-gray-300 transition">
               Cancelar
             </button>
@@ -320,33 +412,7 @@ export default function FormularioProducto({ usuario, modoModal = false, onSucce
         </form>
       </div>
 
-      {/* Modal creación rápida de categoría */}
-      {modalCatAbierto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
-            <h3 className="text-xl font-bold mb-4 border-b pb-2">Nueva Categoría</h3>
-            <form onSubmit={guardarNuevaCategoria}>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                <input required autoFocus type="text" value={nuevaCat.nombre}
-                  onChange={(e) => setNuevaCat({ ...nuevaCat, nombre: e.target.value })}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button type="button"
-                  onClick={() => setModalCatAbierto(false)}
-                  className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition">
-                  Cancelar
-                </button>
-                <button type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 transition">
-                  Crear
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {modalCategoria}
     </div>
   );
 }
