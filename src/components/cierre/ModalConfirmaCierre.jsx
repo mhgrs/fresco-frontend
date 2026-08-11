@@ -22,7 +22,7 @@ export default function ModalConfirmaCierre({ reporte, turno, onClose, onSuccess
     setCerrando(true);
     setError('');
     try {
-      const res = await ventasService.cerrarTurno(turno.id, hayConteo ? contado : efectivoEsperado, notas);
+      const res = await ventasService.cerrarTurno(turno.id, contado, notas);
       localStorage.removeItem('turno_cache');
       setTurnoCerrado(res.data);
     } catch (err) {
@@ -125,9 +125,13 @@ export default function ModalConfirmaCierre({ reporte, turno, onClose, onSuccess
           className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#91cf5b] bg-white"
           autoFocus
         />
-        {hayConteo && (
+        {hayConteo ? (
           <p className="text-xs mt-1.5">
             Diferencia: <Semaforo diferencia={diferencia} />
+          </p>
+        ) : (
+          <p className="text-xs mt-1.5 text-amber-600 font-medium">
+            Ingresa el efectivo contado para poder cerrar el turno.
           </p>
         )}
       </div>
@@ -152,7 +156,7 @@ export default function ModalConfirmaCierre({ reporte, turno, onClose, onSuccess
           className="flex-1 py-2.5 bg-gray-100 rounded-full font-bold text-gray-700 hover:bg-gray-200 transition-all text-sm">
           Volver
         </button>
-        <button onClick={handleCerrar} disabled={cerrando}
+        <button onClick={handleCerrar} disabled={cerrando || !hayConteo}
           className="flex-1 py-2.5 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-700 transition-all text-sm active:scale-95 disabled:opacity-50">
           {cerrando ? 'Cerrando...' : 'Cerrar turno'}
         </button>

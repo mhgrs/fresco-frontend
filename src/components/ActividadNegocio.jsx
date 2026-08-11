@@ -20,11 +20,23 @@ function Skeleton() {
   );
 }
 
+const META_INIT = { page: 1, total: 0, hasMore: false };
+
+function parsePaged(response) {
+  const data = response.data;
+  if (data && typeof data === 'object' && 'results' in data) {
+    return { items: data.results ?? [], total: data.count ?? 0, hasMore: !!data.next };
+  }
+  const items = data ?? [];
+  return { items, total: items.length, hasMore: false };
+}
+
 export default function ActividadNegocio() {
   const [fechaDesde, setFechaDesde] = useState(hoy());
   const [fechaHasta, setFechaHasta] = useState(hoy());
   const [tabActiva, setTabActiva]   = useState('ventas');
   const [cargando, setCargando]     = useState(true);
+  const [cargandoMas, setCargandoMas] = useState(false);
   const [detalle, setDetalle]       = useState(null);
   const [errorFecha, setErrorFecha] = useState('');
 
@@ -32,6 +44,10 @@ export default function ActividadNegocio() {
   const [turnos,  setTurnos]  = useState([]);
   const [movCaja, setMovCaja] = useState([]);
   const [movInv,  setMovInv]  = useState([]);
+
+  const [ventasMeta,  setVentasMeta]  = useState(META_INIT);
+  const [turnosMeta,  setTurnosMeta]  = useState(META_INIT);
+  const [movCajaMeta, setMovCajaMeta] = useState(META_INIT);
 
   const buscar = useCallback(async () => {
     if (fechaDesde > fechaHasta) {
@@ -47,12 +63,49 @@ export default function ActividadNegocio() {
       ventasService.listarMovimientosCaja(params),
       productosService.listarMovimientos(params),
     ]);
-    if (r1.status === 'fulfilled') setVentas(r1.value.data?.results ?? r1.value.data ?? []);
-    if (r2.status === 'fulfilled') setTurnos(r2.value.data?.results ?? r2.value.data ?? []);
-    if (r3.status === 'fulfilled') setMovCaja(r3.value.data?.results ?? r3.value.data ?? []);
+    if (r1.status === 'fulfilled') {
+      const { items, total, hasMore } = parsePaged(r1.value);
+      setVentas(items); setVentasMeta({ page: 1, total, hasMore });
+    }
+    if (r2.status === 'fulfilled') {
+      const { items, total, hasMore } = parsePaged(r2.value);
+      setTurnos(items); setTurnosMeta({ page: 1, total, hasMore });
+    }
+    if (r3.status === 'fulfilled') {
+      const { items, total, hasMore } = parsePaged(r3.value);
+      setMovCaja(items); setMovCajaMeta({ page: 1, total, hasMore });
+    }
     if (r4.status === 'fulfilled') setMovInv(r4.value.data ?? []);
     setCargando(false);
   }, [fechaDesde, fechaHasta]);
+
+  const cargarMas = useCallback(async () => {
+    setCargandoMas(true);
+    const params = { fecha_desde: fechaDesde, fecha_hasta: fechaHasta };
+    try {
+      if (tabActiva === 'ventas' && ventasMeta.hasMore) {
+        const nextPage = ventasMeta.page + 1;
+        const res = await ventasService.listarHistorial({ ...params, page: nextPage });
+        const { items, total, hasMore } = parsePaged(res);
+        setVentas(prev => [...prev, ...items]);
+        setVentasMeta({ page: nextPage, total, hasMore });
+      } else if (tabActiva === 'turnos' && turnosMeta.hasMore) {
+        const nextPage = turnosMeta.page + 1;
+        const res = await ventasService.listarTurnos({ ...params, page: nextPage });
+        const { items, total, hasMore } = parsePaged(res);
+        setTurnos(prev => [...prev, ...items]);
+        setTurnosMeta({ page: nextPage, total, hasMore });
+      } else if (tabActiva === 'movcaja' && movCajaMeta.hasMore) {
+        const nextPage = movCajaMeta.page + 1;
+        const res = await ventasService.listarMovimientosCaja({ ...params, page: nextPage });
+        const { items, total, hasMore } = parsePaged(res);
+        setMovCaja(prev => [...prev, ...items]);
+        setMovCajaMeta({ page: nextPage, total, hasMore });
+      }
+    } finally {
+      setCargandoMas(false);
+    }
+  }, [tabActiva, fechaDesde, fechaHasta, ventasMeta, turnosMeta, movCajaMeta]);
 
   useEffect(() => { buscar(); }, []);
 
@@ -72,10 +125,10 @@ export default function ActividadNegocio() {
   const abrirMovInv  = (m) => setDetalle({ tipo: 'movinv',  titulo: `Movimiento de Inventario`,                     cargando: false, contenido: <DetalleMovInv mov={m} /> });
 
   const TABS = [
-    { key: 'ventas',  label: 'Ventas',             count: ventas.length },
-    { key: 'turnos',  label: 'Turnos de Caja',     count: turnos.length },
-    { key: 'movcaja', label: 'Mov. de Caja',       count: movCaja.length },
-    { key: 'movinv',  label: 'Mov. de Inventario', count: movInv.length },
+    { key: 'ventas',  label: 'Ventas',             count: ventas.length,   total: ventasMeta.total,  hasMore: ventasMeta.hasMore },
+    { key: 'turnos',  label: 'Turnos de Caja',     count: turnos.length,   total: turnosMeta.total,  hasMore: turnosMeta.hasMore },
+    { key: 'movcaja', label: 'Mov. de Caja',       count: movCaja.length,  total: movCajaMeta.total, hasMore: movCajaMeta.hasMore },
+    { key: 'movinv',  label: 'Mov. de Inventario', count: movInv.length,   total: movInv.length,     hasMore: false },
   ];
 
   return (
@@ -119,21 +172,38 @@ export default function ActividadNegocio() {
             {t.label}
             {!cargando && (
               <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${tabActiva === t.key ? 'bg-[#91cf5b] text-white' : 'bg-gray-300 text-gray-600'}`}>
-                {t.count}
+                {t.hasMore ? `${t.count} / ${t.total}` : t.count}
               </span>
             )}
           </button>
         ))}
       </div>
 
-      <div className="flex-1 bg-white/60 backdrop-blur-md border border-white/80 rounded-3xl shadow-sm overflow-hidden anim-fade">
+      <div className="flex-1 bg-white/60 backdrop-blur-md border border-white/80 rounded-3xl shadow-sm overflow-hidden anim-fade flex flex-col">
         {cargando ? <Skeleton /> : (
-          <div className="overflow-x-auto overflow-y-auto max-h-[55vh] custom-scrollbar">
-            {tabActiva === 'ventas'  && <TabVentas  ventas={ventas}   onRowClick={abrirVenta} />}
-            {tabActiva === 'turnos'  && <TabTurnos  turnos={turnos}   onRowClick={abrirTurno} />}
-            {tabActiva === 'movcaja' && <TabMovCaja movCaja={movCaja} onRowClick={abrirMovCaja} />}
-            {tabActiva === 'movinv'  && <TabMovInv  movInv={movInv}   onRowClick={abrirMovInv} />}
-          </div>
+          <>
+            <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
+              {tabActiva === 'ventas'  && <TabVentas  ventas={ventas}   onRowClick={abrirVenta} />}
+              {tabActiva === 'turnos'  && <TabTurnos  turnos={turnos}   onRowClick={abrirTurno} />}
+              {tabActiva === 'movcaja' && <TabMovCaja movCaja={movCaja} onRowClick={abrirMovCaja} />}
+              {tabActiva === 'movinv'  && <TabMovInv  movInv={movInv}   onRowClick={abrirMovInv} />}
+            </div>
+
+            {TABS.find(t => t.key === tabActiva)?.hasMore && (
+              <div className="flex-none border-t border-gray-100 px-6 py-3 flex items-center justify-between bg-white/60">
+                <span className="text-xs text-gray-400 font-medium">
+                  Mostrando {TABS.find(t => t.key === tabActiva)?.count} de {TABS.find(t => t.key === tabActiva)?.total} resultados
+                </span>
+                <button
+                  onClick={cargarMas}
+                  disabled={cargandoMas}
+                  className="px-4 py-1.5 bg-gray-900 hover:bg-gray-700 text-white text-xs font-bold rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {cargandoMas ? 'Cargando…' : 'Cargar más'}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

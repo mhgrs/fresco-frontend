@@ -4,7 +4,7 @@ export const ventasService = {
   // Ventas
   crear:           (datos)   => api.post('inventario/ventas/', datos),
   reporteZ:        ()        => api.get('inventario/ventas/reporte_z/'),
-  metricas:        ()        => api.get('inventario/ventas/metricas/'),
+  metricas:        (params)  => api.get('inventario/ventas/metricas/', { params }),
   listarHistorial: (params)  => api.get('inventario/ventas/', { params }),
 
   // Turno de caja

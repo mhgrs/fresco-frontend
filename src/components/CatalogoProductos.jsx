@@ -92,8 +92,14 @@ export default function CatalogoProductos({ usuario }) {
       setProductos(productos.filter(p => p.id !== confirmarEliminar.id));
       setTotalCount(c => c - 1);
       setConfirmarEliminar({ visible: false, id: null, nombre: '' });
-    } catch {
-      setErrorEliminar('No se puede eliminar porque tiene historial de ventas.');
+    } catch (err) {
+      if (err.response?.status === 403 || err.response?.status === 401) {
+        setErrorEliminar('No tienes permisos para eliminar este producto.');
+      } else if (!err.response) {
+        setErrorEliminar('Sin conexión. Verifica tu red e intenta nuevamente.');
+      } else {
+        setErrorEliminar(err.response?.data?.error || 'No se puede eliminar porque tiene historial de ventas.');
+      }
     } finally {
       setEliminando(false);
     }

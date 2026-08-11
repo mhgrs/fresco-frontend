@@ -24,28 +24,49 @@ export default function MovimientosInventario({ usuario }) {
     productoPreseleccionado ? [{ producto: productoPreseleccionado, cantidad: '' }] : []
   );
   const [procesando, setProcesando] = useState(false);
+
+  // Historial filters
+  const hoy = () => new Date().toISOString().split('T')[0];
+  const hace30 = () => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split('T')[0]; };
+  const [histFechaDesde, setHistFechaDesde] = useState(hace30());
+  const [histFechaHasta, setHistFechaHasta] = useState(hoy());
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
+
   const debouncedBusqueda = useDebounce(busqueda, 250);
   const agregandoRef = useRef(false);
 
   const cargarDatos = async () => {
     try {
-      const [resProd, resMov] = await Promise.all([
-        productosService.listar(),
-        productosService.movimientos()
-      ]);
+      const resProd = await productosService.listar();
       setProductos(resProd.data.filter(p => p.esta_activo));
-      setMovimientos(resMov.data);
     } catch (error) {
       logError('MovimientosInventario', error);
-      mostrar('Error al cargar los datos', 'error');
+      mostrar('Error al cargar los productos', 'error');
     } finally {
       setCargando(false);
+    }
+  };
+
+  const cargarHistorial = async (desde, hasta) => {
+    setCargandoHistorial(true);
+    try {
+      const res = await productosService.listarMovimientos({ fecha_desde: desde, fecha_hasta: hasta });
+      setMovimientos(res.data?.results ?? res.data ?? []);
+    } catch (error) {
+      logError('MovimientosInventario historial', error);
+      mostrar('Error al cargar el historial', 'error');
+    } finally {
+      setCargandoHistorial(false);
     }
   };
 
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  useEffect(() => {
+    if (tabActiva === 'historial') cargarHistorial(histFechaDesde, histFechaHasta);
+  }, [tabActiva]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Limpiar resultados inmediatamente al borrar el campo
   useEffect(() => {
@@ -305,17 +326,61 @@ export default function MovimientosInventario({ usuario }) {
 
           </div>
         ) : (
-          <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
-            <div className="flex-1 overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-white/60 sticky top-0 shadow-sm backdrop-blur-md">
-                  <tr><th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th><th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Usuario</th><th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th><th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th><th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Cantidad</th><th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Detalles</th></tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {movimientos.map(mov => (<tr key={mov.id} className="hover:bg-white/40 transition-colors"><td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{mov.fecha}</td><td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{mov.usuario}</td><td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-bold text-gray-900">{mov.producto_nombre}</div><div className="text-xs text-gray-500 font-mono">{mov.producto_sku}</div></td><td className="px-6 py-4 whitespace-nowrap text-center"><span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${mov.tipo === 'INGRESO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{mov.tipo}</span></td><td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-700">{mov.tipo === 'INGRESO' ? '+' : '-'}{mov.producto_tipo_venta === 'UNIDAD' ? Math.round(mov.cantidad) : Number(mov.cantidad).toFixed(2)}</td><td className="px-6 py-4 text-sm text-gray-600">{mov.tipo === 'RETIRO' && (<><span className="font-semibold text-gray-800">{mov.motivo}</span>{mov.descripcion && <span className="block text-xs mt-0.5 text-gray-500 truncate max-w-xs" title={mov.descripcion}>{mov.descripcion}</span>}</>)}</td></tr>))}
-                  {movimientos.length === 0 && (<tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500 font-medium">No hay movimientos registrados.</td></tr>)}
-                </tbody>
-              </table>
+          <div className="flex flex-col gap-4 flex-1 overflow-hidden">
+            {/* Filtro de fechas del historial */}
+            <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-sm p-4 flex flex-col sm:flex-row gap-3 items-end flex-shrink-0">
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Desde</label>
+                <input type="date" value={histFechaDesde} max={histFechaHasta}
+                  onChange={e => setHistFechaDesde(e.target.value)}
+                  className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 font-semibold focus:ring-2 focus:ring-[#91cf5b] outline-none text-sm" />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Hasta</label>
+                <input type="date" value={histFechaHasta} min={histFechaDesde} max={hoy()}
+                  onChange={e => setHistFechaHasta(e.target.value)}
+                  className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 font-semibold focus:ring-2 focus:ring-[#91cf5b] outline-none text-sm" />
+              </div>
+              <button onClick={() => cargarHistorial(histFechaDesde, histFechaHasta)} disabled={cargandoHistorial}
+                className="px-5 py-2 bg-[#91cf5b] hover:bg-[#7ab848] text-white font-black rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap text-sm">
+                {cargandoHistorial ? 'Cargando…' : 'Buscar'}
+              </button>
+            </div>
+
+            <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/50 rounded-lg shadow-md flex-1 overflow-hidden flex flex-col">
+              {cargandoHistorial ? (
+                <div className="p-8 text-center text-gray-500 font-medium animate-pulse">Cargando historial...</div>
+              ) : (
+                <div className="flex-1 overflow-y-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-white/60 sticky top-0 shadow-sm backdrop-blur-md">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Usuario</th>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
+                        <th className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Cantidad</th>
+                        <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Detalles</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {movimientos.map(mov => (
+                        <tr key={mov.id} className="hover:bg-white/40 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{mov.fecha}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{mov.usuario}</td>
+                          <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-bold text-gray-900">{mov.producto_nombre}</div><div className="text-xs text-gray-500 font-mono">{mov.producto_sku}</div></td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center"><span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${mov.tipo === 'INGRESO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{mov.tipo}</span></td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-700">{mov.tipo === 'INGRESO' ? '+' : '-'}{mov.producto_tipo_venta === 'UNIDAD' ? Math.round(mov.cantidad) : Number(mov.cantidad).toFixed(2)}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{mov.tipo === 'RETIRO' && (<><span className="font-semibold text-gray-800">{mov.motivo}</span>{mov.descripcion && <span className="block text-xs mt-0.5 text-gray-500 truncate max-w-xs" title={mov.descripcion}>{mov.descripcion}</span>}</>)}</td>
+                        </tr>
+                      ))}
+                      {movimientos.length === 0 && (
+                        <tr><td colSpan="6" className="px-6 py-8 text-center text-gray-500 font-medium">No hay movimientos en el rango seleccionado.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}

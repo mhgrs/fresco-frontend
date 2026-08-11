@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import CartItem from './CartItem';
 
 export default function CartPanel({
@@ -5,6 +6,7 @@ export default function CartPanel({
   onCambiarCantidad, onValidarCantidad, onActualizarBotones, onQuitar,
   onVaciar, onCobrar,
 }) {
+  const [confirmVaciar, setConfirmVaciar] = useState(false);
   return (
     <div className="w-5/12 bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-2xl sm:rounded-3xl flex flex-col shadow-2xl h-full overflow-hidden">
       <div className="pt-2 pl-3 flex-none flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-1 sm:gap-2">
@@ -13,16 +15,30 @@ export default function CartPanel({
         </div>
         <div className="flex gap-2 pr-2 self-end sm:self-auto">
           {carrito.length > 0 && (
-            <button
-              onClick={onVaciar}
-              title="Vaciar todo el carrito"
-              className="text-[10px] sm:text-xs text-red-500 hover:bg-red-100 hover:text-red-600 font-bold flex items-center transition-colors p-1 sm:p-2 rounded-lg"
-            >
-              <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Vaciar
-            </button>
+            confirmVaciar ? (
+              <div className="flex items-center gap-1.5 p-1 sm:p-2">
+                <span className="text-[10px] sm:text-xs text-gray-500 font-medium">¿Vaciar?</span>
+                <button
+                  onClick={() => { onVaciar(); setConfirmVaciar(false); }}
+                  className="text-[10px] sm:text-xs text-red-600 font-black hover:underline"
+                >Sí</button>
+                <button
+                  onClick={() => setConfirmVaciar(false)}
+                  className="text-[10px] sm:text-xs text-gray-400 font-bold hover:underline"
+                >No</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmVaciar(true)}
+                title="Vaciar todo el carrito"
+                className="text-[10px] sm:text-xs text-red-500 hover:bg-red-100 hover:text-red-600 font-bold flex items-center transition-colors p-1 sm:p-2 rounded-lg"
+              >
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Vaciar
+              </button>
+            )
           )}
         </div>
       </div>

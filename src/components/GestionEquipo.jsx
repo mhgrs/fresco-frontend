@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { usuariosService } from '../services/usuarios';
 import { empresasService } from '../services/empresas';
@@ -21,6 +21,9 @@ export default function GestionEquipo({ usuario }) {
   const [copiado, setCopiado]             = useState('');
   const { notificacion, mostrar }         = useNotificacion();
   const { tiene }                         = usePermisos(usuario);
+  const pendingTimers   = useRef({});
+  const pendingRoles    = useRef({});
+  const originalRoles   = useRef({});
 
   useEffect(() => {
     (async () => {
@@ -40,15 +43,34 @@ export default function GestionEquipo({ usuario }) {
   }, []);
 
   const handleCheckbox = (userId, roleName, checked) => {
-    const usuario = equipo.find(u => u.id === userId);
-    if (!usuario) return;
-    const newRoles = checked
-      ? [...usuario.roles, roleName]
-      : usuario.roles.filter(r => r !== roleName);
+    const user = equipo.find(u => u.id === userId);
+    if (!user) return;
+
+    if (!pendingTimers.current[userId]) {
+      originalRoles.current[userId] = [...user.roles];
+    }
+
+    const base = pendingRoles.current[userId] ?? user.roles;
+    const newRoles = checked ? [...base, roleName] : base.filter(r => r !== roleName);
+    pendingRoles.current[userId] = newRoles;
+
     setEquipo(prev => prev.map(u => u.id === userId ? { ...u, roles: newRoles } : u));
-    usuariosService.actualizarRoles(userId, newRoles).catch(() => {
-      setEquipo(prev => prev.map(u => u.id === userId ? { ...u, roles: usuario.roles } : u));
-    });
+
+    clearTimeout(pendingTimers.current[userId]);
+    pendingTimers.current[userId] = setTimeout(async () => {
+      const rolesToSend = pendingRoles.current[userId];
+      try {
+        await usuariosService.actualizarRoles(userId, rolesToSend);
+      } catch {
+        setEquipo(prev => prev.map(u => u.id === userId
+          ? { ...u, roles: originalRoles.current[userId] ?? user.roles }
+          : u));
+        mostrar('Error al guardar roles. Los cambios fueron revertidos.', 'error');
+      }
+      delete pendingTimers.current[userId];
+      delete pendingRoles.current[userId];
+      delete originalRoles.current[userId];
+    }, 400);
   };
 
   const copiar = (texto, tipo) => {

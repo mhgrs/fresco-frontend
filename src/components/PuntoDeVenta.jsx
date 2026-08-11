@@ -20,6 +20,7 @@ export default function PuntoDeVenta({ usuario }) {
   const [selectedIndex, setSelectedIndex]           = useState(-1);
   const [ticketVenta, setTicketVenta]               = useState(null);
   const [estadoCaja, setEstadoCaja]                 = useState('verificando');
+  const [procesando, setProcesando]                 = useState(false);
   const { notificacion, mostrar }                   = useNotificacion();
 
   const catalogoStorage    = useLocalStorage('catalogo_offline');
@@ -155,7 +156,8 @@ export default function PuntoDeVenta({ usuario }) {
   };
 
   const procesarVenta = async (metodoPago, totalRedondeado, imprimirTicket = true) => {
-    if (carrito.length === 0) return;
+    if (carrito.length === 0 || procesando) return;
+    setProcesando(true);
     const payloadVenta = {
       offline_id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
       total: totalRedondeado,
@@ -210,6 +212,8 @@ export default function PuntoDeVenta({ usuario }) {
         const msgError = errorData?.error ?? (typeof errorData === 'object' ? 'Error de validación (Revisa la consola)' : 'Error al registrar la venta');
         mostrar(msgError, 'error');
       }
+    } finally {
+      setProcesando(false);
     }
   };
 
@@ -252,7 +256,7 @@ export default function PuntoDeVenta({ usuario }) {
             total={totalCarrito} carrito={carrito}
             onConfirmar={procesarVenta}
             onCerrar={() => setModalAbierto(false)}
-            procesando={false}
+            procesando={procesando}
           />
         )}
 

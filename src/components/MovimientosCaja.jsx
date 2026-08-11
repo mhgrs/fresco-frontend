@@ -3,6 +3,7 @@ import { ventasService } from '../services/ventas';
 import ModalMovimiento from './pos/ModalMovimiento';
 import { formatCLP } from '../utils/format';
 import { logError } from '../utils/logger';
+import { useNotificacion } from '../hooks/useNotificacion';
 
 export default function MovimientosCaja() {
   const [cargando, setCargando] = useState(true);
@@ -13,6 +14,7 @@ export default function MovimientosCaja() {
   
   const [modalMovimiento, setModalMovimiento] = useState(null);
   const [eliminando, setEliminando] = useState(null);
+  const { notificacion, mostrar } = useNotificacion();
 
   const cargarEstado = useCallback(async () => {
     setCargando(true);
@@ -60,7 +62,7 @@ export default function MovimientosCaja() {
       await ventasService.eliminarMovimiento(id);
       cargarEstado();
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al eliminar.');
+      mostrar(err.response?.data?.error || 'Error al eliminar.', 'error');
     } finally {
       setEliminando(null);
     }
@@ -73,6 +75,11 @@ export default function MovimientosCaja() {
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto min-h-full bg-[var(--color-fondo)] transition-colors duration-500">
+      {notificacion.visible && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] px-6 py-3 rounded-xl shadow-lg text-white font-bold transition-all ${notificacion.tipo === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+          {notificacion.mensaje}
+        </div>
+      )}
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-black text-gray-800 tracking-tight">Movimientos de Caja</h1>
         <p className="text-gray-500 text-sm font-medium mt-1">Registra ingresos y retiros de efectivo no vinculados a ventas</p>

@@ -1,10 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ventasService } from '../services/ventas';
 import ChartModal from './reportes/ChartModal';
 import TabRendimiento from './reportes/TabRendimiento';
 import TabInventario from './reportes/TabInventario';
 import ModalStockBajo from './reportes/ModalStockBajo';
 import { logError } from '../utils/logger';
+
+function hace30Dias() {
+  const d = new Date();
+  d.setDate(d.getDate() - 30);
+  return d.toISOString().split('T')[0];
+}
+function hoy() {
+  return new Date().toISOString().split('T')[0];
+}
 
 export default function Reportes() {
   const [metricas, setMetricas]         = useState(null);
@@ -13,19 +22,28 @@ export default function Reportes() {
   const [tabActiva, setTabActiva]       = useState('rendimiento');
   const [chartConfig, setChartConfig]   = useState(null);
   const [stockBajoOpen, setStockBajoOpen] = useState(false);
+  const [fechaDesde, setFechaDesde]     = useState(hace30Dias());
+  const [fechaHasta, setFechaHasta]     = useState(hoy());
 
-  useEffect(() => {
-    Promise.all([
-      ventasService.metricas(),
-      ventasService.reporteZ().catch(() => null),
-    ])
-      .then(([metRes, zRes]) => {
-        setMetricas(metRes.data);
-        if (zRes) setReporteZ(zRes.data);
-      })
-      .catch(err => logError('Reportes', err))
-      .finally(() => setCargando(false));
+  const cargarDatos = useCallback(async (desde, hasta) => {
+    setCargando(true);
+    try {
+      const [metRes, zRes] = await Promise.all([
+        ventasService.metricas({ fecha_desde: desde, fecha_hasta: hasta }),
+        ventasService.reporteZ().catch(() => null),
+      ]);
+      setMetricas(metRes.data);
+      if (zRes) setReporteZ(zRes.data);
+    } catch (err) {
+      logError('Reportes', err);
+    } finally {
+      setCargando(false);
+    }
   }, []);
+
+  useEffect(() => { cargarDatos(fechaDesde, fechaHasta); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleBuscar = () => cargarDatos(fechaDesde, fechaHasta);
 
   if (cargando) {
     return (
@@ -66,7 +84,7 @@ export default function Reportes() {
     <div className="p-4 sm:p-6 lg:p-8 h-full w-full max-w-[1400px] mx-auto flex flex-col bg-[var(--color-fondo)] relative transition-colors duration-500">
       <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.anim-fade{animation:fadeIn 0.4s ease-out forwards}`}</style>
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
         <div>
           <h1 className="text-2xl sm:text-4xl font-black text-gray-800 tracking-tight">Reportes del Negocio</h1>
           <p className="text-gray-500 mt-1 font-medium">Visualiza el rendimiento de tus ventas e inventario.</p>
@@ -81,6 +99,25 @@ export default function Reportes() {
         </div>
       </div>
 
+      <div className="bg-white/60 backdrop-blur-md border border-white/80 rounded-2xl shadow-sm p-3 sm:p-4 mb-5 flex flex-col sm:flex-row gap-3 items-end flex-shrink-0">
+        <div className="flex-1">
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Desde</label>
+          <input type="date" value={fechaDesde} max={fechaHasta}
+            onChange={e => setFechaDesde(e.target.value)}
+            className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-semibold focus:ring-2 focus:ring-[#91cf5b] outline-none transition text-sm" />
+        </div>
+        <div className="flex-1">
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Hasta</label>
+          <input type="date" value={fechaHasta} min={fechaDesde} max={hoy()}
+            onChange={e => setFechaHasta(e.target.value)}
+            className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 font-semibold focus:ring-2 focus:ring-[#91cf5b] outline-none transition text-sm" />
+        </div>
+        <button onClick={handleBuscar} disabled={cargando}
+          className="px-5 py-2.5 bg-[#91cf5b] hover:bg-[#7ab848] text-white font-black rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-50 whitespace-nowrap text-sm">
+          {cargando ? 'Cargando…' : 'Actualizar'}
+        </button>
+      </div>
+
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
         {tabActiva === 'rendimiento' && (
           <TabRendimiento
@@ -90,6 +127,8 @@ export default function Reportes() {
             tendencia7d={tendencia7d}
             datos30d={datos30d}
             tieneTurno={reporteZ?.tiene_turno}
+            fechaDesde={fechaDesde}
+            fechaHasta={fechaHasta}
             onVentasHoyClick={setChartConfig}
             onVentasMesClick={() => setChartConfig({ data: metricas.historico_diario_mes, xKey: 'fecha', yKey: 'total', lineDataKey: 'tx_count', title: 'Ventas Diarias del Mes', barName: 'Ventas', lineName: 'Transacciones', color: '#8884d8' })}
             onVentasHistoricasClick={() => setChartConfig({ data: metricas.historico_semanal, xKey: 'fecha', yKey: 'total', lineDataKey: 'tx_count', title: 'Ventas Semanales (Histórico)', barName: 'Ventas', lineName: 'Transacciones', color: '#a368d8' })}

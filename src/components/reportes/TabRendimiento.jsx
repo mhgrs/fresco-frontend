@@ -9,6 +9,7 @@ import { METODOS_PAGO } from '../../constants/metodoPago';
 
 export default function TabRendimiento({
   metricas, desgloseOrdenado, totalDesglose, tendencia7d, datos30d, tieneTurno,
+  fechaDesde, fechaHasta,
   onVentasHoyClick, onVentasMesClick, onVentasHistoricasClick,
 }) {
   const ticketHoy = metricas.tx_hoy > 0 ? Math.round(metricas.ventas_hoy / metricas.tx_hoy) : 0;
@@ -94,7 +95,15 @@ export default function TabRendimiento({
 
       <section>
         <h3 className="text-lg font-bold text-gray-700 mb-4 px-1 flex items-center gap-2">
-          <span className="text-2xl">📅</span> Tendencia — Últimos 30 Días
+          <span className="text-2xl">📅</span>
+          {fechaDesde && fechaHasta
+            ? `Tendencia — ${fechaDesde} → ${fechaHasta}`
+            : 'Tendencia — Últimos 30 Días'}
+          {metricas.total_rango != null && (
+            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full ml-1">
+              {formatCLP(metricas.total_rango)} · {metricas.tx_rango} ventas
+            </span>
+          )}
         </h3>
         <div className="bg-[var(--color-tarjeta)] backdrop-blur-md border border-white/60 rounded-3xl shadow-sm p-4 sm:p-6">
           {datos30d.length === 0 ? (
