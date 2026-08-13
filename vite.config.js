@@ -7,14 +7,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://www.frescopos.cl',
+        target: 'http://localhost:8000',
         changeOrigin: true,
-        secure: true,
       },
       '/fresco-admin': {
-        target: 'https://www.frescopos.cl',
+        target: 'http://localhost:8000',
         changeOrigin: true,
-        secure: true,
       },
     },
   },
