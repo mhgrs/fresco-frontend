@@ -126,7 +126,7 @@ describe('sincronizarVentas', () => {
     expect(startSpy.mock.calls[0][0].detail).toEqual({ total: 1 });
     
     expect(endSpy).toHaveBeenCalledOnce();
-    expect(endSpy.mock.calls[0][0].detail).toEqual({ exitosas: 1, fallidas: 0 });
+    expect(endSpy.mock.calls[0][0].detail).toEqual({ exitosas: 1, fallidas: 0, errores: [] });
 
     window.removeEventListener('sync_ventas_start', startSpy);
     window.removeEventListener('sync_ventas_end', endSpy);
