@@ -1,10 +1,15 @@
 import { ventasService } from '../services/ventas';
 
+// Mutex de módulo: impide que dos llamadas concurrentes (online + visibilitychange,
+// reintento periódico, etc.) envíen la misma venta al backend al mismo tiempo.
+let _corriendo = false;
+
 /**
  * Sincroniza las ventas guardadas offline en localStorage con el backend.
  *
+ * - Rechaza invocaciones concurrentes (lock de módulo) para evitar duplicados.
  * - Lee la cola de `ventas_offline` de localStorage.
- * - Intenta enviar cada venta al backend (omitiendo offline_id temporal).
+ * - Envía cada venta incluyendo offline_id; el backend la usa para idempotencia.
  * - Las ventas enviadas exitosamente se eliminan de la cola de a una,
  *   para no sobreescribir nuevas ventas que pudieran llegar mientras sincroniza.
  *
@@ -14,6 +19,10 @@ import { ventasService } from '../services/ventas';
  * @returns {{ exitosas: number, fallidas: number }}
  */
 export async function sincronizarVentas({ storage = localStorage, crearVenta = (v) => ventasService.crear(v) } = {}) {
+  if (_corriendo) return { exitosas: 0, fallidas: 0 };
+  _corriendo = true;
+
+  try {
   const ventasOffline = JSON.parse(storage.getItem('ventas_offline')) || [];
   if (ventasOffline.length === 0) return { exitosas: 0, fallidas: 0 };
 
@@ -28,10 +37,9 @@ export async function sincronizarVentas({ storage = localStorage, crearVenta = (
 
   for (const venta of ventasOffline) {
     try {
-      const payload = { ...venta };
-      delete payload.offline_id;
-
-      await crearVenta(payload);
+      // offline_id se envía al backend para garantizar idempotencia:
+      // si la venta ya existe, el backend devuelve 200 en lugar de crearla de nuevo.
+      await crearVenta(venta);
       exitosas++;
 
       // Eliminar la venta sincronizada de la cola de a una
@@ -65,4 +73,7 @@ export async function sincronizarVentas({ storage = localStorage, crearVenta = (
   }
 
   return { exitosas, fallidas };
+  } finally {
+    _corriendo = false;
+  }
 }

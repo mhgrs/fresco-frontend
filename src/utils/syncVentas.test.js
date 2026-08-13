@@ -27,7 +27,7 @@ describe('sincronizarVentas', () => {
     expect(result).toEqual({ exitosas: 0, fallidas: 0 });
   });
 
-  it('envía cada venta al backend sin offline_id', async () => {
+  it('envía cada venta al backend incluyendo offline_id (para idempotencia)', async () => {
     const v1 = venta('id-1');
     const storage = makeStorage({ ventas_offline: JSON.stringify([v1]) });
     const crearVenta = vi.fn().mockResolvedValue({});
@@ -36,8 +36,28 @@ describe('sincronizarVentas', () => {
 
     expect(crearVenta).toHaveBeenCalledOnce();
     const payloadEnviado = crearVenta.mock.calls[0][0];
-    expect(payloadEnviado.offline_id).toBeUndefined();
+    expect(payloadEnviado.offline_id).toBe('id-1');
     expect(payloadEnviado.total).toBe(1000);
+  });
+
+  it('bloquea ejecuciones paralelas (lock de módulo)', async () => {
+    const v1 = venta('id-1');
+    const storage = makeStorage({ ventas_offline: JSON.stringify([v1]) });
+
+    let resolverVenta;
+    const crearVenta = vi.fn().mockReturnValue(new Promise(r => { resolverVenta = r; }));
+
+    // Primera sync: arranca pero queda en vuelo (await crearVenta no resuelve aún)
+    const primera = sincronizarVentas({ storage, crearVenta });
+
+    // Segunda sync inmediata: debe rechazar por lock activo
+    const segunda = await sincronizarVentas({ storage, crearVenta });
+    expect(segunda).toEqual({ exitosas: 0, fallidas: 0 });
+    expect(crearVenta).toHaveBeenCalledTimes(1); // solo la primera llamó al backend
+
+    // Liberar la primera y esperar que termine (resetea el lock)
+    resolverVenta({});
+    await primera;
   });
 
   it('elimina la venta de la cola tras sincronizarla', async () => {
