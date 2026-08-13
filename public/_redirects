@@ -1,3 +1,2 @@
-# Admin y archivos estáticos de Django — redirige al backend en Render
-/fresco-admin/*  https://pos-system-wfog.onrender.com/fresco-admin/:splat  301
-/static/*        https://pos-system-wfog.onrender.com/static/:splat        301
+# El proxy de /api/*, /fresco-admin/* y /static/* lo maneja worker.js directamente.
+# Este archivo no requiere reglas adicionales.
