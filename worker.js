@@ -9,12 +9,25 @@ export default {
     const shouldProxy = PROXY_PREFIXES.some(p => url.pathname.startsWith(p));
 
     if (shouldProxy) {
-      const target = new Request(BACKEND + url.pathname + url.search, {
+      const response = await fetch(BACKEND + url.pathname + url.search, {
         method: request.method,
         headers: request.headers,
         body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
+        redirect: 'manual',
       });
-      return fetch(target);
+
+      // Si el backend redirige usando su propia URL (Railway), reescribir al dominio público
+      // para que el navegador no quede apuntando directamente al backend.
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('Location');
+        if (location && location.startsWith(BACKEND)) {
+          const headers = new Headers(response.headers);
+          headers.set('Location', location.replace(BACKEND, url.origin));
+          return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+        }
+      }
+
+      return response;
     }
 
     const response = await env.ASSETS.fetch(request);
